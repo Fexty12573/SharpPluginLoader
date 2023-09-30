@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<BaseOutputPath>bin\</BaseOutputPath>
+	</PropertyGroup>
+	<Target Name="AfterBuild" AfterTargets="Build">
+		<Message Text="Copying Dll to loader directory" Importance="High"/>
+		<Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="F:\SteamLibrary\steamapps\common\Monster Hunter World\nativePC\plugins\CSharp\Loader" ContinueOnError="true"/>
+	</Target>
 </Project>

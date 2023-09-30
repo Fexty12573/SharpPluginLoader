@@ -23,9 +23,6 @@ void dlog::impl::log(dlog::impl::LogLevel level, const std::string& msg) {
 
     SetConsoleTextAttribute(s_console, level); // See LogLevel enum
     WriteConsoleA(s_console, msg.data(), (UINT)msg.size(), nullptr, nullptr);
+    WriteConsoleA(s_console, "\n", 1, nullptr, nullptr);
     SetConsoleTextAttribute(s_console, 0);
-}
-
-extern "C" static void public_log_interface(int level, const char* msg) {
-    dlog::impl::log((dlog::impl::LogLevel)level, msg);
 }

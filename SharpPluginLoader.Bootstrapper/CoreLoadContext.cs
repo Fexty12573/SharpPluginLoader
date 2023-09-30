@@ -19,9 +19,20 @@ namespace SharpPluginLoader.Bootstrapper
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
+            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Loading {assemblyName.Name}");
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] AssemblyPath: {assemblyPath}");
             var assembly = assemblyPath != null ? LoadFromAssemblyPath(assemblyPath) : null;
-            return assembly ?? Default.LoadFromAssemblyName(assemblyName);
+            if (assembly != null)
+            {
+                EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Assembly Loaded: {assembly.GetName().Name}");
+                return assembly;
+            }
+
+            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Attempting Default ALC load for {assemblyName.Name}");
+            assembly = Default.LoadFromAssemblyName(assemblyName);
+            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Default ALC loaded: {assembly.GetName().Name}");
+            return assembly;
         }
 
         protected override nint LoadUnmanagedDll(string unmanagedDllName)

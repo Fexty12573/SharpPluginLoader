@@ -1,28 +1,51 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Bootstrapper
 {
-    public class EntryPoint
+    public unsafe class EntryPoint
     {
         private static CoreLoadContext? _loadContext;
         private static Assembly? _coreAssembly;
+        private static delegate* unmanaged<int, nint, void> _logFunc;
+
+        private delegate void InitializeDelegate(delegate* unmanaged<int, nint, void> logFunc, nint pointers);
 
         [UnmanagedCallersOnly]
-        public static void Initialize()
+        public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint outData)
         {
+            _logFunc = logFunc;
+            Log(LogLevel.Info, "[Bootstrapper] Initializing SharpPluginLoader.Core");
+            
             try
             {
-                _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/SharpPluginLoader.Core.dll"));
+#if DEBUG
+                _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Core.Debug.dll"));
+                _coreAssembly = _loadContext.LoadFromAssemblyName(new AssemblyName("SharpPluginLoader.Core.Debug"));
+                Log(LogLevel.Info, $"[Bootstrapper] {_coreAssembly.FullName}");
+#else
+                _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Core.dll"));
                 _coreAssembly = _loadContext.LoadFromAssemblyName(new AssemblyName("SharpPluginLoader.Core"));
+#endif
             }
             catch (Exception e)
             {
-                Log(LogLevel.Error, $"Failed to load SharpPluginLoader.Core.dll: {e.Message}");
-                throw;
+                Log(LogLevel.Error, $"[Bootstrapper] Failed to load SharpPluginLoader.Core.dll: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
+                Log(LogLevel.Error, $"[Bootstrapper] Inner Exception: " + (e.InnerException != null ? e.InnerException.Message : "N/A"));
+                Log(LogLevel.Error, $"[Bootstrapper] Inner Exception Stracktrace: " + (e.InnerException != null ? e.InnerException.StackTrace : "N/A"));
+                return;
             }
-            
-            Log(LogLevel.Info, "SharpPluginLoader.Core.dll loaded into CoreLoadContext");
+
+            Log(LogLevel.Info, "[Bootstrapper] SharpPluginLoader.Core loaded");
+            var init = _coreAssembly.GetType("SharpPluginLoader.Core.NativeInterface")?.GetMethod("Initialize");
+            if (init == null)
+            {
+                Log(LogLevel.Error, "[Bootstrapper] Failed to find SharpPluginLoader.Core.NativeInterface.Initialize");
+                return;
+            }
+
+            init.CreateDelegate<InitializeDelegate>()(logFunc, outData);
         }
 
         [UnmanagedCallersOnly]
@@ -30,7 +53,7 @@ namespace SharpPluginLoader.Bootstrapper
         {
             if (_loadContext == null)
             {
-                Log(LogLevel.Warn, "Shutdown called before Initialize");
+                Log(LogLevel.Warn, "[Bootstrapper] Shutdown called before Initialize");
                 return;
             }
 
@@ -39,10 +62,14 @@ namespace SharpPluginLoader.Bootstrapper
             _coreAssembly = null;
         }
 
-        [LibraryImport("SharpPluginLoader.dll", EntryPoint = "public_log_interface", StringMarshalling = StringMarshalling.Utf8)]
-        private static extern void Log(LogLevel level, string message);
+        internal static void Log(LogLevel level, string message)
+        {
+            var str = Marshal.StringToHGlobalAnsi(message);
+            _logFunc((int)level, str);
+            Marshal.FreeHGlobal(str);
+        }
 
-        private enum LogLevel
+        public enum LogLevel
         {
             Debug = 10,
             Info = 7,

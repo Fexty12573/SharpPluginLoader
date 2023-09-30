@@ -15,7 +15,7 @@ private:
     load_assembly_fn m_load_assembly = nullptr;
     get_function_pointer_fn m_get_function_pointer = nullptr;
 
-    BootstrapperFn m_bootstrapper_initialize = nullptr;
+    void(*m_bootstrapper_initialize)(void(*)(int, const char*), void*) = nullptr;
     BootstrapperFn m_bootstrapper_shutdown = nullptr;
 };
 

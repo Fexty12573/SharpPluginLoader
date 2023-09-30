@@ -9,6 +9,15 @@
 
 #define GET_HOSTFXR_FUNCTION(var, func) const auto var = (func##_fn)GetProcAddress(m_hostfxr, #func)
 
+extern "C" static void public_log_interface(int level, const char* msg) {
+    dlog::impl::log((dlog::impl::LogLevel)level, msg);
+}
+
+struct ManagedFunctionPointers {
+    void(*Initialize)();
+    void(*OnUpdate)(float);
+};
+
 CoreClr::CoreClr() {
     char_t buffer[MAX_PATH];
     size_t buffer_size = MAX_PATH;
@@ -59,7 +68,11 @@ CoreClr::CoreClr() {
 
     close(ctx);
 
-    const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/SharpPluginLoader.Bootstrapper.dll");
+#ifdef _DEBUG
+    const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Bootstrapper.Debug.dll");
+#else
+    const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Bootstrapper.dll");
+#endif
 
     // Load the bootstrapper assembly into the default ALC
     hr = m_load_assembly(bootstrapper_path.c_str(), nullptr, nullptr);
@@ -90,7 +103,10 @@ CoreClr::CoreClr() {
         return;
     }
 
-    m_bootstrapper_initialize();
+    ManagedFunctionPointers managed_function_pointers{};
+    m_bootstrapper_initialize(public_log_interface, &managed_function_pointers);
 
-
+    managed_function_pointers.OnUpdate(0.1f);
+    managed_function_pointers.OnUpdate(0.3f);
+    managed_function_pointers.OnUpdate(0.05f);
 }

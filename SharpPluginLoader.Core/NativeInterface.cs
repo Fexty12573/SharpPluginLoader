@@ -7,8 +7,10 @@ namespace SharpPluginLoader.Core
         [StructLayout(LayoutKind.Sequential)]
         public struct ManagedFunctionPointers
         {
-            public delegate* unmanaged<void> ShutdownPtr;
-            public delegate* unmanaged<float, void> OnUpdatePtr;
+            public nint ShutdownPtr;
+            public nint OnUpdatePtr;
+            public nint ReloadPluginsPtr;
+            public nint ReloadPluginPtr;
         }
 
         public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
@@ -23,21 +25,30 @@ namespace SharpPluginLoader.Core
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
         {
             Log.Info("[Core] Retrieving function pointers");
-            pointers->ShutdownPtr = &Shutdown;
-            pointers->OnUpdatePtr = &OnUpdate;
+            pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(Shutdown);
+            pointers->OnUpdatePtr = Marshal.GetFunctionPointerForDelegate(OnUpdate);
+            pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(ReloadPlugins);
+            pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(ReloadPlugin);
         }
 
-        [UnmanagedCallersOnly]
         public static void Shutdown()
         {
             PluginManager.Instance.UnloadAllPlugins();
         }
 
-        [UnmanagedCallersOnly]
         public static void OnUpdate(float deltaTime)
         {
-            Log.Info($"OnUpdate: {deltaTime}s");
             PluginManager.Instance.InvokeOnUpdate(deltaTime);
+        }
+
+        public static void ReloadPlugins()
+        {
+            PluginManager.Instance.ReloadPlugins(PluginManager.DefaultPluginDirectory);
+        }
+
+        public static void ReloadPlugin([MarshalAs(UnmanagedType.LPStr)] string pluginName)
+        {
+            PluginManager.Instance.ReloadPlugin(pluginName);
         }
     }
 }

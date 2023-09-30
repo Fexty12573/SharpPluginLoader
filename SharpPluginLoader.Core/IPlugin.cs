@@ -9,7 +9,7 @@ namespace SharpPluginLoader.Core
     public struct PluginData
     {
         public bool OnUpdate;
-        public bool IsDebugScript;
+        public bool IsDebugPlugin;
     }
 
     public interface IPlugin

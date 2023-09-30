@@ -19,7 +19,7 @@ namespace SharpPluginLoader.Core
             Error = 12
         }
 
-        public static void Initialize(delegate* unmanaged<int, nint, void> logFunc) => _logFunc = logFunc;
+        internal static void Initialize(delegate* unmanaged<int, nint, void> logFunc) => _logFunc = logFunc;
 
         private static void DoLog(LogLevel level, string message)
         {

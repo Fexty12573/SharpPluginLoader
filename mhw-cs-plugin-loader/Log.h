@@ -14,6 +14,7 @@ enum LogLevel {
 };
 
 void log(LogLevel level, const std::string& msg);
+void log(LogLevel level, const std::wstring& msg);
 
 }
 
@@ -39,22 +40,22 @@ void error(const std::format_string<Args...>& fmt, Args&&... args) {
 
 template<typename ...Args>
 void debug(const std::wformat_string<Args...>& fmt, Args... args) {
-    impl::log(impl::LogLevel::Debug, std::vformat(fmt.get(), std::make_format_args(args...)));
+    impl::log(impl::LogLevel::Debug, std::vformat(fmt.get(), std::make_wformat_args(args...)));
 }
 
 template<typename ...Args>
 void info(const std::wformat_string<Args...>& fmt, Args... args) {
-    impl::log(impl::LogLevel::Info, std::vformat(fmt.get(), std::make_format_args(args...)));
+    impl::log(impl::LogLevel::Info, std::vformat(fmt.get(), std::make_wformat_args(args...)));
 }
 
 template<typename ...Args>
 void warn(const std::wformat_string<Args...>& fmt, Args... args) {
-    impl::log(impl::LogLevel::Warn, std::vformat(fmt.get(), std::make_format_args(args...)));
+    impl::log(impl::LogLevel::Warn, std::vformat(fmt.get(), std::make_wformat_args(args...)));
 }
 
 template<typename ...Args>
 void error(const std::wformat_string<Args...>& fmt, Args&&... args) {
-    impl::log(impl::LogLevel::Error, std::vformat(fmt.get(), std::make_format_args(args...)));
+    impl::log(impl::LogLevel::Error, std::vformat(fmt.get(), std::make_wformat_args(args...)));
 }
 
 }

@@ -17,7 +17,7 @@ namespace SharpPluginLoader.Core
         {
             public PluginLoadContext Context { get; init; }
             public Assembly Assembly { get; init; }
-            public IPlugin Plugin{ get; init; }
+            public IPlugin Plugin { get; init; }
             public PluginData Data { get; init; }
         }
 

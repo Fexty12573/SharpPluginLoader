@@ -3,10 +3,20 @@
 #include <Windows.h>
 #include "coreclr_delegates.h"
 
+#include <string_view>
+
 class CoreClr {
     using BootstrapperFn = void(*)();
 public:
     CoreClr();
+
+    template<typename TFunc>
+    TFunc* get_method(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const {
+        return static_cast<TFunc*>(get_method_internal(assembly, type, method));
+    }
+
+private:
+    void* get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const;
 
 private:
     HMODULE m_hostfxr = nullptr;

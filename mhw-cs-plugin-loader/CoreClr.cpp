@@ -6,6 +6,7 @@
 #include <nethost.h>
 
 #include <filesystem>
+#include <format>
 
 #define GET_HOSTFXR_FUNCTION(var, func) const auto var = (func##_fn)GetProcAddress(m_hostfxr, #func)
 
@@ -16,6 +17,8 @@ extern "C" static void public_log_interface(int level, const char* msg) {
 struct ManagedFunctionPointers {
     void(*Initialize)();
     void(*OnUpdate)(float);
+    void(*ReloadPlugins)();
+    void(*ReloadPlugin)(const char*);
 };
 
 CoreClr::CoreClr() {
@@ -109,4 +112,17 @@ CoreClr::CoreClr() {
     managed_function_pointers.OnUpdate(0.1f);
     managed_function_pointers.OnUpdate(0.3f);
     managed_function_pointers.OnUpdate(0.05f);
+}
+
+void* CoreClr::get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const {
+    void* function_pointer = nullptr;
+
+    const auto qualified_name = std::format(L"{}, {}", type, assembly);
+    const auto hr = m_get_function_pointer(qualified_name.c_str(), method.data(), UNMANAGEDCALLERSONLY_METHOD, nullptr, nullptr, &function_pointer);
+    if (FAILED(hr)) {
+        dlog::debug(L"Failed to get function pointer for {}.{}: {}", type, method, hr);
+        return nullptr;
+    }
+
+    return function_pointer;
 }

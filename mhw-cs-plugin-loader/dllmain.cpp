@@ -1,7 +1,7 @@
 #include "CoreClr.h"
 #include "Log.h"
 
-#include <Windows.h>
+#include <thread>
 
 
 static CoreClr* s_coreclr = nullptr;

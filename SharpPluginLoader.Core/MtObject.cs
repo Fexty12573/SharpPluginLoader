@@ -42,31 +42,5 @@ namespace SharpPluginLoader.Core
                 return new MtDti(((delegate* unmanaged[Fastcall]<nint>)GetVirtualFunction(4))());
             }
         }
-
-        public static bool operator ==(MtObject? left, MtObject? right)
-        {
-            if (ReferenceEquals(left, right))
-                return true;
-
-            if (left is null || right is null)
-                return false;
-
-            return left.Instance == right.Instance;
-        }
-
-        public static bool operator !=(MtObject? left, MtObject? right)
-        {
-            return !(left == right);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is MtObject other && this == other;
-        }
-
-        public override int GetHashCode()
-        {
-            return Instance.GetHashCode();
-        }
     }
 }

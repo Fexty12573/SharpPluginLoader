@@ -79,5 +79,66 @@ namespace SharpPluginLoader.Core
             Set(offset, value.Instance);
         }
 
+        public unsafe ref T GetRefInline<T>(nint offset) where T : unmanaged
+        {
+            return ref *(T*)(Instance + offset);
+        }
+
+        public unsafe T* GetPtrInline<T>(nint offset) where T : unmanaged
+        {
+            return (T*)(Instance + offset);
+        }
+
+        public static bool operator ==(NativeWrapper? left, NativeWrapper? right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+
+            if (left is null || right is null)
+                return false;
+
+            return left.Instance == right.Instance;
+        }
+
+        public static bool operator ==(NativeWrapper? left, nint right)
+        {
+            if (left is null)
+                return false;
+
+            return left.Instance == right;
+        }
+
+        public static bool operator ==(nint left, NativeWrapper? right)
+        {
+            if (right is null)
+                return false;
+
+            return left == right.Instance;
+        }
+
+        public static bool operator !=(NativeWrapper? left, nint right)
+        {
+            return !(left == right);
+        }
+
+        public static bool operator !=(nint left, NativeWrapper? right)
+        {
+            return !(left == right);
+        }
+
+        public static bool operator !=(NativeWrapper? left, NativeWrapper? right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is NativeWrapper other && this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            return Instance.GetHashCode();
+        }
     }
 }

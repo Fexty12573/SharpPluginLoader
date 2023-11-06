@@ -14,5 +14,34 @@
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="FASM\**" />
+	  <EmbeddedResource Remove="FASM\**" />
+	  <None Remove="FASM\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM-LICENSE.TXT" Link="FASM\FASM-LICENSE.TXT" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" Link="FASM\FASM.DLL" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASMX64.DLL" Link="FASM\FASMX64.DLL" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Hook.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
+	</ItemGroup>
 
 </Project>

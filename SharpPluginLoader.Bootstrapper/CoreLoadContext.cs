@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Loader;
+using SharpPluginLoader.Bootstrapper.Chunk;
 
 namespace SharpPluginLoader.Bootstrapper
 {
@@ -19,20 +20,33 @@ namespace SharpPluginLoader.Bootstrapper
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Loading {assemblyName.Name}");
+            EntryPoint.Log(EntryPoint.LogLevel.Debug, $"[Bootstrapper] Loading {assemblyName.Name}");
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] AssemblyPath: {assemblyPath}");
             var assembly = assemblyPath != null ? LoadFromAssemblyPath(assemblyPath) : null;
             if (assembly != null)
-            {
-                EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Assembly Loaded: {assembly.GetName().Name}");
                 return assembly;
-            }
 
-            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Attempting Default ALC load for {assemblyName.Name}");
+            assembly = LoadFromChunk(assemblyName);
+            if (assembly != null)
+                return assembly;
+
             assembly = Default.LoadFromAssemblyName(assemblyName);
-            EntryPoint.Log(EntryPoint.LogLevel.Info, $"[Bootstrapper] Default ALC loaded: {assembly.GetName().Name}");
             return assembly;
+        }
+
+        private Assembly? LoadFromChunk(AssemblyName assemblyName)
+        {
+            var chunk = ChunkManager.GetDefaultChunk();
+
+            try
+            {
+                var file = chunk.GetFile($"/Assemblies/{assemblyName.Name}.dll");
+                return LoadFromStream(new MemoryStream(file.Contents));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         protected override nint LoadUnmanagedDll(string unmanagedDllName)

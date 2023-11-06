@@ -83,6 +83,22 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        public IEnumerable<IPlugin> GetPlugins()
+        {
+            lock (_contexts)
+            {
+                return _contexts.Values.Select(context => context.Plugin);
+            }
+        }
+
+        public IEnumerable<IPlugin> GetPlugins(Func<PluginData, bool> predicate)
+        {
+            lock (_contexts)
+            {
+                return _contexts.Values.Where(context => predicate(context.Data)).Select(context => context.Plugin);
+            }
+        }
+
         public void InvokeOnUpdate(float deltaTime)
         {
             lock (_contexts)

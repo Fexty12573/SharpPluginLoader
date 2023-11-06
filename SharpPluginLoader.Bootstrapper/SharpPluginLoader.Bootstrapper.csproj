@@ -6,9 +6,14 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<BaseOutputPath>bin\</BaseOutputPath>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 	<Target Name="AfterBuild" AfterTargets="Build">
-		<Message Text="Copying Dll to loader directory" Importance="High"/>
-		<Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="F:\SteamLibrary\steamapps\common\Monster Hunter World\nativePC\plugins\CSharp\Loader" ContinueOnError="true"/>
+		<Message Text="Copying Dll to loader directory" Importance="High" />
+		<Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="F:\SteamLibrary\steamapps\common\Monster Hunter World\nativePC\plugins\CSharp\Loader" ContinueOnError="true" />
 	</Target>
 </Project>

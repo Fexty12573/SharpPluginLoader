@@ -20,3 +20,9 @@ into the default AssemblyLoadContext (ALC). The Bootstrapper then loads the core
 The `CoreLoadContext` resolves all dependencies either from the current directory, or via the Default ALC.
 
 The core assembly then loads all plugins into a custom ALC (`PluginLoadContext`) and resolves all dependencies from the `CoreLoadContext`. Each plugin is loaded into a separate ALC.
+
+
+## **Enabling C# Debugging**
+1. Make sure all projects are compiled in **Debug** mode.
+2. Open the `mhw-cs-plugin-loader` project properties, make sure the **Debug** configuration is selected and go to General > Debugging. Here set the Debugger Type to **Mixed (.NET Core)**.
+3. In the Attach to Process dialog, make sure **Managed (.NET Core, .NET 5+)** and **Native** are selected.

@@ -21,7 +21,9 @@ namespace SharpPluginLoader.Bootstrapper
             try
             {
 #if DEBUG
+                Log(LogLevel.Info, "Loading Core dll");
                 _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Core.Debug.dll"));
+                Log(LogLevel.Info, "Loading Core dll part 2");
                 _coreAssembly = _loadContext.LoadFromAssemblyName(new AssemblyName("SharpPluginLoader.Core.Debug"));
                 Log(LogLevel.Info, $"[Bootstrapper] {_coreAssembly.FullName}");
 #else

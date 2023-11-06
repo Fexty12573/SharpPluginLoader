@@ -111,8 +111,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
@@ -131,7 +131,7 @@
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(MEMLIB)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
@@ -143,15 +143,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp" />
     <ClCompile Include="CoreClr.cpp" />
+    <ClCompile Include="CoreModule.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="NativeModule.cpp" />
+    <ClCompile Include="NativePluginFramework.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h" />
     <ClInclude Include="coreclr_delegates.h" />
+    <ClInclude Include="CoreModule.h" />
     <ClInclude Include="hostfxr.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="NativeModule.h" />
+    <ClInclude Include="NativePluginFramework.h" />
+    <ClInclude Include="SharpPluginLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

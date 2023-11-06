@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SharpPluginLoader.Core": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

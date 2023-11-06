@@ -21,8 +21,8 @@ namespace SharpPluginLoader.Core
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            Log.Info($"PluginLoadContext loading {assemblyName.Name}...");
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            Log.Debug($"[{assemblyName}] Resolved Path: {assemblyPath}");
             var assembly = assemblyPath != null ? LoadFromAssemblyPath(assemblyPath) : null;
             return assembly ?? CurrentLoadContext.LoadFromAssemblyName(assemblyName);
         }

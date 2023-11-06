@@ -1,3 +1,4 @@
+#include "NativePluginFramework.h"
 #include "CoreClr.h"
 #include "Log.h"
 
@@ -5,12 +6,18 @@
 
 
 static CoreClr* s_coreclr = nullptr;
+static NativePluginFramework* s_framework = nullptr;
 
 static void initialize_loader() {
-    dlog::info("Initializing Loader...");
+    for (int i = 0; i < 10; ++i) {
+        dlog::info("Initializing Loader... {}", 10 - i);
+        Sleep(1000);
+    }
 
     s_coreclr = new CoreClr();
     dlog::info("Loader initialized");
+
+    s_framework = new NativePluginFramework(s_coreclr);
 }
 
 

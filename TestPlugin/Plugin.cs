@@ -12,10 +12,10 @@ namespace TestPlugin
         private unsafe void ChangePendantHook(nint equipCharmPtr, int pendantIndex, nint unk)
         {
             var getEquipBox = (delegate* unmanaged<nint, nint>)0x1410f6eb0;
-            var equipBox = new MtObject(getEquipBox(Gui.SingletonInstance));
-            var equipCharm = new MtObject(equipCharmPtr);
-            var pendantId = equipCharm.GetObject<MtObject>(0x36A8 + pendantIndex * 8)?.Get<short>(0x20) ?? -1;
-            var selectedEquip = equipCharm.GetObject<MtObject>(0x3DC8);
+            var equipBox = new GuiEquipBox(getEquipBox(Gui.SingletonInstance));
+            var equipCharm = new GuiEquipCharm(equipCharmPtr);
+            var pendantId = equipCharm.GetPendantIdAt(pendantIndex);
+            var selectedEquip = equipCharm.SelectedEquipment;
 
             if (selectedEquip == null)
             {
@@ -23,17 +23,17 @@ namespace TestPlugin
                 return;
             }
 
-            var weapons = equipBox.GetPtrInline<nint>(0x4408); // (nint*)(equipBox.Instance + 0x4408);
-            var weaponCount = equipBox.Get<int>(0x9228);
+            var weapons = equipBox.Weapons;
+            var weaponCount = equipBox.WeaponCount;
 
-            var equippedPendantId = selectedEquip.Get<int>(0x64);
+            var equippedPendantId = selectedEquip.Pendant;
             if (equippedPendantId == -1 || equippedPendantId != pendantId)
             {
                 for (var i = 0; i < weaponCount; ++i)
                 {
                     // If we assign this here the game will unequip it immediately after
                     if (weapons[i] != selectedEquip)
-                        *(int*)(weapons[i] + 0x64) = pendantId;
+                        weapons[i].Pendant = pendantId;
                 }
             }
             else // Unequip all pendants
@@ -41,7 +41,7 @@ namespace TestPlugin
                 for (var i = 0; i < weaponCount; ++i)
                 {
                     if (weapons[i] != selectedEquip)
-                        *(int*)(weapons[i] + 0x64) = -1;
+                        weapons[i].Pendant = -1;
                 }
             }
 

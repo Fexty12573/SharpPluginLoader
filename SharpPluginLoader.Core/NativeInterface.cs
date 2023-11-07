@@ -94,7 +94,7 @@ namespace SharpPluginLoader.Core
                     return 0;
                 }
 
-                var method = type.GetMethod(methodName);
+                var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
                 if (method == null)
                 {
                     Log.Error($"[Core] Failed to find method {methodName} in type {typeName}");

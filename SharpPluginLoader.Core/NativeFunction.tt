@@ -88,13 +88,13 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Invokes the function pointer.
         /// </summary>
-        public unsafe void Invoke() => ((delegate* unmanaged[Fastcall]<void>)_funcPtr)();
+        public unsafe void Invoke() => ((delegate* unmanaged<void>)_funcPtr)();
 
         /// <summary>
         /// Invokes the function pointer without transitioning the Garbage Collector. Use this for very short functions.
         /// </summary>
         /// <remarks> See <see href="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute"/></remarks>
-        public unsafe void InvokeUnsafe() => ((delegate* unmanaged[Fastcall, SuppressGCTransition]<void>)_funcPtr)();
+        public unsafe void InvokeUnsafe() => ((delegate* unmanaged[SuppressGCTransition]<void>)_funcPtr)();
     }
     <#
 for (int i = 0; i < templates.Length; i++)
@@ -124,13 +124,13 @@ for (int i = 0; i < templates.Length; i++)
         /// <summary>
         /// Invokes the function pointer.
         /// </summary>
-        public unsafe TRet Invoke(<#= args #>) => ((delegate* unmanaged[Fastcall]<<#= template #>>)_funcPtr)(<#= argsNoType #>);
+        public unsafe delegate* unmanaged<<#= template #>> Invoke => (delegate* unmanaged<<#= template #>>)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer without transitioning the Garbage Collector. Use this for very short functions.
         /// </summary>
         /// <remarks> See <see href="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute">SuppressGCTransitionAttribute</see></remarks>
-        public unsafe TRet InvokeUnsafe(<#= args #>) => ((delegate* unmanaged[Fastcall, SuppressGCTransition]<<#= template #>>)_funcPtr)(<#= argsNoType #>);
+        public unsafe delegate* unmanaged[SuppressGCTransition]<<#= template #>> InvokeUnsafe => (delegate* unmanaged[SuppressGCTransition]<<#= template #>>)_funcPtr;
     }
 <#
 }

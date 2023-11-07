@@ -147,6 +147,7 @@
     <ClCompile Include="CoreClr.cpp" />
     <ClCompile Include="CoreModule.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GuiModule.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="CoreClr.h" />
     <ClInclude Include="coreclr_delegates.h" />
     <ClInclude Include="CoreModule.h" />
+    <ClInclude Include="GuiModule.h" />
     <ClInclude Include="hostfxr.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="NativeModule.h" />

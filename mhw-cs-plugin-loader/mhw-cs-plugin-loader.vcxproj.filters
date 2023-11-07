@@ -39,6 +39,9 @@
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp">
       <Filter>Source Files\safetyhook</Filter>
     </ClCompile>
+    <ClCompile Include="GuiModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SharpPluginLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

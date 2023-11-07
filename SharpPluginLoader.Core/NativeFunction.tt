@@ -1,0 +1,138 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+string[] templates =
+{
+    "TRet",
+    "T1, TRet",
+    "T1, T2, TRet",
+    "T1, T2, T3, TRet",
+    "T1, T2, T3, T4, TRet",
+    "T1, T2, T3, T4, T5, TRet",
+    "T1, T2, T3, T4, T5, T6, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TRet",
+    "T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TRet"
+};
+
+string[] funcArgs =
+{
+    "",
+    "T1 arg1",
+    "T1 arg1, T2 arg2",
+    "T1 arg1, T2 arg2, T3 arg3",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15",
+    "T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16"
+};
+
+string[] funcArgsNoType =
+{
+    "",
+    "arg1",
+    "arg1, arg2",
+    "arg1, arg2, arg3",
+    "arg1, arg2, arg3, arg4",
+    "arg1, arg2, arg3, arg4, arg5",
+    "arg1, arg2, arg3, arg4, arg5, arg6",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15",
+    "arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16"
+};
+#>
+using System;
+using System.Linq;
+
+namespace SharpPluginLoader.Core
+{
+    /// <summary>
+    /// Represents a function pointer to a native function with no return type and no arguments. Equivalent to <see cref="NativeAction"/>.
+    /// </summary>
+    public class NativeFunction
+    {
+        private readonly unsafe void* _funcPtr;
+
+        public unsafe NativeFunction(nint funcPtr)
+        {
+            _funcPtr = (void*)funcPtr;
+        }
+
+        /// <summary>
+        /// Invokes the function pointer.
+        /// </summary>
+        public unsafe void Invoke() => ((delegate* unmanaged[Fastcall]<void>)_funcPtr)();
+
+        /// <summary>
+        /// Invokes the function pointer without transitioning the Garbage Collector. Use this for very short functions.
+        /// </summary>
+        /// <remarks> See <see href="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute"/></remarks>
+        public unsafe void InvokeUnsafe() => ((delegate* unmanaged[Fastcall, SuppressGCTransition]<void>)_funcPtr)();
+    }
+    <#
+for (int i = 0; i < templates.Length; i++)
+{
+    string template = templates[i];
+    string args = funcArgs[i];
+    string argsNoType = funcArgsNoType[i];
+#>
+
+    /// <summary>
+    /// Represents a function pointer to a native function with the given return type and arguments.
+    /// </summary>
+    public class NativeFunction<<#= template #>>
+    {
+        private readonly unsafe void* _funcPtr;
+
+        public unsafe NativeFunction(nint funcPtr)
+        {
+            _funcPtr = (void*)funcPtr;
+        }
+
+        public unsafe NativeFunction(long funcPtr)
+        {
+            _funcPtr = (void*)funcPtr;
+        }
+
+        /// <summary>
+        /// Invokes the function pointer.
+        /// </summary>
+        public unsafe TRet Invoke(<#= args #>) => ((delegate* unmanaged[Fastcall]<<#= template #>>)_funcPtr)(<#= argsNoType #>);
+
+        /// <summary>
+        /// Invokes the function pointer without transitioning the Garbage Collector. Use this for very short functions.
+        /// </summary>
+        /// <remarks> See <see href="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute">SuppressGCTransitionAttribute</see></remarks>
+        public unsafe TRet InvokeUnsafe(<#= args #>) => ((delegate* unmanaged[Fastcall, SuppressGCTransition]<<#= template #>>)_funcPtr)(<#= argsNoType #>);
+    }
+<#
+}
+#>
+}

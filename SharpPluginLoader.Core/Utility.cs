@@ -11,14 +11,9 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public static unsafe class Utility
     {
-        private static readonly delegate* unmanaged[Fastcall, SuppressGCTransition]<string, int, uint> Crc32Ptr
-            = (delegate* unmanaged[Fastcall, SuppressGCTransition]<string, int, uint>)0x142203420;
-
-        private static readonly delegate* unmanaged[Fastcall]<uint, nint> FindDtiPtr
-            = (delegate* unmanaged[Fastcall]<uint, nint>)0x14218b850;
-
-        private static readonly delegate* unmanaged[Fastcall, SuppressGCTransition]<uint, nint> GetMonsterDtiPtr
-            = (delegate* unmanaged[Fastcall, SuppressGCTransition]<uint, nint>)0x1413af000;
+        private static readonly NativeFunction<string, int, uint> Crc32Func = new(0x142203420);
+        private static readonly NativeFunction<uint, nint> FindDtiFunc = new(0x14218b850);
+        private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x1413af000);
 
         /// <summary>
         /// Computes the CRC of the specified string. This is the same CRC used by Monster Hunter World.
@@ -28,13 +23,13 @@ namespace SharpPluginLoader.Core
         /// <returns>The CRC hash of the string</returns>
         public static uint Crc32(string str, int crc = -1)
         {
-            return Crc32Ptr(str, crc);
+            return Crc32Func.InvokeUnsafe(str, crc);
         }
 
         internal static uint MakeDtiId(string name) => Crc32(name) & 0x7FFFFFFF;
 
-        internal static nint FindDti(uint id) => FindDtiPtr(id);
+        internal static nint FindDti(uint id) => FindDtiFunc.Invoke(id);
 
-        internal static nint GetMonsterDti(uint monsterId) => GetMonsterDtiPtr(monsterId);
+        internal static nint GetMonsterDti(uint monsterId) => GetMonsterDtiFunc.InvokeUnsafe(monsterId);
     }
 }

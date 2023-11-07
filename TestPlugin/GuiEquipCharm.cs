@@ -14,7 +14,7 @@ namespace TestPlugin
 
         public short GetPendantIdAt(int index)
         {
-            return GetObject<MtObject>(0x36A8 + index * 8)?.Get<short>(0x10) ?? -1;
+            return GetObject<MtObject>(0x36A8 + index * 8)?.Get<short>(0x20) ?? -1;
         }
 
         public EquipWork? SelectedEquipment => GetObject<EquipWork>(0x3DC8);

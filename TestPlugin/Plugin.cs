@@ -27,23 +27,30 @@ namespace TestPlugin
             var weaponCount = equipBox.WeaponCount;
 
             var equippedPendantId = selectedEquip.Pendant;
-            if (equippedPendantId == -1 || equippedPendantId != pendantId)
+
+            Gui.DisplayYesNoDialog("Apply to all Weapons?", r =>
             {
-                for (var i = 0; i < weaponCount; ++i)
+                if (r != DialogResult.Yes)
+                    return;
+                
+                if (equippedPendantId == -1 || equippedPendantId != pendantId)
                 {
-                    // If we assign this here the game will unequip it immediately after
-                    if (weapons[i] != selectedEquip)
-                        weapons[i].Pendant = pendantId;
+                    for (var i = 0; i < weaponCount; ++i)
+                    {
+                        // If we assign this here the game will unequip it immediately after
+                        if (weapons[i] != selectedEquip)
+                            weapons[i].Pendant = pendantId;
+                    }
                 }
-            }
-            else // Unequip all pendants
-            {
-                for (var i = 0; i < weaponCount; ++i)
+                else // Unequip all pendants
                 {
-                    if (weapons[i] != selectedEquip)
-                        weapons[i].Pendant = -1;
+                    for (var i = 0; i < weaponCount; ++i)
+                    {
+                        if (weapons[i] != selectedEquip)
+                            weapons[i].Pendant = -1;
+                    }
                 }
-            }
+            });
 
             _changePendantHook.Original(equipCharmPtr, pendantIndex, unk);
         }

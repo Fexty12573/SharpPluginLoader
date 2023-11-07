@@ -50,6 +50,25 @@ namespace SharpPluginLoader.Core
     public interface IPlugin
     {
         public PluginData OnLoad();
+
+        // Generic
         public void OnUpdate(float deltaTime) => throw new NotImplementedException();
+        public void OnSave() => throw new NotImplementedException();
+        public void OnSelectSaveSlot(int slot) => throw new NotImplementedException();
+        // public void OnResourceLoad() => throw new NotImplementedException();
+        public void OnChatMessageSent(string message) => throw new NotImplementedException();
+
+        // Quests
+        public void OnQuestPost(int questId) => throw new NotImplementedException();
+        public void OnQuestAccept(int questId) => throw new NotImplementedException();
+        public void OnQuestDepart(int questId) => throw new NotImplementedException();
+        public void OnQuestArrive(int questId) => throw new NotImplementedException();
+        public void OnQuestLeave(int questId) => throw new NotImplementedException();
+        public void OnQuestComplete(int questId) => throw new NotImplementedException();
+        public void OnQuestFail(int questId) => throw new NotImplementedException();
+        public void OnQuestJoin(int questId) => throw new NotImplementedException();
+        public void OnQuestReturn(int questId) => throw new NotImplementedException();
+        public void OnQuestAbandon(int questId) => throw new NotImplementedException();
+        public void OnQuestExit(int questId) => throw new NotImplementedException();
     }
 }

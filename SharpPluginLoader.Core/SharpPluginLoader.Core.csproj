@@ -27,6 +27,14 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASMX64.DLL" Link="FASM\FASMX64.DLL" />
+	  <None Update="NativeAction.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>NativeAction.cs</LastGenOutput>
+	  </None>
+	  <None Update="NativeFunction.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>NativeFunction.cs</LastGenOutput>
+	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
@@ -42,6 +50,27 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="NativeFunction.tt" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="NativeAction.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>NativeAction.tt</DependentUpon>
+	  </Compile>
+	  <Compile Update="NativeFunction.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>NativeFunction.tt</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="NativeAction.tt" />
 	</ItemGroup>
 
 </Project>

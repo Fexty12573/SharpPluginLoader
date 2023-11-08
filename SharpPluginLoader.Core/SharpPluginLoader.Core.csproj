@@ -72,5 +72,11 @@
 	<ItemGroup>
 	  <NativeLibs Remove="NativeAction.tt" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Quest.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Memory.cs" />
+	</ItemGroup>
 
 </Project>

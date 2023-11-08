@@ -44,6 +44,7 @@ namespace SharpPluginLoader.Core
         public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
             Log.Initialize(logFunc);
+            Quest.Initialize();
             Log.Info("[Core] Loading plugins...");
             PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
 

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace SharpPluginLoader.Core
 {
@@ -22,6 +23,27 @@ namespace SharpPluginLoader.Core
         }
 
         private readonly Dictionary<string, PluginContext> _contexts = new();
+        private readonly FileSystemWatcher _watcher;
+
+        public PluginManager()
+        {
+            _watcher = new FileSystemWatcher("nativePC/plugins/CSharp", "*.dll");
+            _watcher.Created += (_, args) => { if (IsPlugin(args.FullPath)) LoadPlugin(args.FullPath); };
+            _watcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
+            _watcher.Changed += (_, args) =>
+            {
+                if (IsPlugin(args.FullPath) && args.ChangeType == WatcherChangeTypes.Changed) 
+                    ReloadPlugin(args.FullPath);
+            };
+
+            _watcher.EnableRaisingEvents = true;
+            _watcher.IncludeSubdirectories = true;
+        }
+
+        private static bool IsPlugin(string path)
+        {
+            return Path.GetExtension(path) == ".dll" && Path.GetFileName(Path.GetDirectoryName(path)) != "Loader";
+        }
 
         public void LoadPlugins(string directory)
         {
@@ -148,6 +170,7 @@ namespace SharpPluginLoader.Core
                 if (!_contexts.TryGetValue(pluginName, out var context))
                     return;
 
+                context.Plugin.Dispose();
                 context.Context.Unload();
                 _contexts.Remove(pluginName);
             }

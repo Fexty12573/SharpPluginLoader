@@ -16,7 +16,7 @@ namespace SharpPluginLoader.Core
         }
     }
 
-    public class Hook<TFunction>
+    public class Hook<TFunction> : IDisposable
     {
         private readonly IHook<TFunction> _hook;
 
@@ -32,5 +32,23 @@ namespace SharpPluginLoader.Core
         public TFunction Original => _hook.OriginalFunction;
 
         public bool IsEnabled => _hook.IsHookEnabled;
+
+
+        private void ReleaseUnmanagedResources()
+        {
+            if (IsEnabled)
+                _hook.Disable();
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Hook()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 }

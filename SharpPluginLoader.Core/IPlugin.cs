@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,17 +17,15 @@ namespace SharpPluginLoader.Core
         public bool OnChatMessageSent;
 
         // Quests
-        public bool OnQuestPost;
         public bool OnQuestAccept;
+        public bool OnQuestCancel;
         public bool OnQuestDepart;
-        public bool OnQuestArrive;
+        public bool OnQuestEnter; 
         public bool OnQuestLeave;
         public bool OnQuestComplete;
         public bool OnQuestFail;
-        public bool OnQuestJoin;
         public bool OnQuestReturn;
         public bool OnQuestAbandon;
-        public bool OnQuestExit;
 
         // Monster
         public bool OnMonsterCreate;
@@ -59,16 +58,33 @@ namespace SharpPluginLoader.Core
         public void OnChatMessageSent(string message) => throw new NotImplementedException();
 
         // Quests
-        public void OnQuestPost(int questId) => throw new NotImplementedException();
         public void OnQuestAccept(int questId) => throw new NotImplementedException();
+        public void OnQuestCancel(int questId) => throw new NotImplementedException();
         public void OnQuestDepart(int questId) => throw new NotImplementedException();
-        public void OnQuestArrive(int questId) => throw new NotImplementedException();
+        public void OnQuestEnter(int questId) => throw new NotImplementedException();
         public void OnQuestLeave(int questId) => throw new NotImplementedException();
         public void OnQuestComplete(int questId) => throw new NotImplementedException();
         public void OnQuestFail(int questId) => throw new NotImplementedException();
-        public void OnQuestJoin(int questId) => throw new NotImplementedException();
         public void OnQuestReturn(int questId) => throw new NotImplementedException();
         public void OnQuestAbandon(int questId) => throw new NotImplementedException();
-        public void OnQuestExit(int questId) => throw new NotImplementedException();
+
+        internal void Dispose()
+        {
+            // Dispose all IDisposable fields
+            // This is called when the plugin is unloaded.
+            foreach (var field in GetType().GetAllFields())
+            {
+                if (field.GetValue(this) is IDisposable disposable)
+                    disposable.Dispose();
+            }
+        }
+    }
+
+    internal static class TypeExtensions
+    {
+        public static FieldInfo[] GetAllFields(this Type type)
+        {
+            return type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        }
     }
 }

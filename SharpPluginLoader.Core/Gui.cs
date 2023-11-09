@@ -80,11 +80,28 @@ namespace SharpPluginLoader.Core
             callback(*result);
         }
 
+        private static void ChatMessageSentHook(string message)
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnChatMessageSent))
+                plugin.OnChatMessageSent(message);
+
+            _chatMessageSentHook.Original(message);
+        }
+
+        internal static void Initialize()
+        {
+            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, 0x140a5b0c0);
+        }
+
         private static unsafe nint ChatInstance => *(nint*)0x14500ac30;
         private static readonly Queue<DialogCallback> DialogCallbacks = new();
         private static readonly Queue<nint> CachedMessages = new();
         private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(0x141ae2700);
         private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(0x141a53400);
+        private static Hook<ChatMessageSentDelegate> _chatMessageSentHook = null!;
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private delegate void ChatMessageSentDelegate(string message);
     }
 
     public enum DialogResult

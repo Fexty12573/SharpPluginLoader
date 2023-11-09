@@ -14,17 +14,26 @@ namespace SharpPluginLoader.Core
 
         private readonly AssemblyDependencyResolver _resolver;
 
-        public PluginLoadContext(string scriptPath) : base(isCollectible: true)
+        public PluginLoadContext(string pluginPath) : base(isCollectible: true)
         {
-            _resolver = new AssemblyDependencyResolver(scriptPath);
+            _resolver = new AssemblyDependencyResolver(pluginPath);
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             Log.Debug($"[{assemblyName}] Resolved Path: {assemblyPath}");
-            var assembly = assemblyPath != null ? LoadFromAssemblyPath(assemblyPath) : null;
+            var assembly = assemblyPath != null ? CustomLoadFromAssemblyPath(assemblyPath) : null;
             return assembly ?? CurrentLoadContext.LoadFromAssemblyName(assemblyName);
+        }
+
+        private Assembly CustomLoadFromAssemblyPath(string assemblyPath)
+        {
+            if (!File.Exists(assemblyPath))
+                return LoadFromAssemblyPath(assemblyPath);
+
+            var data = File.ReadAllBytes(assemblyPath);
+            return LoadFromStream(new MemoryStream(data));
         }
 
         protected override nint LoadUnmanagedDll(string unmanagedDllName)

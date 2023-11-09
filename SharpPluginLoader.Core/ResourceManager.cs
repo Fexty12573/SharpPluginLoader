@@ -26,6 +26,7 @@ namespace SharpPluginLoader.Core
             var resource = _getResourceHook.Original(resourceMgr, dti, path, flags);
             var resObj = resource != 0 ? new Resource(resource) : null;
             var dtiObj = new MtDti(dti);
+
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnResourceLoad))
                 plugin.OnResourceLoad(resObj, dtiObj, path, flags);
 

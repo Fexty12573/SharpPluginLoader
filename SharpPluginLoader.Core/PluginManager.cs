@@ -32,6 +32,7 @@ namespace SharpPluginLoader.Core
             _watcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
             _watcher.Changed += (_, args) =>
             {
+                Log.Info($"FileChanged: {args.FullPath} {args.ChangeType}");
                 if (IsPlugin(args.FullPath) && args.ChangeType == WatcherChangeTypes.Changed) 
                     ReloadPlugin(args.FullPath);
             };
@@ -64,6 +65,7 @@ namespace SharpPluginLoader.Core
                 return;
             }
 
+            Log.Info($"Loading plugin {pluginPath}");
             Log.Debug($"assembly context: {AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!.Name}");
 
             var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
@@ -105,19 +107,19 @@ namespace SharpPluginLoader.Core
             }
         }
 
-        public IEnumerable<IPlugin> GetPlugins()
+        public IPlugin[] GetPlugins()
         {
             lock (_contexts)
             {
-                return _contexts.Values.Select(context => context.Plugin);
+                return _contexts.Values.Select(context => context.Plugin).ToArray();
             }
         }
 
-        public IEnumerable<IPlugin> GetPlugins(Func<PluginData, bool> predicate)
+        public IPlugin[] GetPlugins(Func<PluginData, bool> predicate)
         {
             lock (_contexts)
             {
-                return _contexts.Values.Where(context => predicate(context.Data)).Select(context => context.Plugin);
+                return _contexts.Values.Where(context => predicate(context.Data)).Select(context => context.Plugin).ToArray();
             }
         }
 

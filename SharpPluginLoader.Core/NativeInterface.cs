@@ -33,6 +33,7 @@ namespace SharpPluginLoader.Core
         public struct ManagedFunctionPointers
         {
             public nint ShutdownPtr;
+            public nint LoadPluginsPtr;
             public nint ReloadPluginsPtr;
             public nint ReloadPluginPtr;
             public nint UploadInternalCallsPtr;
@@ -44,11 +45,9 @@ namespace SharpPluginLoader.Core
         public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
             Log.Initialize(logFunc);
+            Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();
-
-            Log.Info("[Core] Loading plugins...");
-            PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
 
             GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
         }
@@ -56,17 +55,22 @@ namespace SharpPluginLoader.Core
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
         {
             pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(new ShutdownDelegate(Shutdown));
+            pointers->LoadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(LoadPlugins));
             pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins)); ;
             pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
             pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls));
             pointers->FindCoreMethodPtr = Marshal.GetFunctionPointerForDelegate(new FindCoreMethodDelegate(FindCoreMethod));
-            Log.Info("[Core] Retrieved Function pointers");
+            Log.Debug("[Core] Retrieved Function pointers");
         }
 
         public static void Shutdown()
         {
-            InternalCalls.TestInternalCall();
             PluginManager.Instance.UnloadAllPlugins();
+        }
+        
+        public static void LoadPlugins()
+        {
+            PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
         }
 
         public static void ReloadPlugins()

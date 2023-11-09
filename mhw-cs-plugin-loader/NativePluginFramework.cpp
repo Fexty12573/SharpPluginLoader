@@ -13,4 +13,7 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
     for (const auto& module : m_modules) {
         module->initialize(coreclr);
     }
+
+    coreclr->upload_internal_calls();
+    m_managed_functions.LoadPlugins();
 }

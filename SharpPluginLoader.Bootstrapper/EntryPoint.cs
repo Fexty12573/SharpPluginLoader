@@ -21,14 +21,12 @@ namespace SharpPluginLoader.Bootstrapper
             try
             {
 #if DEBUG
-                Log(LogLevel.Info, "Loading Core dll");
                 _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Core.Debug.dll"));
-                Log(LogLevel.Info, "Loading Core dll part 2");
-                _coreAssembly = _loadContext.LoadFromAssemblyName(new AssemblyName("SharpPluginLoader.Core.Debug"));
-                Log(LogLevel.Info, $"[Bootstrapper] {_coreAssembly.FullName}");
+                _coreAssembly = _loadContext.LoadNoLock(new AssemblyName("SharpPluginLoader.Core.Debug"));
+                Log(LogLevel.Debug, $"[Bootstrapper] {_coreAssembly.FullName}");
 #else
                 _loadContext = new CoreLoadContext(Path.GetFullPath("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Core.dll"));
-                _coreAssembly = _loadContext.LoadFromAssemblyName(new AssemblyName("SharpPluginLoader.Core"));
+                _coreAssembly = _loadContext.LoadNoLock(new AssemblyName("SharpPluginLoader.Core"));
 #endif
             }
             catch (Exception e)

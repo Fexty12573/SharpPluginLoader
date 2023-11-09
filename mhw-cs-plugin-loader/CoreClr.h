@@ -16,6 +16,7 @@
 
 struct ManagedFunctionPointers {
     void(*Shutdown)();
+    void(*LoadPlugins)();
     void(*ReloadPlugins)();
     void(*ReloadPlugin)(const char*);
 };

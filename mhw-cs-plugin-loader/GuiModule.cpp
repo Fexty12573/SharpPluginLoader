@@ -40,7 +40,6 @@ void GuiModule::initialize(CoreClr* coreclr) {
     m_dialog_vtable[2] = (void*)m_propagate_dialog_result;
 
     coreclr->add_internal_call("QueueYesNoDialog", display_dialog);
-    coreclr->upload_internal_calls();
 }
 
 void GuiModule::shutdown() {

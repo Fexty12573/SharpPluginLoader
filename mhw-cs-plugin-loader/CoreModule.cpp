@@ -18,7 +18,6 @@ void CoreModule::initialize(CoreClr* coreclr) {
 
     dlog::debug("Retrieved OnUpdate: {:p}, Adding internal call...", (void*)m_plugin_on_update);
     coreclr->add_internal_call("TestInternalCall", test_icall);
-    coreclr->upload_internal_calls();
 
     m_main_update_hook = safetyhook::create_inline(MH::sMhMain::move, main_update_hook);
 }

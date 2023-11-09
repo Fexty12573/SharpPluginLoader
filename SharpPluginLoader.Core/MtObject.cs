@@ -14,29 +14,61 @@ namespace SharpPluginLoader.Core
         public MtObject(nint instance) : base(instance) { }
         public MtObject() { }
 
-        private unsafe nint* VTable => (nint*)Get<nint>(0x0);
+        private unsafe nint* VTable => GetPtr<nint>(0x0);
 
+        /// <summary>
+        /// Gets a virtual function from the vtable of this object.
+        /// </summary>
+        /// <param name="index">The index of the virtual function in the vtable</param>
+        /// <returns>The requested virtual function</returns>
         public unsafe nint GetVirtualFunction(int index)
         {
             return VTable[index];
         }
 
-        public unsafe MtPropertyList? GetProperties()
+        /// <summary>
+        /// Gets the properties of this object.
+        /// </summary>
+        /// <returns>The property list containing all properties</returns>
+        public MtPropertyList? GetProperties()
         {
             var dti = MtDti.Find("MtPropertyList");
             if (dti == null)
                 return null;
 
             var propList = dti.CreateInstance<MtPropertyList>();
-            ((delegate* unmanaged<nint, nint, void>)GetVirtualFunction(3))(Instance, propList.Instance);
-            propList.Deleter = obj => ((delegate* unmanaged<nint, bool, void>)obj.GetVirtualFunction(0))(propList.Instance, false);
+
+            PopulatePropertyList(propList);
+            propList.Deleter = obj => obj.Destroy(true);
             return propList;
         }
 
+        /// <summary>
+        /// Gets the DTI of this object.
+        /// </summary>
+        /// <returns>The DTI, or null if there is no DTI</returns>
         public unsafe MtDti? GetDti()
         {
             var dti = ((delegate* unmanaged<nint>)GetVirtualFunction(4))();
             return dti != 0 ? new MtDti(dti) : null;
+        }
+
+        /// <summary>
+        /// Populates the specified property list with the properties of this object.
+        /// </summary>
+        /// <param name="list">The property list to be populated</param>
+        internal unsafe void PopulatePropertyList(MtPropertyList list)
+        {
+            ((delegate* unmanaged<nint, nint, void>)GetVirtualFunction(3))(Instance, list.Instance);
+        }
+
+        /// <summary>
+        /// Calls the destructor of this object.
+        /// </summary>
+        /// <param name="free">Whether the destructor should deallocate the object or not</param>
+        internal unsafe void Destroy(bool free)
+        {
+            ((delegate* unmanaged<nint, bool, void>)GetVirtualFunction(0))(Instance, free);
         }
     }
 }

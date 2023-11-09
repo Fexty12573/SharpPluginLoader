@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Core.MtTypes
 {
+    /// <summary>
+    /// Represents an MtFramework struct type.
+    /// </summary>
+    /// <remarks>All structs that implement this interface must have an explicit struct layout, 
+    /// and match their native counterparts exactly.</remarks>
     public interface IMtType { }
 
     [StructLayout(LayoutKind.Explicit)]

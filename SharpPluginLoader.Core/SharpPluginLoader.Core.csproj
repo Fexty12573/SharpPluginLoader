@@ -78,5 +78,11 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Memory.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Resource.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="ResourceManager.cs" />
+	</ItemGroup>
 
 </Project>

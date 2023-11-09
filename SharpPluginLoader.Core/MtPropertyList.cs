@@ -9,15 +9,6 @@ namespace SharpPluginLoader.Core
 {
     public class MtPropertyList : MtObject, IEnumerable<MtProperty>
     {
-        private static readonly unsafe delegate* unmanaged[Fastcall]<nint, string, nint> InternalFindProperty = 
-            (delegate* unmanaged[Fastcall]<nint, string, nint>)0x14218e740;
-        private static readonly unsafe delegate* unmanaged[Fastcall]<nint, uint, string, nint> InternalFindPropertyOfType = 
-            (delegate* unmanaged[Fastcall]<nint, uint, string, nint>)0x14218e6b0;
-        private static readonly unsafe delegate* unmanaged[Fastcall]<nint, int, nint> InternalGetPropertyAt = 
-            (delegate* unmanaged[Fastcall]<nint, int, nint>)0x01d6d290;
-
-        internal Action<MtPropertyList>? Deleter = null;
-
         public MtPropertyList(nint instance) : base(instance) { }
         public MtPropertyList() { }
 
@@ -63,13 +54,13 @@ namespace SharpPluginLoader.Core
 
         public unsafe MtProperty? FindProperty(string name)
         {
-            var prop = InternalFindProperty(Instance, name);
+            var prop = FindPropertyFunc.Invoke(Instance, name);
             return prop == 0 ? null : new MtProperty(prop);
         }
 
         public unsafe MtProperty? FindProperty(PropType type, string name)
         {
-            var prop = InternalFindPropertyOfType(Instance, (uint)type, name);
+            var prop = FindPropertyOfTypeFunc.Invoke(Instance, (uint)type, name);
             return prop == 0 ? null : new MtProperty(prop);
         }
 
@@ -77,7 +68,7 @@ namespace SharpPluginLoader.Core
         {
             get
             {
-                var prop = InternalGetPropertyAt(Instance, index);
+                var prop = GetPropertyAtFunc.Invoke(Instance, index);
                 return prop == 0 ? null : new MtProperty(prop);
             }
         }
@@ -130,5 +121,11 @@ namespace SharpPluginLoader.Core
 
             object IEnumerator.Current => Current;
         }
+
+        private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(0x14218e740);
+        private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(0x14218e6b0);
+        private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(0x01d6d290);
+
+        internal Action<MtPropertyList>? Deleter = null;
     }
 }

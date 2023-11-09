@@ -21,26 +21,22 @@ namespace SharpPluginLoader.Core
             return VTable[index];
         }
 
-        public MtPropertyList? GetProperties()
+        public unsafe MtPropertyList? GetProperties()
         {
-            var propList = MtDti.Find("MtPropertyList")?.CreateInstance<MtPropertyList>();
-            if (propList == null)
+            var dti = MtDti.Find("MtPropertyList");
+            if (dti == null)
                 return null;
 
-            unsafe
-            {
-                ((delegate* unmanaged[Fastcall]<nint, nint, void>)GetVirtualFunction(3))(Instance, propList.Instance);
-                propList.Deleter = obj => ((delegate* unmanaged[Fastcall]<nint, bool, void>)obj.GetVirtualFunction(0))(propList.Instance, false);
-                return propList;
-            }
+            var propList = dti.CreateInstance<MtPropertyList>();
+            ((delegate* unmanaged<nint, nint, void>)GetVirtualFunction(3))(Instance, propList.Instance);
+            propList.Deleter = obj => ((delegate* unmanaged<nint, bool, void>)obj.GetVirtualFunction(0))(propList.Instance, false);
+            return propList;
         }
 
-        public MtDti GetDti()
+        public unsafe MtDti? GetDti()
         {
-            unsafe
-            {
-                return new MtDti(((delegate* unmanaged[Fastcall]<nint>)GetVirtualFunction(4))());
-            }
+            var dti = ((delegate* unmanaged<nint>)GetVirtualFunction(4))();
+            return dti != 0 ? new MtDti(dti) : null;
         }
     }
 }

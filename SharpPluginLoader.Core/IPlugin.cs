@@ -54,7 +54,7 @@ namespace SharpPluginLoader.Core
         public void OnUpdate(float deltaTime) => throw new NotImplementedException();
         public void OnSave() => throw new NotImplementedException();
         public void OnSelectSaveSlot(int slot) => throw new NotImplementedException();
-        // public void OnResourceLoad() => throw new NotImplementedException();
+        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new NotImplementedException();
         public void OnChatMessageSent(string message) => throw new NotImplementedException();
 
         // Quests

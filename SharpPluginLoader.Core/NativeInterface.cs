@@ -45,6 +45,8 @@ namespace SharpPluginLoader.Core
         {
             Log.Initialize(logFunc);
             Quest.Initialize();
+            ResourceManager.Initialize();
+
             Log.Info("[Core] Loading plugins...");
             PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
 

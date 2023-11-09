@@ -36,5 +36,10 @@ namespace SharpPluginLoader.Core
 
             return array;
         }
+
+        public static unsafe T Read<T>(long address, long offset = 0) where T : unmanaged
+        {
+            return *(T*)(address + offset);
+        }
     }
 }

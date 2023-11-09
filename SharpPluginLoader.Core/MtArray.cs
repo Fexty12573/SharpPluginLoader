@@ -13,9 +13,6 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public class MtArray<T> : MtObject, IEnumerable<T> where T : MtObject, new()
     {
-        private static readonly unsafe delegate* unmanaged[Fastcall]<nint, uint, void> ResizePtr 
-            = (delegate* unmanaged[Fastcall]<nint, uint, void>)0x140249d10;
-
         /// <summary>
         /// Constructs a new MtArray instance from a native pointer.
         /// </summary>
@@ -90,11 +87,8 @@ namespace SharpPluginLoader.Core
         /// <param name="item">The item to add</param>
         public void Push(T? item)
         {
-            unsafe
-            {
-                if (Length == Capacity)
-                    ResizePtr(Instance, Capacity + Capacity / 2);
-            }
+            if (Length == Capacity)
+                Utility.ResizeArray(this, Capacity + Capacity / 2);
 
             this[(int)Length] = item;
         }

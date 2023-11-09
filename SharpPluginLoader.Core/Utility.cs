@@ -11,9 +11,10 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public static unsafe class Utility
     {
-        private static readonly NativeFunction<string, int, uint> Crc32Func = new(0x142203420);
-        private static readonly NativeFunction<uint, nint> FindDtiFunc = new(0x14218b850);
-        private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x1413af000);
+        private static readonly NativeFunction<string, int, uint> Crc32Func = new(0x1421e5830);
+        private static readonly NativeFunction<uint, nint> FindDtiFunc = new(0x14216da70);
+        private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0);
+        private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(0x140249b20);
 
         /// <summary>
         /// Computes the CRC of the specified string. This is the same CRC used by Monster Hunter World.
@@ -31,5 +32,10 @@ namespace SharpPluginLoader.Core
         internal static nint FindDti(uint id) => FindDtiFunc.Invoke(id);
 
         internal static nint GetMonsterDti(uint monsterId) => GetMonsterDtiFunc.InvokeUnsafe(monsterId);
+
+        internal static void ResizeArray<T>(MtArray<T> array, uint newSize) where T : MtObject, new()
+        {
+            ResizeArrayFunc.Invoke(array.Instance, newSize);
+        }
     }
 }

@@ -16,6 +16,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe void Invoke() => ((delegate* unmanaged<void>)_funcPtr)();
@@ -43,6 +48,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -74,6 +84,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, TRet> Invoke => (delegate* unmanaged<T1, TRet>)_funcPtr;
@@ -101,6 +116,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -132,6 +152,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, TRet>)_funcPtr;
@@ -159,6 +184,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -190,6 +220,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, TRet>)_funcPtr;
@@ -217,6 +252,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -248,6 +288,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, TRet>)_funcPtr;
@@ -275,6 +320,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -306,6 +356,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, TRet>)_funcPtr;
@@ -333,6 +388,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -364,6 +424,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TRet>)_funcPtr;
@@ -391,6 +456,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -422,6 +492,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TRet>)_funcPtr;
@@ -449,6 +524,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.
@@ -480,6 +560,11 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
+
+        /// <summary>
         /// Invokes the function pointer.
         /// </summary>
         public unsafe delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TRet> Invoke => (delegate* unmanaged<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TRet>)_funcPtr;
@@ -507,6 +592,11 @@ namespace SharpPluginLoader.Core
         {
             _funcPtr = (void*)funcPtr;
         }
+
+        /// <summary>
+        /// Gets the native function pointer.
+        /// </summary>
+        public unsafe nint NativePointer => (nint)_funcPtr;
 
         /// <summary>
         /// Invokes the function pointer.

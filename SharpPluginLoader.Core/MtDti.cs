@@ -13,8 +13,8 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public class MtDti : MtObject
     {
-        private unsafe nint NewInstance() => ((delegate* unmanaged[Fastcall]<nint, nint>)GetVirtualFunction(1))(Instance);
-        private unsafe nint CtorInstance(nint obj) => ((delegate* unmanaged[Fastcall]<nint, nint, nint>)GetVirtualFunction(2))(Instance, obj);
+        private unsafe nint NewInstance() => ((delegate* unmanaged<nint, nint>)GetVirtualFunction(1))(Instance);
+        private unsafe nint CtorInstance(nint obj) => ((delegate* unmanaged<nint, nint, nint>)GetVirtualFunction(2))(Instance, obj);
 
         /// <summary>
         /// Constructs a new instance of <see cref="MtDti"/> with the specified native pointer.

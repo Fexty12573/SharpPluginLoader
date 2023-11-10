@@ -48,6 +48,7 @@ namespace SharpPluginLoader.Core
             Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();
+            ActionController.Initialize();
 
             GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
         }

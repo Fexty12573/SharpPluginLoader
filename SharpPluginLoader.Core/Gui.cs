@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core
 {
@@ -71,6 +72,17 @@ namespace SharpPluginLoader.Core
             InternalCalls.QueueYesNoDialog(msgPtr);
         }
 
+        public static unsafe void DisplayMessageWindow(string message, MtVector2 offset = new())
+        {
+            var offsetPtr = &offset;
+            DisplayMessageWindowFunc.Invoke(SingletonInstance, message, 0, (nint)offsetPtr, false);
+        }
+
+        public static unsafe void DisplayAlert(string message)
+        {
+            DisplayAlertFunc.Invoke(message);
+        }
+
         [UnmanagedCallersOnly]
         private static unsafe void PropagateDialogResult(nint popup, nint unknown, DialogResult* result)
         {
@@ -90,7 +102,7 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, 0x140a5b0c0);
+            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, 0x14239d640);
         }
 
         private static unsafe nint ChatInstance => *(nint*)0x14500ac30;
@@ -98,6 +110,8 @@ namespace SharpPluginLoader.Core
         private static readonly Queue<nint> CachedMessages = new();
         private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(0x141ae2700);
         private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(0x141a53400);
+        private static readonly NativeAction<nint, string, nint, nint, bool> DisplayMessageWindowFunc = new(0x141ae3220);
+        private static readonly NativeAction<string> DisplayAlertFunc = new(0x1418d5960);
         private static Hook<ChatMessageSentDelegate> _chatMessageSentHook = null!;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]

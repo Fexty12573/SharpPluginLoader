@@ -54,22 +54,28 @@ namespace SharpPluginLoader.Core
         public PluginData OnLoad();
 
         // Generic
-        public void OnUpdate(float deltaTime) => throw new NotImplementedException();
-        public void OnSave() => throw new NotImplementedException();
-        public void OnSelectSaveSlot(int slot) => throw new NotImplementedException();
-        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new NotImplementedException();
-        public void OnChatMessageSent(string message) => throw new NotImplementedException();
+        public void OnUpdate(float deltaTime) => throw new MissingEventException();
+        public void OnSave() => throw new MissingEventException();
+        public void OnSelectSaveSlot(int slot) => throw new MissingEventException();
+        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new MissingEventException();
+        public void OnChatMessageSent(string message) => throw new MissingEventException();
 
         // Quests
-        public void OnQuestAccept(int questId) => throw new NotImplementedException();
-        public void OnQuestCancel(int questId) => throw new NotImplementedException();
-        public void OnQuestDepart(int questId) => throw new NotImplementedException();
-        public void OnQuestEnter(int questId) => throw new NotImplementedException();
-        public void OnQuestLeave(int questId) => throw new NotImplementedException();
-        public void OnQuestComplete(int questId) => throw new NotImplementedException();
-        public void OnQuestFail(int questId) => throw new NotImplementedException();
-        public void OnQuestReturn(int questId) => throw new NotImplementedException();
-        public void OnQuestAbandon(int questId) => throw new NotImplementedException();
+        public void OnQuestAccept(int questId) => throw new MissingEventException();
+        public void OnQuestCancel(int questId) => throw new MissingEventException();
+        public void OnQuestDepart(int questId) => throw new MissingEventException();
+        public void OnQuestEnter(int questId) => throw new MissingEventException();
+        public void OnQuestLeave(int questId) => throw new MissingEventException();
+        public void OnQuestComplete(int questId) => throw new MissingEventException();
+        public void OnQuestFail(int questId) => throw new MissingEventException();
+        public void OnQuestReturn(int questId) => throw new MissingEventException();
+        public void OnQuestAbandon(int questId) => throw new MissingEventException();
+
+        // Monster
+        public void OnMonsterAction(Monster monster, ref int actionId) => throw new MissingEventException();
+
+        // Player
+        public void OnPlayerAction(ref ActionInfo action) => throw new MissingEventException();
 
         internal void Dispose()
         {

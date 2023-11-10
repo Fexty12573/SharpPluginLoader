@@ -225,12 +225,28 @@ namespace SharpPluginLoader.Core
             SpeedResetPatch2.Disable();
         }
 
+        private static bool LaunchActionHook(nint instance, int actionId)
+        {
+            var monster = new Monster(instance);
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterAction))
+                plugin.OnMonsterAction(monster, ref actionId);
+
+            return _launchActionHook.Original(instance, actionId);
+        }
+
+        internal static void Initialize()
+        {
+            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, 0x1402a7f80);
+        }
+
+        private delegate bool LaunchActionDelegate(nint monster, int actionId);
         private static readonly NativeAction<nint, nint> ForceActionFunc = new(0x1413966e0);
         private static readonly NativeFunction<nint, bool> EnrageFunc = new(0x1402a8120);
         private static readonly NativeAction<nint> UnenrageFunc = new(0x1402a83b0);
         private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(0x1412c5ee0);
         private static readonly Patch SpeedResetPatch1 = new(0x141cb08ab, Enumerable.Repeat((byte)0x90, 10).ToArray());
         private static readonly Patch SpeedResetPatch2 = new(0x140b00fff, Enumerable.Repeat((byte)0x90, 6).ToArray());
+        private static Hook<LaunchActionDelegate> _launchActionHook = null!;
     }
 
     /// <summary>

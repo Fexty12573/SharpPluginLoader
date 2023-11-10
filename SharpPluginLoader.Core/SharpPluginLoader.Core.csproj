@@ -102,5 +102,11 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Entity.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Player.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="MissingEventException.cs" />
+	</ItemGroup>
 
 </Project>

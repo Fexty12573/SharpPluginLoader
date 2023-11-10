@@ -304,28 +304,31 @@ namespace SharpPluginLoader.Core
             return Utility.GetMonsterName(type);
         }
 
-        // TODO
-        ///// <summary>
-        ///// Disables the periodic speed reset that the game does
-        ///// </summary>
-        ///// <remarks>Call this before changing the <see cref="Speed"/> property on a monster. This setting applies globally</remarks>
-        //public static void DisableSpeedReset()
-        //{
-        //    InternalCall.Monster_DisableSpeedReset();
-        //}
+        /// <summary>
+        /// Disables the periodic speed reset that the game does
+        /// </summary>
+        /// <remarks>Call this before changing the <see cref="Speed"/> property on a monster. This setting applies globally</remarks>
+        public static void DisableSpeedReset()
+        {
+            SpeedResetPatch1.Enable();
+            SpeedResetPatch2.Enable();
+        }
 
-        ///// <summary>
-        ///// Reenables the periodic speed reset that the game does
-        ///// </summary>
-        //public static void EnableSpeedReset()
-        //{
-        //    InternalCall.Monster_EnableSpeedReset();
-        //}
+        /// <summary>
+        /// Reenables the periodic speed reset that the game does
+        /// </summary>
+        public static void EnableSpeedReset()
+        {
+            SpeedResetPatch1.Disable();
+            SpeedResetPatch2.Disable();
+        }
 
         private static readonly NativeAction<nint, nint> ForceActionFunc = new(0x1413966e0);
         private static readonly NativeFunction<nint, bool> EnrageFunc = new(0x1402a8120);
         private static readonly NativeAction<nint> UnenrageFunc = new(0x1402a83b0);
         private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(0x1412c5ee0);
+        private static readonly Patch SpeedResetPatch1 = new(0x141cb08ab, Enumerable.Repeat((byte)0x90, 10).ToArray());
+        private static readonly Patch SpeedResetPatch2 = new(0x140b00fff, Enumerable.Repeat((byte)0x90, 6).ToArray());
     }
 
     /// <summary>

@@ -21,6 +21,15 @@ namespace SharpPluginLoader.Core.Memory
             if (enable) Enable();
         }
 
+        public Patch(long address, byte[] patchedBytes, bool enable = false)
+        {
+            Address = (nint)address;
+            OriginalBytes = MemoryUtil.ReadBytes(Address, patchedBytes.Length);
+            PatchedBytes = patchedBytes;
+
+            if (enable) Enable();
+        }
+
         public void Enable() => MemoryUtil.WriteBytesSafe(Address, PatchedBytes);
 
         public void Disable() => MemoryUtil.WriteBytesSafe(Address, OriginalBytes);

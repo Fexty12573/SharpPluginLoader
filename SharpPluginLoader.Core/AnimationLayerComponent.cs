@@ -7,7 +7,7 @@ using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
 {
-    internal class AnimationLayerComponent : MtObject
+    public class AnimationLayerComponent : MtObject
     {
         public AnimationLayerComponent(nint instance) : base(instance) { }
         public AnimationLayerComponent() { }

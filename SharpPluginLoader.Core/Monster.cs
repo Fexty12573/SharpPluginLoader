@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Core
 {
-    public class Monster : MtObject
+    public class Monster : Entity
     {
         /// <summary>
         /// Constructs a new Monster from a native pointer
@@ -35,62 +35,6 @@ namespace SharpPluginLoader.Core
         /// The name of the monster
         /// </summary>
         public string Name => Utility.GetMonsterName(Type);
-
-        /// <summary>
-        /// The position of the monster
-        /// </summary>
-        public MtVector3 Position
-        {
-            get => GetMtType<MtVector3>(0x160);
-            set => SetMtType(0x160, value);
-        }
-
-        /// <summary>
-        /// The size of the monster
-        /// </summary>
-        public MtVector3 Size
-        {
-            get => GetMtType<MtVector3>(0x180);
-            set => SetMtType(0x180, value);
-        }
-
-        /// <summary>
-        /// The position of the monster's collision box
-        /// </summary>
-        public MtVector3 CollisionPosition
-        {
-            get => GetMtType<MtVector3>(0xA50);
-            set => SetMtType(0xA50, value);
-        }
-
-        /// <summary>
-        /// The rotation of the monster
-        /// </summary>
-        public MtVector4 Rotation // TODO: Change to MtQuaternion
-        {
-            get => GetMtType<MtVector4>(0x170);
-            set => SetMtType(0x170, value);
-        }
-
-        /// <summary>
-        /// Teleports the monster to the given position
-        /// </summary>
-        /// <remarks>Use this function if you need to move a monster and ignore walls.</remarks>
-        /// <param name="position">The target position</param>
-        public void Teleport(MtVector3 position)
-        {
-            Position = position;
-            CollisionPosition = position;
-        }
-
-        /// <summary>
-        /// Resizes the monster on all axes to the given size
-        /// </summary>
-        /// <param name="size">The new size of the monster</param>
-        public void Resize(float size)
-        {
-            Size = new MtVector3(size, size, size);
-        }
 
         /// <summary>
         /// The current health of the monster
@@ -137,51 +81,13 @@ namespace SharpPluginLoader.Core
             set => AiData.ReadRef<uint>(0x8AC) = value;
         }
 
-        ///// <summary>
-        ///// Freezes the monster and pauses all ai processing
-        ///// </summary>
-        //public bool Frozen TODO
-        //{
-        //    set => InternalCall.Monster_SetFrozen(Instance, value);
-        //}
-
         /// <summary>
-        /// The current frame of the monster's current animation
+        /// Freezes the monster and pauses all ai processing
         /// </summary>
-        public float AnimationFrame
+        public bool Frozen
         {
-            get => AnimationLayer?.CurrentFrame ?? 0;
-            set
-            {
-                var animLayer = AnimationLayer;
-                if (animLayer != null)
-                    animLayer.CurrentFrame = value;
-            }
-        }
-
-        /// <summary>
-        /// The frame count of the monster's current animation
-        /// </summary>
-        public float MaxAnimationFrame
-        {
-            get => AnimationLayer?.MaxFrame ?? 0;
-            set
-            {
-                var animLayer = AnimationLayer;
-                if (animLayer != null)
-                    animLayer.MaxFrame = value;
-            }
-        }
-
-        public float AnimationSpeed
-        {
-            get => AnimationLayer?.Speed ?? 0;
-            set
-            {
-                var animLayer = AnimationLayer;
-                if (animLayer != null)
-                    animLayer.Speed = value;
-            }
+            get => (Get<uint>(0x14) & 1) == 1;
+            set => Set(0x14, (Get<uint>(0x14) & 0xFFFFFFFE) | (value ? 1u : 0u));
         }
 
         /// <summary>
@@ -223,10 +129,6 @@ namespace SharpPluginLoader.Core
         /// The AI data of the monster
         /// </summary>
         public nint AiData => Get<nint>(0x12278);
-
-        public ActionController ActionController => GetInlineObject<ActionController>(0x61C8);
-
-        internal AnimationLayerComponent? AnimationLayer => GetObject<AnimationLayerComponent>(0x468);
 
         /// <summary>
         /// Creates an effect on the monster

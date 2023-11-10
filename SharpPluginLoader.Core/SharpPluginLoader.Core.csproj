@@ -99,5 +99,8 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Utility.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Entity.cs" />
+	</ItemGroup>
 
 </Project>

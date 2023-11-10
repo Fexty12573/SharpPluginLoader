@@ -84,5 +84,20 @@
 	<ItemGroup>
 	  <NativeLibs Remove="ResourceManager.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Monster.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="AnimationLayerComponent.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="ActionController.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="EffectProvider.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Utility.cs" />
+	</ItemGroup>
 
 </Project>

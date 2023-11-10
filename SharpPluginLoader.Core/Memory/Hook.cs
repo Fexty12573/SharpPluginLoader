@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Memory
 {
     public class Hook
     {

@@ -15,6 +15,7 @@ namespace SharpPluginLoader.Core
         private static readonly NativeFunction<uint, nint> FindDtiFunc = new(0x14216da70);
         private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0);
         private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(0x140249b20);
+        private static readonly NativeFunction<MonsterType, nint> GetMonsterNameFunc = new(0x14139ee90);
 
         /// <summary>
         /// Computes the CRC of the specified string. This is the same CRC used by Monster Hunter World.
@@ -36,6 +37,12 @@ namespace SharpPluginLoader.Core
         internal static void ResizeArray<T>(MtArray<T> array, uint newSize) where T : MtObject, new()
         {
             ResizeArrayFunc.Invoke(array.Instance, newSize);
+        }
+
+        internal static string GetMonsterName(MonsterType monsterType)
+        {
+            var namePtr = GetMonsterNameFunc.Invoke(monsterType);
+            return namePtr != 0 ? new string((sbyte*)namePtr) : "Unknown";
         }
     }
 }

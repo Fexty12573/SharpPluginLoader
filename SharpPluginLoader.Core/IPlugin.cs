@@ -38,6 +38,9 @@ namespace SharpPluginLoader.Core
         public bool OnMonsterDeath;
         public bool OnMonsterDestroy;
 
+        // Player
+        public bool OnPlayerAction;
+
         // Network
         public bool OnSendPacket;
         public bool OnReceivePacket;

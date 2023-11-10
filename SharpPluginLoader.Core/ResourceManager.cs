@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
 {
@@ -10,10 +11,10 @@ namespace SharpPluginLoader.Core
     {
         public static nint SingletonInstance => Memory.Read<nint>(0x145183f40);
 
-        public static unsafe Resource? GetResource(string path, MtDti dti, uint flags = 1)
+        public static unsafe T? GetResource<T>(string path, MtDti dti, uint flags = 1) where T : Resource, new()
         {
             var resource = GetResourceFunc.Invoke(SingletonInstance, dti.Instance, path, flags);
-            return resource != 0 ? new Resource(resource) : null;
+            return resource == 0 ? null : new T { Instance = resource };
         }
 
         internal static void Initialize()

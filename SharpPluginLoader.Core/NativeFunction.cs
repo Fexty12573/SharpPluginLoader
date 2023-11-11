@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace SharpPluginLoader.Core
+﻿namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// Represents a function pointer to a native function with no return type and no arguments. Equivalent to <see cref="NativeAction"/>.

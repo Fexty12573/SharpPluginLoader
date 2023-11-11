@@ -1,7 +1,7 @@
-﻿using System;
-using SharpPluginLoader.Core;
+﻿using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Memory;
 
-namespace TestPlugin
+namespace GlobalPendant
 {
     public class Plugin : IPlugin
     {
@@ -59,15 +59,7 @@ namespace TestPlugin
         {
             _changePendantHook = Hook.Create<ChangePendant>(ChangePendantHook, 0x14050d700);
 
-            return new PluginData
-            {
-                IsDebugPlugin = true,
-            };
-        }
-
-        public void OnUpdate(float deltaTime)
-        {
-            
+            return new PluginData();
         }
     }
 }

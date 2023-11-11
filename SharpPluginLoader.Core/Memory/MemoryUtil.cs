@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Reloaded.Memory;
-using Reloaded.Memory.Kernel32;
+﻿using System.Runtime.InteropServices;
 using MemoryProtection = Reloaded.Memory.Kernel32.Kernel32.MEM_PROTECTION;
 
 namespace SharpPluginLoader.Core.Memory

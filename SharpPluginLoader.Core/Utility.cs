@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SharpPluginLoader.Core.Resources;
-
-namespace SharpPluginLoader.Core
+﻿namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// Provides a set of utility methods.

@@ -8,8 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SharpPluginLoader.Core\SharpPluginLoader.Core.csproj">
+    <ProjectReference Include="..\..\SharpPluginLoader.Core\SharpPluginLoader.Core.csproj">
       <Private>False</Private>
+      <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
   </ItemGroup>
 

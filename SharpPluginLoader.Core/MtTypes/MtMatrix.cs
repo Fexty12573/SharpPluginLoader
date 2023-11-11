@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SharpPluginLoader.Core.MtTypes
+﻿namespace SharpPluginLoader.Core.MtTypes
 {
     public struct MtMatrix3X3 : IMtType // TODO: Finish this
     {

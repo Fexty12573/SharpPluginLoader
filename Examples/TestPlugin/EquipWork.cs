@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core;
 
-namespace TestPlugin
+namespace GlobalPendant
 {
     internal class EquipWork : MtObject
     {

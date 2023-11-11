@@ -1,10 +1,5 @@
 ﻿using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Core
 {

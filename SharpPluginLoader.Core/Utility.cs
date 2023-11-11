@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {
@@ -16,6 +17,7 @@ namespace SharpPluginLoader.Core
         private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0);
         private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(0x140249b20);
         private static readonly NativeFunction<MonsterType, nint> GetMonsterNameFunc = new(0x14139ee90);
+        private static readonly NativeFunction<nint, nint, nint, nint, nint> SpawnShellPlayerFunc = new(0x141aa67d0);
 
         /// <summary>
         /// Computes the CRC of the specified string. This is the same CRC used by Monster Hunter World.

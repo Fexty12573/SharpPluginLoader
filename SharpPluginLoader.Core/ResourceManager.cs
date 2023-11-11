@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {

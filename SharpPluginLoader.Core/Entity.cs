@@ -1,4 +1,5 @@
 ﻿using SharpPluginLoader.Core.MtTypes;
+using SharpPluginLoader.Core.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -181,7 +182,7 @@ namespace SharpPluginLoader.Core
         /// </summary>
         /// <param name="index">The index of the shell in the monsters shell list (shll)</param>
         /// <param name="target">The position the shell should travel towards</param>
-        /// <param name="origin">The origin of the shell</param>
+        /// <param name="origin">The origin of the shell (or null for the entity itself)</param>
         public virtual void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
         {
             throw new NotImplementedException();
@@ -193,9 +194,20 @@ namespace SharpPluginLoader.Core
         /// <param name="shll">The shll file to take the shell from</param>
         /// <param name="index">The index of the shell in the monsters shell list (shll)</param>
         /// <param name="target">The position the shell should travel towards</param>
-        /// <param name="origin">The origin of the shell</param>
+        /// <param name="origin">The origin of the shell (or null for the entity itself)</param>
         /// <remarks><b>Tip:</b> You can load any shll file using <see cref="ResourceManager.GetResource{T}"/></remarks>
-        public virtual void CreateShell(Resource shll, uint index, MtVector3 target, MtVector3? origin = null)
+        public virtual void CreateShell(ShellParamList shll, uint index, MtVector3 target, MtVector3? origin = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Spawns the given shell on the entity
+        /// </summary>
+        /// <param name="shell">The shell to spawn</param>
+        /// <param name="target">The target position of the shell</param>
+        /// <param name="origin">The origin position of the shell (or null for the entity itself)</param>
+        public virtual void CreateShell(ShellParam shell, MtVector3 target, MtVector3? origin = null)
         {
             throw new NotImplementedException();
         }

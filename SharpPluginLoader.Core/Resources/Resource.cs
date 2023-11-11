@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Resources
 {
     public class Resource : MtObject
     {

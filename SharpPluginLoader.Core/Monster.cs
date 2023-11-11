@@ -130,70 +130,11 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public nint AiData => Get<nint>(0x12278);
 
-        /// <summary>
-        /// Creates an effect on the monster
-        /// </summary>
-        /// <param name="groupId">The efx group id</param>
-        /// <param name="effectId">The efx id</param>
-        public unsafe void CreateEffect(uint groupId, uint effectId)
+        /// <inheritdoc/>
+        public override void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
         {
-            var effectComponent = GetObject<MtObject>(0xA10);
-            if (effectComponent == null)
-                throw new InvalidOperationException("Monster does not have an effect component");
-
-            var effect = effectComponent.GetObject<EffectProvider>(0x60)?.GetEffect(groupId, effectId);
-            if (effect == null)
-                throw new InvalidOperationException("Requested EFX does not exist in default EPV");
-
-            CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
+            base.CreateShell(index, target, origin);
         }
-
-        /// <summary>
-        /// Creates an effect on the monster from the given epv file
-        /// </summary>
-        /// <param name="epv">The EPV file to take the efx from</param>
-        /// <param name="groupId">The efx group id</param>
-        /// <param name="effectId">The efx id</param>
-        /// <remarks><b>Tip:</b> You can load any EPV file using <see cref="ResourceManager.GetResource{T}"/></remarks>
-        public unsafe void CreateEffect(EffectProvider epv, uint groupId, uint effectId)
-        {
-            var effectComponent = GetObject<MtObject>(0xA10);
-            if (effectComponent == null)
-                throw new InvalidOperationException("Monster does not have an effect component");
-
-            var effect = epv.GetEffect(groupId, effectId);
-            if (effect == null)
-                throw new InvalidOperationException("Requested EFX does not exist in given EPV");
-
-            CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
-        }
-
-        // TODO
-        ///// <summary>
-        ///// Spawns a shell on the monster
-        ///// </summary>
-        ///// <param name="index">The index of the shell in the monsters shell list (shll)</param>
-        ///// <param name="target">The position the shell should travel towards</param>
-        ///// <param name="origin">The origin of the shell</param>
-        //public void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
-        //{
-        //    var pos = origin ?? Position;
-        //    InternalCall.Monster_CreateShell(Instance, index, ref target, ref pos);
-        //}
-
-        ///// <summary>
-        ///// Spawns a shell on the monster from the given shll file
-        ///// </summary>
-        ///// <param name="shll">The shll file to take the shell from</param>
-        ///// <param name="index">The index of the shell in the monsters shell list (shll)</param>
-        ///// <param name="target">The position the shell should travel towards</param>
-        ///// <param name="origin">The origin of the shell</param>
-        ///// <remarks><b>Tip:</b> You can load any shll file using <see cref="File.LoadShll"/></remarks>
-        //public void CreateShell(Resource shll, uint index, MtVector3 target, MtVector3? origin = null)
-        //{
-        //    var pos = origin ?? Position;
-        //    InternalCall.Monster_CreateShellCustom(Instance, shll.Instance, index, ref target, ref pos);
-        //}
 
         /// <summary>
         /// Gets the human readable name of the given monster id
@@ -243,7 +184,6 @@ namespace SharpPluginLoader.Core
         private static readonly NativeAction<nint, nint> ForceActionFunc = new(0x1413966e0);
         private static readonly NativeFunction<nint, bool> EnrageFunc = new(0x1402a8120);
         private static readonly NativeAction<nint> UnenrageFunc = new(0x1402a83b0);
-        private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(0x1412c5ee0);
         private static readonly Patch SpeedResetPatch1 = new(0x141cb08ab, Enumerable.Repeat((byte)0x90, 10).ToArray());
         private static readonly Patch SpeedResetPatch2 = new(0x140b00fff, Enumerable.Repeat((byte)0x90, 6).ToArray());
         private static Hook<LaunchActionDelegate> _launchActionHook = null!;

@@ -16,7 +16,7 @@ namespace SharpPluginLoader.Core
         public Entity() { }
 
         /// <summary>
-        /// The position of the entitiy
+        /// The position of the entity
         /// </summary>
         public MtVector3 Position
         {
@@ -25,7 +25,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// The size of the entitiy
+        /// The size of the entity
         /// </summary>
         public MtVector3 Size
         {
@@ -34,7 +34,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// The position of the entitiy's collision box
+        /// The position of the entity's collision box
         /// </summary>
         public MtVector3 CollisionPosition
         {
@@ -43,18 +43,23 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// The rotation of the entitiy
+        /// The rotation of the entity
         /// </summary>
-        public MtVector4 Rotation // TODO: Change to MtQuaternion
+        public MtQuaternion Rotation
         {
-            get => GetMtType<MtVector4>(0x170);
+            get => GetMtType<MtQuaternion>(0x170);
             set => SetMtType(0x170, value);
         }
 
         /// <summary>
-        /// Teleports the entitiy to the given position
+        /// The entity's forward vector
         /// </summary>
-        /// <remarks>Use this function if you need to move a entitiy and ignore walls.</remarks>
+        public MtVector3 Forward => Rotation * MtVector3.Forward;
+
+        /// <summary>
+        /// Teleports the entity to the given position
+        /// </summary>
+        /// <remarks>Use this function if you need to move a entity and ignore walls.</remarks>
         /// <param name="position">The target position</param>
         public void Teleport(MtVector3 position)
         {
@@ -63,16 +68,16 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// Resizes the entitiy on all axes to the given size
+        /// Resizes the entity on all axes to the given size
         /// </summary>
-        /// <param name="size">The new size of the entitiy</param>
+        /// <param name="size">The new size of the entity</param>
         public void Resize(float size)
         {
             Size = new MtVector3(size, size, size);
         }
 
         /// <summary>
-        /// The current frame of the entitiy's current animation
+        /// The current frame of the entity's current animation
         /// </summary>
         public float AnimationFrame
         {
@@ -86,7 +91,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// The frame count of the entitiy's current animation
+        /// The frame count of the entity's current animation
         /// </summary>
         public float MaxAnimationFrame
         {
@@ -100,7 +105,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// The speed of the entitiy's current animation. Note, this value gets set every frame.
+        /// The speed of the entity's current animation. Note, this value gets set every frame.
         /// </summary>
         public float AnimationSpeed
         {
@@ -114,7 +119,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// Pauses the entitiy's current animation
+        /// Pauses the entity's current animation
         /// </summary>
         public void PauseAnimations()
         {
@@ -124,7 +129,7 @@ namespace SharpPluginLoader.Core
         }
 
         /// <summary>
-        /// Resumes the entitiy's current animation
+        /// Resumes the entity's current animation
         /// </summary>
         public void ResumeAnimations()
         {
@@ -133,8 +138,79 @@ namespace SharpPluginLoader.Core
                 animLayer.Resume();
         }
 
+        /// <summary>
+        /// Creates an effect on the entity
+        /// </summary>
+        /// <param name="groupId">The efx group id</param>
+        /// <param name="effectId">The efx id</param>
+        public unsafe void CreateEffect(uint groupId, uint effectId)
+        {
+            var effectComponent = GetObject<MtObject>(0xA10);
+            if (effectComponent == null)
+                throw new InvalidOperationException("Monster does not have an effect component");
+
+            var effect = effectComponent.GetObject<EffectProvider>(0x60)?.GetEffect(groupId, effectId);
+            if (effect == null)
+                throw new InvalidOperationException("Requested EFX does not exist in default EPV");
+
+            CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
+        }
+
+        /// <summary>
+        /// Creates an effect on the entity from the given epv file
+        /// </summary>
+        /// <param name="epv">The EPV file to take the efx from</param>
+        /// <param name="groupId">The efx group id</param>
+        /// <param name="effectId">The efx id</param>
+        /// <remarks><b>Tip:</b> You can load any EPV file using <see cref="ResourceManager.GetResource{T}"/></remarks>
+        public unsafe void CreateEffect(EffectProvider epv, uint groupId, uint effectId)
+        {
+            var effectComponent = GetObject<MtObject>(0xA10);
+            if (effectComponent == null)
+                throw new InvalidOperationException("Monster does not have an effect component");
+
+            var effect = epv.GetEffect(groupId, effectId);
+            if (effect == null)
+                throw new InvalidOperationException("Requested EFX does not exist in given EPV");
+
+            CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
+        }
+
+        /// <summary>
+        /// Spawns a shell on the entity
+        /// </summary>
+        /// <param name="index">The index of the shell in the monsters shell list (shll)</param>
+        /// <param name="target">The position the shell should travel towards</param>
+        /// <param name="origin">The origin of the shell</param>
+        public virtual void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Spawns a shell on the entity from the given shll file
+        /// </summary>
+        /// <param name="shll">The shll file to take the shell from</param>
+        /// <param name="index">The index of the shell in the monsters shell list (shll)</param>
+        /// <param name="target">The position the shell should travel towards</param>
+        /// <param name="origin">The origin of the shell</param>
+        /// <remarks><b>Tip:</b> You can load any shll file using <see cref="ResourceManager.GetResource{T}"/></remarks>
+        public virtual void CreateShell(Resource shll, uint index, MtVector3 target, MtVector3? origin = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// The entity's action controller
+        /// </summary>
         public ActionController ActionController => GetInlineObject<ActionController>(0x61C8);
 
+        /// <summary>
+        /// The entity's animation component
+        /// </summary>
         public AnimationLayerComponent? AnimationLayer => GetObject<AnimationLayerComponent>(0x468);
+
+
+        private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(0x1412c5ee0);
     }
 }

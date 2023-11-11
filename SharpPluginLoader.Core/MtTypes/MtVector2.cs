@@ -46,7 +46,7 @@ namespace SharpPluginLoader.Core.MtTypes
 
         public static bool operator ==(MtVector2 a, MtVector2 b)
         {
-            return Math.Abs(a.X - b.X) < 0.0001f && Math.Abs(a.Y - b.Y) < 0.0001f;
+            return a.X.Equals(b.X) && a.Y.Equals(b.Y);
         }
 
         public static bool operator !=(MtVector2 a, MtVector2 b)
@@ -69,31 +69,22 @@ namespace SharpPluginLoader.Core.MtTypes
             return X.GetHashCode() ^ Y.GetHashCode();
         }
 
-        public float Length()
-        {
-            return (float)Math.Sqrt(LengthSquared());
-        }
+        public float Length => (float)Math.Sqrt(LengthSquared);
 
-        public float LengthSquared()
-        {
-            return X * X + Y * Y;
-        }
+        public float LengthSquared => X * X + Y * Y;
 
-        public MtVector2 Normalize()
-        {
-            return this / Length();
-        }
+        public MtVector2 Normalize() => this / Length;
 
         public MtVector2 SetLength(float length)
         {
-            this /= Length();
+            this /= Length;
             this *= length;
             return this;
         }
 
         public MtVector2 Limit(float limit)
         {
-            return LengthSquared() > limit * limit ? SetLength(limit) : this;
+            return LengthSquared > limit * limit ? SetLength(limit) : this;
         }
 
         public static float Dot(MtVector2 a, MtVector2 b)

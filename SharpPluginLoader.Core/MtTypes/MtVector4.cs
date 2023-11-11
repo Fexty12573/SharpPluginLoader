@@ -23,6 +23,14 @@ namespace SharpPluginLoader.Core.MtTypes
             W = w;
         }
 
+        public MtVector4(MtVector3 v3, float w = 1.0f)
+        {
+            X = v3.X;
+            Y = v3.Y;
+            Z = v3.Z;
+            W = w;
+        }
+
         public static MtVector4 operator +(MtVector4 a, MtVector4 b)
         {
             return new MtVector4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
@@ -50,8 +58,7 @@ namespace SharpPluginLoader.Core.MtTypes
 
         public static bool operator ==(MtVector4 a, MtVector4 b)
         {
-            return Math.Abs(a.X - b.X) < 0.0001f && Math.Abs(a.Y - b.Y) < 0.0001f &&
-                   Math.Abs(a.Z - b.Z) < 0.0001f && Math.Abs(a.W - b.W) < 0.0001f;
+            return a.X.Equals(b.X) && a.Y.Equals(b.Y) && a.Z.Equals(b.Z) && a.W.Equals(b.W);
         }
 
         public static bool operator !=(MtVector4 a, MtVector4 b)
@@ -74,31 +81,22 @@ namespace SharpPluginLoader.Core.MtTypes
             return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
         }
 
-        public float Length()
-        {
-            return (float)Math.Sqrt(LengthSquared());
-        }
+        public float Length => (float)Math.Sqrt(LengthSquared);
 
-        public float LengthSquared()
-        {
-            return X * X + Y * Y + Z * Z + W * W;
-        }
+        public float LengthSquared => X * X + Y * Y + Z * Z + W * W;
 
-        public MtVector4 Normalize()
-        {
-            return this / Length();
-        }
+        public MtVector4 Normalized => this / Length;
 
         public MtVector4 SetLength(float length)
         {
-            this /= Length();
+            this /= Length;
             this *= length;
             return this;
         }
 
         public MtVector4 Limit(float limit)
         {
-            return LengthSquared() > limit * limit ? SetLength(limit) : this;
+            return LengthSquared > limit * limit ? SetLength(limit) : this;
         }
 
         public static float Dot(MtVector4 a, MtVector4 b)

@@ -36,7 +36,7 @@ namespace SharpPluginLoader.Core.IO
         /// <summary>
         /// Checks if the specified button is currently pressed.
         /// </summary>
-        private static unsafe bool IsDown(VirtualKey key)
+        public static unsafe bool IsDown(Key key)
         {
             var state = KbState;
             var vk = KbVkTable[(int)key];
@@ -46,7 +46,7 @@ namespace SharpPluginLoader.Core.IO
         /// <summary>
         /// Checks if the specified button was pressed in the last frame.
         /// </summary>
-        private static unsafe bool IsPressed(VirtualKey key)
+        public static unsafe bool IsPressed(Key key)
         {
             var state = KbState;
             var vk = KbVkTable[(int)key];
@@ -56,7 +56,7 @@ namespace SharpPluginLoader.Core.IO
         /// <summary>
         /// Checks if the specified button was released in the last frame.
         /// </summary>
-        private static unsafe bool IsReleased(VirtualKey key)
+        public static unsafe bool IsReleased(Key key)
         {
             var state = KbState;
             var vk = KbVkTable[(int)key];
@@ -66,7 +66,7 @@ namespace SharpPluginLoader.Core.IO
         /// <summary>
         /// Checks if the specified button was pressed or released in the last frame.
         /// </summary>
-        private static unsafe bool IsChanged(VirtualKey key)
+        public static unsafe bool IsChanged(Key key)
         {
             var state = KbState;
             var vk = KbVkTable[(int)key];

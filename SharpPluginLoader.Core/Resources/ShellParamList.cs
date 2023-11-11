@@ -15,7 +15,11 @@ namespace SharpPluginLoader.Core.Resources
             // GetShellFunc is a native function that returns a pointer to a cShellParamList object.
             // The actual shell is stored at offset 8 from this pointer.
             var shell = GetShellFunc.Invoke(Instance, index);
-            return shell == 0 ? null : new ShellParam(shell.Read<nint>(0x8));
+            if (shell == 0)
+                return null;
+
+            var shellObj = shell.Read<nint>(0x8);
+            return shellObj == 0 ? null : new ShellParam(shellObj);
         }
 
         private static readonly NativeFunction<nint, uint, nint> GetShellFunc = new(0x140f7cf20);

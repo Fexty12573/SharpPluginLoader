@@ -10,8 +10,7 @@ namespace PlayerAnimationViewer
         {
             return new PluginData
             {
-                OnUpdate = true,
-                OnPlayerAction = true
+                OnUpdate = true
             };
         }
 
@@ -20,6 +19,15 @@ namespace PlayerAnimationViewer
             var player = Player.MainPlayer;
             if (player == null)
                 return;
+
+            for (var i = 0; i < 10; i++)
+            {
+                if (Input.IsPressed(Key.F1 + i))
+                {
+                    Log.Info($"Creating shell {i}");
+                    player.CreateShell((uint)i, player.Forward * 10);
+                }
+            }
 
             if (!Input.IsDown(Button.L2)) 
                 return;

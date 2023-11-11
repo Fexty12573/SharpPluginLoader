@@ -1,4 +1,6 @@
-﻿namespace SharpPluginLoader.Core
+﻿using SharpPluginLoader.Core.Entities;
+
+namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// Provides a set of utility methods.

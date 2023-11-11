@@ -30,7 +30,7 @@ namespace SharpPluginLoader.Core
             var messagePtr = Marshal.StringToHGlobalAnsi(message);
             CachedMessages.Enqueue(messagePtr);
 
-            if (CachedMessages.Count > 15)
+            if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
 
             DisplayPopupFunc.Invoke(SingletonInstance, messagePtr, durationSeconds, delaySeconds, false, xOff, yOff);
@@ -60,7 +60,7 @@ namespace SharpPluginLoader.Core
             DialogCallbacks.Enqueue(callback);
             CachedMessages.Enqueue(msgPtr);
 
-            if (CachedMessages.Count > 15)
+            if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
 
             InternalCalls.QueueYesNoDialog(msgPtr);
@@ -68,8 +68,14 @@ namespace SharpPluginLoader.Core
 
         public static unsafe void DisplayMessageWindow(string message, MtVector2 offset = new())
         {
+            var msgPtr = Marshal.StringToHGlobalAnsi(message);
             var offsetPtr = &offset;
-            DisplayMessageWindowFunc.Invoke(SingletonInstance, message, 0, (nint)offsetPtr, false);
+
+            CachedMessages.Enqueue(msgPtr);
+            if (CachedMessages.Count > 30)
+                Marshal.FreeHGlobal(CachedMessages.Dequeue());
+
+            DisplayMessageWindowFunc.Invoke(SingletonInstance, msgPtr, 0, (nint)offsetPtr, false);
         }
 
         public static unsafe void DisplayAlert(string message)
@@ -104,7 +110,7 @@ namespace SharpPluginLoader.Core
         private static readonly Queue<nint> CachedMessages = new();
         private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(0x141ae2700);
         private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(0x141a53400);
-        private static readonly NativeAction<nint, string, nint, nint, bool> DisplayMessageWindowFunc = new(0x141ae3220);
+        private static readonly NativeAction<nint, nint, nint, nint, bool> DisplayMessageWindowFunc = new(0x141ae3220);
         private static readonly NativeAction<string> DisplayAlertFunc = new(0x1418d5960);
         private static Hook<ChatMessageSentDelegate> _chatMessageSentHook = null!;
 

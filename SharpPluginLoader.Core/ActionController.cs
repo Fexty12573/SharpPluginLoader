@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
@@ -48,11 +49,12 @@ namespace SharpPluginLoader.Core
 
         private static bool DoActionHook(nint instance, ref ActionInfo actionInfo)
         {
-            if (instance != (Player.MainPlayer?.ActionController.Instance ?? 0))
+            var player = Player.MainPlayer;
+            if (instance != (player?.ActionController.Instance ?? 0))
                 return _doActionHook.Original(instance, ref actionInfo);
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnPlayerAction))
-                plugin.OnPlayerAction(ref actionInfo);
+                plugin.OnPlayerAction(player!, ref actionInfo);
 
             return _doActionHook.Original(instance, ref actionInfo);
         }
@@ -67,6 +69,32 @@ namespace SharpPluginLoader.Core
     {
         [FieldOffset(0x0)] public int ActionSet;
         [FieldOffset(0x4)] public int ActionId;
+
+        public ActionInfo(int actionSet, int actionId)
+        {
+            ActionSet = actionSet;
+            ActionId = actionId;
+        }
+
+        public static bool operator ==(ActionInfo left, ActionInfo right) => left.Equals(right);
+        public static bool operator !=(ActionInfo left, ActionInfo right) => !left.Equals(right);
+
+        public bool Equals(ActionInfo other)
+        {
+            return ActionSet == other.ActionSet && ActionId == other.ActionId;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ActionInfo other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ActionSet, ActionId);
+        }
+
+        public override string ToString() => $"{ActionSet}:{ActionId}";
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x10)]

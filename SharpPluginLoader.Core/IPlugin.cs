@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
@@ -71,7 +72,7 @@ namespace SharpPluginLoader.Core
         public void OnMonsterAction(Monster monster, ref int actionId) => throw new MissingEventException();
 
         // Player
-        public void OnPlayerAction(ref ActionInfo action) => throw new MissingEventException();
+        public void OnPlayerAction(Player player, ref ActionInfo action) => throw new MissingEventException();
 
         internal void Dispose()
         {

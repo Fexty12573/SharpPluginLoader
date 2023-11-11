@@ -1,7 +1,7 @@
 ﻿using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Entities
 {
     /// <summary>
     /// Represents a Monster Hunter World uCharacterModel instance.

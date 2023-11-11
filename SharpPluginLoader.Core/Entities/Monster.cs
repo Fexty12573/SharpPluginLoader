@@ -1,7 +1,7 @@
 ﻿using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Entities
 {
     public class Monster : Entity
     {
@@ -81,7 +81,7 @@ namespace SharpPluginLoader.Core
         public bool Frozen
         {
             get => (Get<uint>(0x14) & 1) == 1;
-            set => Set(0x14, (Get<uint>(0x14) & 0xFFFFFFFE) | (value ? 1u : 0u));
+            set => Set(0x14, Get<uint>(0x14) & 0xFFFFFFFE | (value ? 1u : 0u));
         }
 
         /// <summary>

@@ -114,6 +114,8 @@ namespace SharpPluginLoader.Core.Entities
             }
         }
 
+        public AnimationId CurrentAnimation => Get<AnimationId>(0x55B8);
+
         /// <summary>
         /// Pauses the entity's current animation
         /// </summary>

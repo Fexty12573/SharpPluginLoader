@@ -38,6 +38,10 @@ namespace SharpPluginLoader.Core
         // Player
         public bool OnPlayerAction;
 
+        // Entity
+        public bool OnEntityAction;
+        public bool OnEntityAnimationUpdate;
+
         // Network
         public bool OnSendPacket;
         public bool OnReceivePacket;
@@ -73,6 +77,10 @@ namespace SharpPluginLoader.Core
 
         // Player
         public void OnPlayerAction(Player player, ref ActionInfo action) => throw new MissingEventException();
+
+        // Entity
+        public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
+        public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
 
         internal void Dispose()
         {

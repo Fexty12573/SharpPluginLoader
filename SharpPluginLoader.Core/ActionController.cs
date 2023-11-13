@@ -28,6 +28,8 @@ namespace SharpPluginLoader.Core
             set => SetMtType(0xC4, value);
         }
 
+        public Entity? Owner => GetObject<Entity>(0x100);
+
         public ActionList GetActionList(int actionSet)
         {
             if (actionSet is < 0 or > 3)
@@ -49,6 +51,14 @@ namespace SharpPluginLoader.Core
 
         private static bool DoActionHook(nint instance, ref ActionInfo actionInfo)
         {
+            var actionController = new ActionController(instance);
+            var owner = actionController.Owner;
+            if (owner != null)
+            {
+                foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAction))
+                    plugin.OnEntityAction(owner, ref actionInfo);
+            }
+
             var player = Player.MainPlayer;
             if (instance != (player?.ActionController.Instance ?? 0))
                 return _doActionHook.Original(instance, ref actionInfo);

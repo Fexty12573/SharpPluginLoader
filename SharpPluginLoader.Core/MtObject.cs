@@ -5,6 +5,10 @@
         public MtObject(nint instance) : base(instance) { }
         public MtObject() { }
 
+        public T As<T>() where T : MtObject, new() => new() { Instance = Instance };
+
+        public bool Is(string typeName) => GetDti()?.InheritsFrom(typeName) ?? false;
+
         private unsafe nint* VTable => GetPtr<nint>(0x0);
 
         /// <summary>

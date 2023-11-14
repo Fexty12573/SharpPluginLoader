@@ -5,7 +5,7 @@ namespace SharpPluginLoader.Core
 {
     public static class ResourceManager
     {
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x145183f40);
+        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451217c0);
 
         public static unsafe T? GetResource<T>(string path, MtDti dti, uint flags = 1) where T : Resource, new()
         {

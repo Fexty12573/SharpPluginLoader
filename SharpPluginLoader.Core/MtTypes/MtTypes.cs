@@ -251,12 +251,26 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtHermitCurve : IMtType
+    public struct MtHermiteCurve : IMtType
     {
         public unsafe fixed float X[8];
         public unsafe fixed float Y[8];
 
         public int PointCount => 8;
+
+        /// <summary>
+        /// Creates a new Hermite curve from a list of points.
+        /// </summary>
+        /// <param name="points">A list of at most 8 points, with the first element of each tuple being the X value,
+        /// and the second element being the Y value.</param>
+        public unsafe MtHermiteCurve(IList<(float, float)> points)
+        {
+            for (var i = 0; i < points.Count; i++)
+            {
+                X[i] = points[i].Item1;
+                Y[i] = points[i].Item2;
+            }
+        }
 
         public unsafe int EffectivePointCount
         {

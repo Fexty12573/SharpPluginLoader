@@ -48,6 +48,7 @@ namespace SharpPluginLoader.Core
             Quest.Initialize();
             ResourceManager.Initialize();
             ActionController.Initialize();
+            AnimationLayerComponent.Initialize();
 
             GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
         }

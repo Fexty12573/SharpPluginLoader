@@ -64,7 +64,22 @@ namespace SharpPluginLoader.Core.Entities
             CreateShellFunc.Invoke(shell.Instance, Instance, Instance, (nint)(&shellParams));
         }
 
+        private static void Initialize()
+        {
+            _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, 0x141f59090);
+        }
 
+        private static void ChangeWeaponHook(nint player, WeaponType weaponType, int weaponId)
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnWeaponChange))
+                plugin.OnWeaponChange(new Player(player), weaponType, weaponId);
+
+            _changeWeaponHook.Original(player, weaponType, weaponId);
+        }
+
+        private delegate void ChangeWeaponDelegate(nint player, WeaponType weaponType, int weaponId);
+
+        private static Hook<ChangeWeaponDelegate> _changeWeaponHook = null!;
         private static readonly NativeFunction<nint, nint> FindMasterPlayerFunc = new(0x141b41240);
         private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(0x141f61470);
         private static readonly NativeFunction<nint, nint, nint, nint, nint> CreateShellFunc = new(0x141aa67d0);

@@ -46,10 +46,11 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _doActionHook = new Hook<DoActionDelegate>(DoActionHook, 0x140269c90);
+            _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, 0x140269c90);
+            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHookFunc, 0x141cc4590);
         }
 
-        private static bool DoActionHook(nint instance, ref ActionInfo actionInfo)
+        private static bool DoActionHookFunc(nint instance, ref ActionInfo actionInfo)
         {
             var actionController = new ActionController(instance);
             var owner = actionController.Owner;
@@ -69,9 +70,20 @@ namespace SharpPluginLoader.Core
             return _doActionHook.Original(instance, ref actionInfo);
         }
 
+        private static bool LaunchActionHookFunc(nint instance, int actionId)
+        {
+            var monster = new Monster(instance);
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterAction))
+                plugin.OnMonsterAction(monster, ref actionId);
+
+            return _launchActionHook.Original(instance, actionId);
+        }
+
         private delegate bool DoActionDelegate(nint instance, ref ActionInfo actionInfo);
+        private delegate bool LaunchActionDelegate(nint instance, int actionId);
         private static readonly NativeFunction<nint, nint, bool> DoActionFunc = new(0x140269c90);
         private static Hook<DoActionDelegate> _doActionHook = null!;
+        private static Hook<LaunchActionDelegate> _launchActionHook = null!;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x8)]

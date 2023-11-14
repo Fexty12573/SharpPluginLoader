@@ -37,6 +37,7 @@ namespace SharpPluginLoader.Core
 
         // Player
         public bool OnPlayerAction;
+        public bool OnWeaponChange;
 
         // Entity
         public bool OnEntityAction;
@@ -77,6 +78,7 @@ namespace SharpPluginLoader.Core
 
         // Player
         public void OnPlayerAction(Player player, ref ActionInfo action) => throw new MissingEventException();
+        public void OnWeaponChange(Player player, WeaponType weaponType, int weaponId) => throw new MissingEventException();
 
         // Entity
         public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();

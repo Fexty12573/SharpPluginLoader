@@ -1,5 +1,6 @@
 ﻿using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {
@@ -42,14 +43,25 @@ namespace SharpPluginLoader.Core
 
         public void UnlockSpeed() => SpeedLocks.Remove(Instance);
         
-        public void Pause() => SpeedLocks.Add(Instance, 0f);
+        public void Pause() => SpeedLocks[Instance] = 0f;
 
         public void Resume() => SpeedLocks.Remove(Instance);
 
-
-        static AnimationLayerComponent()
+        public unsafe void RegisterLmt(Resource lmt, uint index)
         {
-            UpdateHook = new Hook<UpdateDelegate>(UpdateHookFunc, 0x14224c150);
+            if (index >= 16)
+                throw new ArgumentOutOfRangeException(nameof(index), "Index must be less than 16");
+
+            var owner = Owner?.Instance ?? 0;
+            if (owner == 0)
+                throw new InvalidOperationException("Cannot register LMT on an entity that is not initialized");
+
+            RegisterLmtFunc.Invoke(owner, lmt.Instance, index);
+        }
+
+        internal static void Initialize()
+        {
+            _updateHook = Hook.Create<UpdateDelegate>(UpdateHookFunc, 0x14224c150);
         }
 
         private static void UpdateHookFunc(nint animLayer, int a, uint b, nint c, nint d, nint e, nint f, nint g)
@@ -65,12 +77,13 @@ namespace SharpPluginLoader.Core
                     plugin.OnEntityAnimationUpdate(owner, owner.CurrentAnimation, animLayerComponent.Get<float>(0xE27C));
             }
 
-            UpdateHook.Original(animLayer, a, b, c, d, e, f, g);
+            _updateHook.Original(animLayer, a, b, c, d, e, f, g);
         }
 
         private delegate void UpdateDelegate(nint instance, int unk1, uint unk2, nint unk3, nint unk4, nint unk5,
             nint unk6, nint unk7);
-        private static readonly Hook<UpdateDelegate> UpdateHook;
+        private static Hook<UpdateDelegate> _updateHook = null!;
+        private static readonly NativeAction<nint, nint, uint> RegisterLmtFunc = new(0x142236450);
         private static readonly Dictionary<nint, float> SpeedLocks = new();
     }
 
@@ -82,6 +95,7 @@ namespace SharpPluginLoader.Core
         public uint Id => FullId & 0xFFF;
 
         public AnimationId(uint fullId) => FullId = fullId;
+        public AnimationId(uint lmt, uint id) => FullId = (lmt << 12) | (id & 0xFFF);
 
         public static implicit operator uint(AnimationId id) => id.FullId;
         public static implicit operator AnimationId(uint id) => new(id);
@@ -92,5 +106,6 @@ namespace SharpPluginLoader.Core
         public bool Equals(AnimationId other) => FullId == other.FullId;
         public override bool Equals(object? obj) => obj is AnimationId other && Equals(other);
         public override int GetHashCode() => (int)FullId;
+        public override string ToString() => $"{Lmt}.{Id} ({FullId})";
     }
 }

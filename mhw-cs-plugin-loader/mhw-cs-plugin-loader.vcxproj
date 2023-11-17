@@ -72,9 +72,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>true</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,7 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
@@ -129,8 +134,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -146,6 +151,7 @@
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp" />
     <ClCompile Include="CoreClr.cpp" />
     <ClCompile Include="CoreModule.cpp" />
+    <ClCompile Include="D3DModule.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GuiModule.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -156,6 +162,7 @@
     <ClInclude Include="CoreClr.h" />
     <ClInclude Include="coreclr_delegates.h" />
     <ClInclude Include="CoreModule.h" />
+    <ClInclude Include="D3DModule.h" />
     <ClInclude Include="GuiModule.h" />
     <ClInclude Include="hostfxr.h" />
     <ClInclude Include="Log.h" />

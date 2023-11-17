@@ -16,8 +16,14 @@ namespace SharpPluginLoader.Core
             public PluginData Data { get; init; }
         }
 
+        private static readonly TimeSpan EventCooldown = TimeSpan.FromMilliseconds(500);
         private readonly Dictionary<string, PluginContext> _contexts = new();
         private readonly FileSystemWatcher _watcher;
+        private readonly object _lock = new();
+        private readonly Dictionary<string, DateTime> _lastEventTimes = new();
+#if DEBUG
+        private readonly List<FileSystemWatcher> _symlinkWatchers = new();
+#endif
 
         public PluginManager()
         {
@@ -28,13 +34,61 @@ namespace SharpPluginLoader.Core
             _watcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
             _watcher.Changed += (_, args) =>
             {
-                Log.Info($"FileChanged: {args.FullPath} {args.ChangeType}");
-                if (IsPlugin(args.FullPath) && args.ChangeType == WatcherChangeTypes.Changed) 
-                    ReloadPlugin(args.FullPath);
+                if (!IsPlugin(args.FullPath) || args.ChangeType != WatcherChangeTypes.Changed)
+                    return;
+
+                lock (_lock)
+                {
+                    var lastEventTime = _lastEventTimes.GetValueOrDefault(args.FullPath);
+                    var nowTime = File.GetLastWriteTime(args.FullPath);
+                    if (nowTime - lastEventTime < EventCooldown)
+                        return;
+
+                    _lastEventTimes[args.FullPath] = nowTime;
+                }
+                
+                ReloadPlugin(args.FullPath);
             };
 
             _watcher.NotifyFilter = NotifyFilters.LastWrite;
             _watcher.EnableRaisingEvents = true;
+
+#if DEBUG
+            var dirInfo = new DirectoryInfo("nativePC/plugins/CSharp");
+            foreach (var info in dirInfo.EnumerateFileSystemInfos("*", SearchOption.AllDirectories))
+            {
+                if (info.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
+                {
+                    var symlinkWatcher = new FileSystemWatcher(info.LinkTarget!);
+                    symlinkWatcher.IncludeSubdirectories = true;
+
+                    symlinkWatcher.Created += (_, args) => { if (IsPlugin(args.FullPath)) LoadPlugin(args.FullPath); };
+                    symlinkWatcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
+                    symlinkWatcher.Changed += (_, args) =>
+                    {
+                        if (!IsPlugin(args.FullPath) || args.ChangeType != WatcherChangeTypes.Changed)
+                            return;
+
+                        lock (_lock)
+                        {
+                            var lastEventTime = _lastEventTimes.GetValueOrDefault(args.FullPath);
+                            var nowTime = File.GetLastWriteTime(args.FullPath);
+                            if (nowTime - lastEventTime < EventCooldown)
+                                return;
+
+                            _lastEventTimes[args.FullPath] = nowTime;
+                        }
+
+                        ReloadPlugin(args.FullPath);
+                    };
+
+                    symlinkWatcher.NotifyFilter = NotifyFilters.LastWrite;
+                    symlinkWatcher.EnableRaisingEvents = true;
+
+                    _symlinkWatchers.Add(symlinkWatcher);
+                }
+            }
+#endif
         }
 
         private static bool IsPlugin(string path)

@@ -59,6 +59,12 @@ namespace SharpPluginLoader.Core
             return prop == 0 ? null : new MtProperty(prop);
         }
 
+        public unsafe MtProperty? FindProperty(uint hash)
+        {
+            var prop = FindPropertyByHashFunc.Invoke(Instance, hash);
+            return prop == 0 ? null : new MtProperty(prop);
+        }
+
         public unsafe MtProperty? this[int index]
         {
             get
@@ -119,6 +125,7 @@ namespace SharpPluginLoader.Core
 
         private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(0x14218e740);
         private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(0x14218e6b0);
+        private static readonly NativeFunction<nint, uint, nint> FindPropertyByHashFunc = new(0x1421707f0);
         private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(0x01d6d290);
 
         internal Action<MtPropertyList>? Deleter = null;

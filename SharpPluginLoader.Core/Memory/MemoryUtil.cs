@@ -38,9 +38,18 @@ namespace SharpPluginLoader.Core.Memory
             return array;
         }
 
-        public static unsafe T Read<T>(long address, long offset = 0) where T : unmanaged
+        public static unsafe T Read<T>(long address) where T : unmanaged
         {
-            return *(T*)(address + offset);
+            return *(T*)address;
+        }
+
+        public static unsafe T[] ReadArray<T>(long address, int count = 1) where T : unmanaged
+        {
+            var array = new T[count];
+            for (var i = 0; i < count; i++)
+                array[i] = Read<T>(address + i * sizeof(T));
+
+            return array;
         }
 
         /// <summary>

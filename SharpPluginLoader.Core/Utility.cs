@@ -25,7 +25,7 @@ namespace SharpPluginLoader.Core
             return Crc32Func.InvokeUnsafe(str, crc);
         }
 
-        internal static uint MakeDtiId(string name) => Crc32(name) & 0x7FFFFFFF;
+        public static uint MakeDtiId(string name) => Crc32(name) & 0x7FFFFFFF;
 
         internal static nint FindDti(uint id) => FindDtiFunc.Invoke(id);
 

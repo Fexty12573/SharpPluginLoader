@@ -16,15 +16,11 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x04)] public ushort Version;
         [FieldOffset(0x06)] public ushort MotionCount;
 
-        [FieldOffset(0x10)] public fixed nint MotionOffsets[1];
+        [FieldOffset(0x10)] private nint _motions;
 
-        public ref Motion GetMotion(int index)
-        {
-            fixed (nint* ptr = MotionOffsets)
-            {
-                return ref *(Motion*)(ptr + index);
-            }
-        }
+        public ref Motion GetMotion(int id) => ref *Motions[id];
+
+        internal Motion** Motions => (Motion**)Unsafe.AsPointer(ref _motions);
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x60)]

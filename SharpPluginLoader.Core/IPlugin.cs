@@ -83,7 +83,7 @@ namespace SharpPluginLoader.Core
 
         // Entity
         public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
-        public void OnEntityAnimation(Entity entity, ref AnimationId animationId) => throw new MissingEventException();
+        public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame) => throw new MissingEventException();
         public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
 
         internal void Dispose()

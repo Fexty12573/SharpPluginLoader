@@ -47,7 +47,7 @@ namespace SharpPluginLoader.Core
 
         public void Resume() => SpeedLocks.Remove(Instance);
 
-        public unsafe void RegisterLmt(Resource lmt, uint index)
+        public unsafe void RegisterLmt(MotionList lmt, uint index)
         {
             if (index >= 16)
                 throw new ArgumentOutOfRangeException(nameof(index), "Index must be less than 16");
@@ -81,15 +81,15 @@ namespace SharpPluginLoader.Core
             _updateHook.Original(animLayer, a, b, c, d, e, f, g);
         }
 
-        private static void DoLmtHook(nint instance, uint animId, float a, uint b, uint c, float d, int e)
+        private static void DoLmtHook(nint instance, uint animId, float startFrame, uint b, uint c, float d, int e)
         {
             var entity = new Entity(instance);
             AnimationId animIdObj = animId;
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimation))
-                plugin.OnEntityAnimation(entity, ref animIdObj);
+                plugin.OnEntityAnimation(entity, ref animIdObj, ref startFrame);
 
-            _doLmtHook.Original(instance, animIdObj, a, b, c, d, e);
+            _doLmtHook.Original(instance, animIdObj, startFrame, b, c, d, e);
         }
 
         private delegate void UpdateDelegate(nint instance, int unk1, uint unk2, nint unk3, nint unk4, nint unk5, nint unk6, nint unk7);

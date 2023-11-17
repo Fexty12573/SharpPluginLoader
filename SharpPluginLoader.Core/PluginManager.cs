@@ -22,6 +22,8 @@ namespace SharpPluginLoader.Core
         public PluginManager()
         {
             _watcher = new FileSystemWatcher("nativePC/plugins/CSharp");
+            _watcher.IncludeSubdirectories = true;
+
             _watcher.Created += (_, args) => { if (IsPlugin(args.FullPath)) LoadPlugin(args.FullPath); };
             _watcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
             _watcher.Changed += (_, args) =>
@@ -31,8 +33,8 @@ namespace SharpPluginLoader.Core
                     ReloadPlugin(args.FullPath);
             };
 
+            _watcher.NotifyFilter = NotifyFilters.LastWrite;
             _watcher.EnableRaisingEvents = true;
-            _watcher.IncludeSubdirectories = true;
         }
 
         private static bool IsPlugin(string path)

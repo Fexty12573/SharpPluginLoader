@@ -65,6 +65,14 @@ namespace SharpPluginLoader.Core.Entities
             CreateShellFunc.Invoke(shell.Instance, Instance, Instance, (nint)(&shellParams));
         }
 
+        public void RegisterMbd(Resource mbd, uint index)
+        {
+            if (index >= 16)
+                throw new ArgumentOutOfRangeException(nameof(index), "Index must be less than 16");
+
+            SetObject(0x7430 + (nint)index * 8, mbd);
+        }
+
         internal static void Initialize()
         {
             _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, 0x141f59090);

@@ -41,6 +41,7 @@ namespace SharpPluginLoader.Core
 
         // Entity
         public bool OnEntityAction;
+        public bool OnEntityAnimation;
         public bool OnEntityAnimationUpdate;
 
         // Network
@@ -82,6 +83,7 @@ namespace SharpPluginLoader.Core
 
         // Entity
         public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
+        public void OnEntityAnimation(Entity entity, ref AnimationId animationId) => throw new MissingEventException();
         public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
 
         internal void Dispose()

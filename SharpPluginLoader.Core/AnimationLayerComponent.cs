@@ -61,10 +61,11 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _updateHook = Hook.Create<UpdateDelegate>(UpdateHookFunc, 0x14224c150);
+            _updateHook = Hook.Create<UpdateDelegate>(UpdateHook, 0x14224c150);
+            _doLmtHook = Hook.Create<DoLmtDelegate>(DoLmtHook, 0x141c00720);
         }
 
-        private static void UpdateHookFunc(nint animLayer, int a, uint b, nint c, nint d, nint e, nint f, nint g)
+        private static void UpdateHook(nint animLayer, int a, uint b, nint c, nint d, nint e, nint f, nint g)
         {
             var animLayerComponent = new AnimationLayerComponent(animLayer);
             if (SpeedLocks.TryGetValue(animLayer, out var speed))
@@ -80,9 +81,21 @@ namespace SharpPluginLoader.Core
             _updateHook.Original(animLayer, a, b, c, d, e, f, g);
         }
 
-        private delegate void UpdateDelegate(nint instance, int unk1, uint unk2, nint unk3, nint unk4, nint unk5,
-            nint unk6, nint unk7);
+        private static void DoLmtHook(nint instance, uint animId, float a, uint b, uint c, float d, int e)
+        {
+            var entity = new Entity(instance);
+            AnimationId animIdObj = animId;
+
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimation))
+                plugin.OnEntityAnimation(entity, ref animIdObj);
+
+            _doLmtHook.Original(instance, animIdObj, a, b, c, d, e);
+        }
+
+        private delegate void UpdateDelegate(nint instance, int unk1, uint unk2, nint unk3, nint unk4, nint unk5, nint unk6, nint unk7);
+        private delegate void DoLmtDelegate(nint instance, uint animId, float unk1, uint unk2, uint unk3, float unk4, int unk5);
         private static Hook<UpdateDelegate> _updateHook = null!;
+        private static Hook<DoLmtDelegate> _doLmtHook = null!;
         private static readonly NativeAction<nint, nint, uint> RegisterLmtFunc = new(0x142236450);
         private static readonly Dictionary<nint, float> SpeedLocks = new();
     }

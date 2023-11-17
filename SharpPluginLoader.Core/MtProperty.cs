@@ -64,5 +64,46 @@
         /// The next property in the object's property list.
         /// </summary>
         public MtProperty? Next => GetObject<MtProperty>(0x50);
+
+        // TODO: Implement GetValue<T> and SetValue<T> methods
+        //public unsafe T GetValue<T>() where T : unmanaged
+        //{
+        //    if (Owner == null)
+        //        return default;
+
+        //    if (IsProperty)
+        //    {
+        //        if (IsArray)
+        //            return GetValue<T>(0);
+
+        //        var getter = new NativeFunction<nint, T>(Get);
+        //        return getter.InvokeUnsafe(Owner.Instance);
+        //    }
+
+        //    return default;
+        //}
+
+        //public unsafe T GetValue<T>(int index) where T : unmanaged
+        //{
+        //    if (Owner == null)
+        //        return default;
+
+        //    var getter = new NativeFunction<nint, int, T>(Get);
+        //    return getter.InvokeUnsafe(Owner.Instance, index);
+        //}
+
+        //public unsafe void SetValue<T>(T value) where T : unmanaged
+        //{
+        //    if (Owner != null)
+        //    {
+        //        var setter = new NativeAction<nint, T>(Set);
+        //        setter.InvokeUnsafe(Owner.Instance, value);
+        //    }
+        //}
+
+
+        //internal bool IsArray => (Attr & 0x80000) != 0;
+
+        //internal bool IsProperty => (Attr & 0x20000) != 0;
     }
 }

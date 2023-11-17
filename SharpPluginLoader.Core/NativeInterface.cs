@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Entities;
 
 namespace SharpPluginLoader.Core
 {
@@ -39,7 +40,7 @@ namespace SharpPluginLoader.Core
             public nint FindCoreMethodPtr;
         }
 
-        private static readonly Dictionary<int, RetrievedMethod> _retrievedMethods = new();
+        private static readonly Dictionary<int, RetrievedMethod> RetrievedMethods = new();
 
         public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
@@ -47,6 +48,8 @@ namespace SharpPluginLoader.Core
             Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();
+            Player.Initialize();
+            Monster.Initialize();
             ActionController.Initialize();
             AnimationLayerComponent.Initialize();
 
@@ -89,7 +92,7 @@ namespace SharpPluginLoader.Core
             try
             {
                 var hash = $"{typeName}.{methodName}".GetHashCode();
-                if (_retrievedMethods.TryGetValue(hash, out var retrievedMethod))
+                if (RetrievedMethods.TryGetValue(hash, out var retrievedMethod))
                 {
                     Log.Info($"[Core] Found method {typeName}.{methodName} in cache");
                     return retrievedMethod.FunctionPointer;
@@ -122,7 +125,7 @@ namespace SharpPluginLoader.Core
                 }
 
                 var ptr = method.MethodHandle.GetFunctionPointer();
-                _retrievedMethods.Add(hash, new RetrievedMethod(typeName, methodName, ptr));
+                RetrievedMethods.Add(hash, new RetrievedMethod(typeName, methodName, ptr));
                 return ptr;
             }
             catch (Exception e)

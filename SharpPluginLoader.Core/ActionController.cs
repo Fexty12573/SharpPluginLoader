@@ -47,7 +47,7 @@ namespace SharpPluginLoader.Core
         internal static void Initialize()
         {
             _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, 0x140269c90);
-            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHookFunc, 0x141cc4590);
+            //_launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHookFunc, 0x141cc4590);
         }
 
         private static bool DoActionHookFunc(nint instance, ref ActionInfo actionInfo)
@@ -100,6 +100,10 @@ namespace SharpPluginLoader.Core
 
         public static bool operator ==(ActionInfo left, ActionInfo right) => left.Equals(right);
         public static bool operator !=(ActionInfo left, ActionInfo right) => !left.Equals(right);
+        public static bool operator ==(ActionInfo left, (int, int) right) => left.ActionSet == right.Item1 && left.ActionId == right.Item2;
+        public static bool operator !=(ActionInfo left, (int, int) right) => !(left == right);
+        public static bool operator ==((int, int) left, ActionInfo right) => right == left;
+        public static bool operator !=((int, int) left, ActionInfo right) => !(right == left);
 
         public bool Equals(ActionInfo other)
         {

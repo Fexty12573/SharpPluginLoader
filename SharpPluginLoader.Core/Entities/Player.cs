@@ -1,6 +1,7 @@
 ﻿using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Weapons;
 
 namespace SharpPluginLoader.Core.Entities
 {
@@ -29,12 +30,12 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The currently equipped weapon
         /// </summary>
-        public MtObject? CurrentWeapon => GetObject<MtObject>(0x76B0);
+        public Weapon? CurrentWeapon => GetObject<Weapon>(0x76B0);
 
         /// <summary>
         /// The currently equipped weapon type
         /// </summary>
-        public unsafe WeaponType CurrentWeaponType => GetWeaponTypeFunc.InvokeUnsafe(Instance);
+        public WeaponType CurrentWeaponType => CurrentWeapon?.Type ?? WeaponType.None;
 
         /// <inheritdoc/>
         public override void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
@@ -64,7 +65,7 @@ namespace SharpPluginLoader.Core.Entities
             CreateShellFunc.Invoke(shell.Instance, Instance, Instance, (nint)(&shellParams));
         }
 
-        private static void Initialize()
+        internal static void Initialize()
         {
             _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, 0x141f59090);
         }
@@ -81,7 +82,6 @@ namespace SharpPluginLoader.Core.Entities
 
         private static Hook<ChangeWeaponDelegate> _changeWeaponHook = null!;
         private static readonly NativeFunction<nint, nint> FindMasterPlayerFunc = new(0x141b41240);
-        private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(0x141f61470);
         private static readonly NativeFunction<nint, nint, nint, nint, nint> CreateShellFunc = new(0x141aa67d0);
     }
 

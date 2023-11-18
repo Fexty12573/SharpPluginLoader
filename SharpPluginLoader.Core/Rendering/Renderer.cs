@@ -26,6 +26,7 @@ namespace SharpPluginLoader.Core.Rendering
         public static unsafe nint Render()
         {
             ImGui.NewFrame();
+            ImGui.Begin("SharpPluginLoader");
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
             {
@@ -36,6 +37,7 @@ namespace SharpPluginLoader.Core.Rendering
                 }
             }
 
+            ImGui.End();
             ImGui.EndFrame();
             ImGui.Render();
 

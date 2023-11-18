@@ -11,23 +11,11 @@ namespace SharpPluginLoader.Core
 
         public Entity? Owner => GetObject<Entity>(0x30);
 
-        public float CurrentFrame
-        {
-            get => Get<float>(0x10C);
-            set => Set(0x10C, value);
-        }
+        public ref float CurrentFrame => ref GetRef<float>(0x10C);
 
-        public float MaxFrame
-        {
-            get => Get<float>(0x114);
-            set => Set(0x114, value);
-        }
+        public ref float MaxFrame => ref GetRef<float>(0x114);
 
-        public float Speed
-        {
-            get => Get<float>(0x11C);
-            set => Set(0x11C, value);
-        }
+        public ref float Speed => ref GetRef<float>(0x11C);
 
         public bool Paused
         {

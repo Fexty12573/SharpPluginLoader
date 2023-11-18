@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using ImGuiNET;
 using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.IO;
@@ -14,13 +15,14 @@ namespace PlayerAnimationViewer
 {
     public class Plugin : IPlugin
     {
-        public string Name => "PlayerAnimationViewer";
+        public string Name => "Player Animation Viewer";
 
         private delegate nint CreateShellDelegate(nint shellParam, nint source1, nint source2, nint data);
         private MotionList? _switchAxeLmt;
         private Resource? _switchAxeMbd;
         private Resource? _switchAxeCol;
         private bool _didFrameSet;
+        private bool _speedLocked;
 
         public PluginData OnLoad()
         {
@@ -88,7 +90,29 @@ namespace PlayerAnimationViewer
             if (player == null)
                 return;
 
+            var animLayer = player.AnimationLayer;
+            if (animLayer == null)
+                return;
 
+            ImGui.Text($"Current Animation: {player.CurrentAnimation}");
+            ImGui.NewLine();
+            ImGui.Text($"Current Frame: {animLayer.CurrentFrame}/{animLayer.MaxFrame}");
+            ImGui.SliderFloat("Frame", ref animLayer.CurrentFrame, 0, animLayer.MaxFrame);
+
+            var paused = animLayer.Paused;
+            if (ImGui.Checkbox("Paused", ref paused))
+                animLayer.Paused = paused;
+
+            ImGui.Text($"Speed: {animLayer.Speed}");
+            ImGui.SliderFloat("Speed", ref animLayer.Speed, 0, 10);
+
+            if (ImGui.Checkbox("Lock Speed", ref _speedLocked))
+            {
+                if (_speedLocked)
+                    animLayer.LockSpeed(animLayer.Speed);
+                else
+                    animLayer.UnlockSpeed();
+            }
         }
 
         public void OnPlayerAction(Player player, ref ActionInfo action)

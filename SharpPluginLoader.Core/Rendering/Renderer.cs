@@ -27,7 +27,14 @@ namespace SharpPluginLoader.Core.Rendering
         {
             ImGui.NewFrame();
 
-            ImGui.ShowDemoWindow();
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+            {
+                if (ImGui.TreeNode(plugin.Name))
+                {
+                    plugin.OnRender();
+                    ImGui.TreePop();
+                }
+            }
 
             ImGui.EndFrame();
             ImGui.Render();

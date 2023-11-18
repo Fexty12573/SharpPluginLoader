@@ -5,6 +5,8 @@ namespace GlobalPendant
 {
     public class Plugin : IPlugin
     {
+        public string Name => "GlobalPendant";
+
         private delegate void ChangePendant(nint equipCharm, int pendantIndex, nint unk);
 
         private Hook<ChangePendant> _changePendantHook = null!;

@@ -48,12 +48,17 @@ namespace SharpPluginLoader.Core
         public bool OnSendPacket;
         public bool OnReceivePacket;
 
+        // Rendering
+        public bool OnRender;
+
         // Non-Events
         public bool IsDebugPlugin;
     }
 
     public interface IPlugin
     {
+        public string Name { get; }
+
         public PluginData OnLoad();
 
         // Generic
@@ -85,6 +90,9 @@ namespace SharpPluginLoader.Core
         public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
         public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame) => throw new MissingEventException();
         public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
+
+        // Rendering
+        public void OnRender() => throw new MissingEventException();
 
         internal void Dispose()
         {

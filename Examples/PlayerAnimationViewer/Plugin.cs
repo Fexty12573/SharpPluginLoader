@@ -14,6 +14,8 @@ namespace PlayerAnimationViewer
 {
     public class Plugin : IPlugin
     {
+        public string Name => "PlayerAnimationViewer";
+
         private delegate nint CreateShellDelegate(nint shellParam, nint source1, nint source2, nint data);
         private MotionList? _switchAxeLmt;
         private Resource? _switchAxeMbd;
@@ -32,6 +34,7 @@ namespace PlayerAnimationViewer
                 OnEntityAnimation = true,
                 OnMonsterAction = true,
                 OnWeaponChange = true,
+                OnRender = true,
             };
         }
 
@@ -51,7 +54,7 @@ namespace PlayerAnimationViewer
             //}
 
             if (Input.IsDown(Key.LeftControl) && Input.IsPressed(Key.D))
-                DumpLmtParams("nativePC/plugins/CSharp/PlayerAnimationViewer");
+                DumpLmtParams("nativePC/plugins/CSharp/PlayerAnimationViewer/LmtParams");
 
             if (!Input.IsDown(Button.L2)) 
                 return;
@@ -77,6 +80,15 @@ namespace PlayerAnimationViewer
             var actionController = player.ActionController;
             if (Input.IsPressed(Button.Circle))
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
+        }
+
+        public void OnRender()
+        {
+            var player = Player.MainPlayer;
+            if (player == null)
+                return;
+
+
         }
 
         public void OnPlayerAction(Player player, ref ActionInfo action)
@@ -166,6 +178,7 @@ namespace PlayerAnimationViewer
         {
             Log.Info("Dumping LMT params");
 
+            var memberDefPool = stackalloc LmtParamMemberDefPool[1];
             var populateParamMemberDefs = new NativeAction<nint, nint>(0x14231df70);
             var paramTypeCountAddr = (nint)0x1451c39e8;
             var paramTypesAddr = (nint)0x1451c39e0;
@@ -173,19 +186,29 @@ namespace PlayerAnimationViewer
                 .ReadStructArray<LmtParamType>(0, paramTypeCountAddr.Read<int>());
 
             Directory.CreateDirectory(dir);
+
+            var fullSb = new StringBuilder();
+
             foreach (var type in paramTypes)
             {
                 var dti = type.Dti;
                 var memberDefs = new LmtParamMemberDef[type.PropCount];
                 var obj = dti.CreateInstance<MtObject>();
-                var fullId = ((ulong)Utility.MakeDtiId(dti.Name) << 32) | type.UniqueId;
+                var fullId = ((ulong)dti.Id << 32) | type.UniqueId;
 
                 fixed (LmtParamMemberDef* memberDefsPtr = memberDefs)
-                    populateParamMemberDefs.Invoke(obj.Instance, (nint)memberDefsPtr);
+                {
+                    memberDefPool->Pool = memberDefsPtr;
+                    memberDefPool->PoolSize = type.PropCount * (uint)sizeof(LmtParamMemberDef);
+                    memberDefPool->UsedSize = 0;
+                    memberDefPool->AllocatorIndex = 0;
+
+                    populateParamMemberDefs.Invoke(obj.Instance, (nint)memberDefPool);
+                }
 
                 var sb = new StringBuilder();
                 sb.AppendLine($"LMT Properties for {dti.Name}");
-                sb.AppendLine($"Hash: 0x{Utility.MakeDtiId(dti.Name):X}, Unique ID: {type.UniqueId}, Full ID: {fullId}");
+                sb.AppendLine($"Hash: 0x{dti.Id:X}, Unique ID: {type.UniqueId}, Full ID: {fullId}");
                 foreach (var memberDef in memberDefs)
                 {
                     var name = memberDef.Comment != "" ? memberDef.Comment : memberDef.Name;
@@ -195,8 +218,11 @@ namespace PlayerAnimationViewer
                     sb.AppendLine();
                 }
 
-                File.WriteAllText(Path.Combine(dir, $"{dti.Name}.txt"), sb.ToString());
+                fullSb.AppendLine(sb.ToString());
+                File.WriteAllText(Path.Combine(dir, $"{dti.Name.Replace("::", "_")}.txt"), sb.ToString());
             }
+            
+            File.WriteAllText(Path.Combine(dir, "LMT_Metadata.txt"), fullSb.ToString());
         }
     }
 }

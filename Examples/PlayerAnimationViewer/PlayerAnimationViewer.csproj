@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\SharpPluginLoader.Core\SharpPluginLoader.Core.csproj">
       <Private>False</Private>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>

@@ -38,4 +38,13 @@ namespace PlayerAnimationViewer
         public PropType Type => (PropType)(Attr & 0xFFF);
         public MtObject Object => new(_object);
     }
+
+    [StructLayout(LayoutKind.Explicit, Size = 0x18)]
+    public unsafe struct LmtParamMemberDefPool
+    {
+        [FieldOffset(0x00)] public LmtParamMemberDef* Pool;
+        [FieldOffset(0x08)] public uint PoolSize;
+        [FieldOffset(0x0C)] public uint UsedSize;
+        [FieldOffset(0x10)] public int AllocatorIndex;
+    }
 }

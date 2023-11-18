@@ -4,6 +4,8 @@ namespace BackgroundOptimize
 {
     public class Plugin : IPlugin
     {
+        public string Name => "BackgroundOptimize";
+
         private float _lastFps;
 
         public PluginData OnLoad()

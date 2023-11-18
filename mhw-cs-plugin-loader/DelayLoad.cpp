@@ -84,4 +84,19 @@ static FARPROC WINAPI DelayLoadFailureHook(unsigned dliNotify, PDelayLoadInfo pd
     return nullptr;
 }
 
-ExternC PfnDliHook __pfnDliFailureHook = DelayLoadFailureHook;
+static FARPROC WINAPI DelayLoadNotifyHook(unsigned dliNotify, PDelayLoadInfo pdli) {
+    if (dliNotify == dliNotePreLoadLibrary && pdli->szDll == std::string("cimgui.dll")) {
+        dlog::debug("Loading cimgui.dll");
+
+#ifdef _DEBUG
+        return (FARPROC)LoadLibraryA("nativePC/plugins/CSharp/Loader/cimgui.debug.dll");
+#else
+        return (FARPROC)LoadLibraryA("nativePC/plugins/CSharp/Loader/cimgui.dll");
+#endif
+    }
+
+    return nullptr;
+}
+
+ExternC PfnDliHook __pfnDliNotifyHook2 = DelayLoadNotifyHook;
+ExternC PfnDliHook __pfnDliFailureHook2 = DelayLoadFailureHook;

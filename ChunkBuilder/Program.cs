@@ -15,6 +15,7 @@ namespace ChunkBuilder
             assemblies.Add(CreateFile("./Data/Reloaded.Memory.dll"));
             assemblies.Add(CreateFile("./Data/Reloaded.Memory.Buffers.dll"));
             assemblies.Add(CreateFile("./Data/Iced.dll"));
+            assemblies.Add(CreateFile("./Data/ImGui.NET.dll"));
 
             root.Add(assemblies);
             var chunk = new Chunk(root);

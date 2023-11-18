@@ -33,7 +33,18 @@ namespace SharpPluginLoader.Core
 
         protected override nint LoadUnmanagedDll(string unmanagedDllName)
         {
+            if (unmanagedDllName.Contains("cimgui"))
+            {
+                Log.Debug($"[{unmanagedDllName}] Resolved Path: nativePC/plugins/CSharp/Loader/cimgui.dll");
+#if DEBUG
+                return LoadUnmanagedDllFromPath("nativePC/plugins/CSharp/Loader/cimgui.debug.dll");
+#else
+                return LoadUnmanagedDllFromPath("nativePC/plugins/CSharp/Loader/cimgui.dll");
+#endif
+            }
+
             var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            Log.Debug($"[{unmanagedDllName}] Resolved Path: {libraryPath}");
             return libraryPath != null ? LoadUnmanagedDllFromPath(libraryPath) : 0;
         }
     }

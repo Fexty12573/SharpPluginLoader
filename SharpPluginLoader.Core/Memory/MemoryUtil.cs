@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using MemoryProtection = Reloaded.Memory.Kernel32.Kernel32.MEM_PROTECTION;
 
 namespace SharpPluginLoader.Core.Memory
 {

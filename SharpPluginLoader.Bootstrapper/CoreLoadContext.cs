@@ -67,7 +67,18 @@ namespace SharpPluginLoader.Bootstrapper
 
         protected override nint LoadUnmanagedDll(string unmanagedDllName)
         {
+            if (unmanagedDllName.Contains("cimgui"))
+            {
+                EntryPoint.Log(EntryPoint.LogLevel.Debug, $"[{unmanagedDllName}] Resolved Path: nativePC/plugins/CSharp/Loader/cimgui.dll");
+#if DEBUG
+                return LoadUnmanagedDllFromPath(Path.GetFullPath("nativePC/plugins/CSharp/Loader/cimgui.debug.dll"));
+#else
+                return LoadUnmanagedDllFromPath(Path.GetFullPath("nativePC/plugins/CSharp/Loader/cimgui.dll"));
+#endif
+            }
+
             var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            EntryPoint.Log(EntryPoint.LogLevel.Debug, $"[{unmanagedDllName}] Resolved Path: {libraryPath}");
             return libraryPath != null ? LoadUnmanagedDllFromPath(libraryPath) : 0;
         }
     }

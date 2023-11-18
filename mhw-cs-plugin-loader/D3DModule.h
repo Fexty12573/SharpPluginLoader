@@ -4,10 +4,16 @@
 #include <d3d11.h>
 #include <d3d12.h>
 #include <dxgi.h>
+#include <wrl.h>
 
+#include <imgui_impl.h>
 #include <safetyhook/safetyhook.hpp>
 
+#include <vector>
+
 class D3DModule final : public NativeModule {
+    template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
+
 public:
     void initialize(CoreClr* coreclr) override;
     void shutdown() override;
@@ -17,41 +23,51 @@ private:
     void initialize_for_d3d12();
     void initialize_for_d3d11();
 
+    void d3d12_initialize_imgui(IDXGISwapChain* swap_chain);
+    void d3d11_initialize_imgui(IDXGISwapChain* swap_chain);
+
+    void d3d12_deinitialize_imgui();
+    void d3d11_deinitialize_imgui();
+
     static bool is_d3d12();
 
-    static bool game_present_hook(void* render, UINT sync_interval);
+    static void title_menu_ready_hook(void* gui);
 
-    static void d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
+    static HRESULT d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
     static void d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_queue, UINT num_command_lists, ID3D12CommandList* const* command_lists);
     static UINT64 d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fence* fence, UINT64 value);
 
-    static void d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
+    static HRESULT d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
+
+    static HRESULT d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags);
+    static LRESULT my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
     struct FrameContext {
-        ID3D12CommandAllocator* CommandAllocator = nullptr;
-        ID3D12Resource* RenderTarget = nullptr;
-        D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptor = {};
+        ComPtr<ID3D12CommandAllocator> CommandAllocator = nullptr;
+        ComPtr<ID3D12Resource> RenderTarget = nullptr;
+        D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptor = { 0 };
     };
 
 private:
     bool m_is_d3d12 = false;
     bool m_is_initialized = false;
 
-    safetyhook::InlineHook m_game_present_hook;
+    safetyhook::InlineHook m_title_menu_ready_hook;
 
     safetyhook::InlineHook m_d3d_present_hook;
     safetyhook::InlineHook m_d3d_execute_command_lists_hook;
     safetyhook::InlineHook m_d3d_signal_hook;
+    safetyhook::InlineHook m_d3d_resize_buffers_hook;
 
     ID3D12Device* m_d3d12_device = nullptr;
-    ID3D12DescriptorHeap* m_d3d12_back_buffers = nullptr;
-    ID3D12DescriptorHeap* m_d3d12_render_targets = nullptr;
-    ID3D12GraphicsCommandList* m_d3d12_command_list = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_back_buffers = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_render_targets = nullptr;
+    ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
     ID3D12CommandQueue* m_d3d12_command_queue = nullptr;
     ID3D12Fence* m_d3d12_fence = nullptr;
     UINT64 m_d3d12_fence_value = 0;
     UINT32 m_d3d12_buffer_count = 0;
-    FrameContext* m_d3d12_frame_contexts = nullptr;
+    std::vector<FrameContext> m_d3d12_frame_contexts;
 
     ID3D11Device* m_d3d11_device = nullptr;
     ID3D11DeviceContext* m_d3d11_device_context = nullptr;
@@ -59,11 +75,13 @@ private:
 
     HWND m_game_window = nullptr;
     HMODULE m_game_module = nullptr;
+    WNDPROC m_game_window_proc = nullptr;
 
     HWND m_temp_window = nullptr;
     WNDCLASSEX* m_temp_window_class = nullptr;
 
-    void(*m_plugin_render)() = nullptr;
+    ImGuiContext*(*m_core_initialize_imgui)() = nullptr;
+    ImDrawData*(*m_core_render)() = nullptr;
 
     static constexpr const char* s_game_window_name = "MONSTER HUNTER: WORLD(421652)";
 };

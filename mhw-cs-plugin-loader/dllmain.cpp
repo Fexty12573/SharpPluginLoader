@@ -9,15 +9,15 @@ static CoreClr* s_coreclr = nullptr;
 static NativePluginFramework* s_framework = nullptr;
 
 static void initialize_loader() {
-    /*for (int i = 0; i < 5; ++i) {
-        dlog::info("Initializing Loader... {}", 10 - i);
-        Sleep(1000);
-    }*/
-
+    //for (int i = 0; i < 5; ++i) {
+    //    dlog::info("Initializing Loader... {}", 5 - i);
+    //    Sleep(1000);
+    //}
+    
     s_coreclr = new CoreClr();
-    dlog::info("Loader initialized");
-
     s_framework = new NativePluginFramework(s_coreclr);
+
+    dlog::info("Initialized");
 }
 
 

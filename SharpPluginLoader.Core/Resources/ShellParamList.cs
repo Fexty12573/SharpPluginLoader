@@ -10,6 +10,11 @@ namespace SharpPluginLoader.Core.Resources
         public ShellParamList(nint instance) : base(instance) { }
         public ShellParamList() { }
 
+        /// <summary>
+        /// Gets a shell by its index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns>The shell at the given index, or null</returns>
         public unsafe ShellParam? GetShell(uint index)
         {
             // GetShellFunc is a native function that returns a pointer to a cShellParamList object.

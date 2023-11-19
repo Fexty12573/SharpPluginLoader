@@ -33,47 +33,27 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The current health of the monster
         /// </summary>
-        public float Health
-        {
-            get => Get<nint>(0x7670).Read<float>(0x64);
-            set => Get<nint>(0x7670).ReadRef<float>(0x64) = value;
-        }
+        public ref float Health => ref Get<nint>(0x7670).ReadRef<float>(0x64);
 
         /// <summary>
         /// The maximum health of the monster
         /// </summary>
-        public float MaxHealth
-        {
-            get => Get<nint>(0x7670).Read<float>(0x60);
-            set => Get<nint>(0x7670).ReadRef<float>(0x60) = value;
-        }
+        public ref float MaxHealth => ref Get<nint>(0x7670).ReadRef<float>(0x60);
 
         /// <summary>
         /// The speed of the monster (1.0 is normal speed)
         /// </summary>
-        public float Speed
-        {
-            get => Get<float>(0x1D8A8);
-            set => Set(0x1D8A8, value);
-        }
+        public ref float Speed => ref GetRef<float>(0x1D8A8);
 
         /// <summary>
         /// The despawn time of the monster (in seconds)
         /// </summary>
-        public float DespawnTime
-        {
-            get => Get<float>(0x1C3D4);
-            set => Set(0x1C3D4, value);
-        }
+        public ref float DespawnTime => ref GetRef<float>(0x1C3D4);
 
         /// <summary>
         /// The index of the monster in the difficulty table (dtt_dif)
         /// </summary>
-        public uint DifficultyIndex
-        {
-            get => AiData.Read<uint>(0x8AC);
-            set => AiData.ReadRef<uint>(0x8AC) = value;
-        }
+        public ref uint DifficultyIndex => ref AiData.ReadRef<uint>(0x8AC);
 
         /// <summary>
         /// Freezes the monster and pauses all ai processing

@@ -18,38 +18,22 @@ namespace SharpPluginLoader.Core.Models
         /// <summary>
         /// The position of the entity
         /// </summary>
-        public MtVector3 Position
-        {
-            get => GetMtType<MtVector3>(0x160);
-            set => SetMtType(0x160, value);
-        }
+        public ref MtVector3 Position => ref GetMtTypeRef<MtVector3>(0x160);
 
         /// <summary>
         /// The size of the entity
         /// </summary>
-        public MtVector3 Size
-        {
-            get => GetMtType<MtVector3>(0x180);
-            set => SetMtType(0x180, value);
-        }
+        public ref MtVector3 Size => ref GetMtTypeRef<MtVector3>(0x180);
 
         /// <summary>
         /// The position of the entity's collision box
         /// </summary>
-        public MtVector3 CollisionPosition
-        {
-            get => GetMtType<MtVector3>(0xA50);
-            set => SetMtType(0xA50, value);
-        }
+        public ref MtVector3 CollisionPosition => ref GetMtTypeRef<MtVector3>(0xA50);
 
         /// <summary>
         /// The rotation of the entity
         /// </summary>
-        public MtQuaternion Rotation
-        {
-            get => GetMtType<MtQuaternion>(0x170);
-            set => SetMtType(0x170, value);
-        }
+        public ref MtQuaternion Rotation => ref GetMtTypeRef<MtQuaternion>(0x170);
 
         /// <summary>
         /// The entity's forward vector
@@ -118,7 +102,10 @@ namespace SharpPluginLoader.Core.Models
             }
         }
 
-        public AnimationId CurrentAnimation => Get<AnimationId>(0x55B8);
+        /// <summary>
+        /// Gets the current animation of the entity
+        /// </summary>
+        public ref AnimationId CurrentAnimation => ref GetRef<AnimationId>(0x55B8);
 
         /// <summary>
         /// Pauses the entity's current animation

@@ -1,6 +1,6 @@
 ﻿namespace SharpPluginLoader.Core.Memory
 {
-    public readonly struct Patch
+    public readonly struct Patch : IDisposable
     {
         public readonly nint Address;
         public readonly byte[] OriginalBytes;
@@ -24,8 +24,22 @@
             if (enable) Enable();
         }
 
+        public bool IsEnabled => MemoryUtil.ReadBytes(Address, PatchedBytes.Length).SequenceEqual(PatchedBytes);
+
         public void Enable() => MemoryUtil.WriteBytesSafe(Address, PatchedBytes);
 
         public void Disable() => MemoryUtil.WriteBytesSafe(Address, OriginalBytes);
+
+        private void ReleaseUnmanagedResources()
+        {
+            if (IsEnabled)
+                Disable();
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
     }
 }

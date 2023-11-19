@@ -17,17 +17,18 @@ namespace SharpPluginLoader.Core.Entities
         /// </summary>
         /// <param name="groupId">The efx group id</param>
         /// <param name="effectId">The efx id</param>
-        public unsafe void CreateEffect(uint groupId, uint effectId)
+        /// <exception cref="InvalidOperationException"></exception>
+        public void CreateEffect(uint groupId, uint effectId)
         {
             var effectComponent = GetObject<MtObject>(0xA10);
             if (effectComponent == null)
-                throw new InvalidOperationException("Monster does not have an effect component");
+                throw new InvalidOperationException("Entity does not have an effect component");
 
             var effect = effectComponent.GetObject<EffectProvider>(0x60)?.GetEffect(groupId, effectId);
             if (effect == null)
                 throw new InvalidOperationException("Requested EFX does not exist in default EPV");
 
-            CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
+            CreateEffect(effect);
         }
 
         /// <summary>
@@ -37,15 +38,30 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="groupId">The efx group id</param>
         /// <param name="effectId">The efx id</param>
         /// <remarks><b>Tip:</b> You can load any EPV file using <see cref="ResourceManager.GetResource{T}"/></remarks>
-        public unsafe void CreateEffect(EffectProvider epv, uint groupId, uint effectId)
+        /// <exception cref="InvalidOperationException"></exception>
+        public void CreateEffect(EffectProvider epv, uint groupId, uint effectId)
         {
             var effectComponent = GetObject<MtObject>(0xA10);
             if (effectComponent == null)
-                throw new InvalidOperationException("Monster does not have an effect component");
+                throw new InvalidOperationException("Entity does not have an effect component");
 
             var effect = epv.GetEffect(groupId, effectId);
             if (effect == null)
                 throw new InvalidOperationException("Requested EFX does not exist in given EPV");
+
+            CreateEffect(effect);
+        }
+
+        /// <summary>
+        /// Creates the given effect on the entity
+        /// </summary>
+        /// <param name="effect">The effect to create</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public unsafe void CreateEffect(MtObject effect)
+        {
+            var effectComponent = GetObject<MtObject>(0xA10);
+            if (effectComponent == null)
+                throw new InvalidOperationException("Entity does not have an effect component");
 
             CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
         }

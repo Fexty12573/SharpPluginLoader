@@ -3,31 +3,52 @@ using Reloaded.Hooks.Definitions;
 
 namespace SharpPluginLoader.Core.Memory
 {
-    public class Hook
+    public static class Hook
     {
+        /// <summary>
+        /// Creates a new native function hook.
+        /// </summary>
+        /// <typeparam name="TFunction">The type of the function to hook</typeparam>
+        /// <param name="hook">The hook function</param>
+        /// <param name="address">The address of the function to hook</param>
+        /// <returns>The hook object</returns>
         public static Hook<TFunction> Create<TFunction>(TFunction hook, long address)
         {
             return new Hook<TFunction>(hook, address);
         }
     }
 
+    /// <summary>
+    /// Represents a native function hook.
+    /// </summary>
+    /// <typeparam name="TFunction">The type of the hooked function</typeparam>
     public class Hook<TFunction> : IDisposable
     {
-        private readonly IHook<TFunction> _hook;
+        /// <summary>
+        /// Enables the hook.
+        /// </summary>
+        public void Enable() => _hook.Enable();
 
+        /// <summary>
+        /// Disables the hook.
+        /// </summary>
+        public void Disable() => _hook.Disable();
+
+        /// <summary>
+        /// Gets the original function.
+        /// </summary>
+        public TFunction Original => _hook.OriginalFunction;
+
+        /// <summary>
+        /// Gets a value indicating whether the hook is enabled.
+        /// </summary>
+        public bool IsEnabled => _hook.IsHookEnabled;
+
+        #region Internal
         internal Hook(TFunction hook, long address)
         {
             _hook = ReloadedHooks.Instance.CreateHook(hook, address).Activate();
         }
-
-        public void Enable() => _hook.Enable();
-
-        public void Disable() => _hook.Disable();
-
-        public TFunction Original => _hook.OriginalFunction;
-
-        public bool IsEnabled => _hook.IsHookEnabled;
-
 
         private void ReleaseUnmanagedResources()
         {
@@ -45,5 +66,8 @@ namespace SharpPluginLoader.Core.Memory
         {
             ReleaseUnmanagedResources();
         }
+
+        private readonly IHook<TFunction> _hook;
+        #endregion
     }
 }

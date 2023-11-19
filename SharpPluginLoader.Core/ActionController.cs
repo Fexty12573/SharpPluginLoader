@@ -5,31 +5,40 @@ using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Represents an instance of the cActionController class.
+    /// </summary>
     public class ActionController : MtObject
     {
         public ActionController(nint instance) : base(instance) { }
         public ActionController() { }
 
-        public ActionInfo CurrentAction
-        {
-            get => GetMtType<ActionInfo>(0xAC);
-            set => SetMtType(0xAC, value);
-        }
+        /// <summary>
+        /// The action that is currently being performed.
+        /// </summary>
+        public ref ActionInfo CurrentAction => ref GetMtTypeRef<ActionInfo>(0xAC);
 
-        public ActionInfo NextAction
-        {
-            get => GetMtType<ActionInfo>(0xBC);
-            set => SetMtType(0xBC, value);
-        }
+        /// <summary>
+        /// The action that will be performed next.
+        /// </summary>
+        public ref ActionInfo NextAction => ref GetMtTypeRef<ActionInfo>(0xBC);
 
-        public ActionInfo PreviousAction
-        {
-            get => GetMtType<ActionInfo>(0xC4);
-            set => SetMtType(0xC4, value);
-        }
+        /// <summary>
+        /// The action that was performed before the current one.
+        /// </summary>
+        public ref ActionInfo PreviousAction => ref GetMtTypeRef<ActionInfo>(0xC4);
 
+        /// <summary>
+        /// The owner of this action controller.
+        /// </summary>
         public Entity? Owner => GetObject<Entity>(0x100);
 
+        /// <summary>
+        /// Gets an action list by its index.
+        /// </summary>
+        /// <param name="actionSet">The index of the action set</param>
+        /// <returns>The list of actions for the requested action set</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public ActionList GetActionList(int actionSet)
         {
             if (actionSet is < 0 or > 3)
@@ -38,16 +47,22 @@ namespace SharpPluginLoader.Core
             return GetMtType<ActionList>(0x68 + (actionSet * 0x10));
         }
 
+        /// <summary>
+        /// Makes the entity perform an action.
+        /// </summary>
+        /// <param name="actionSet">The action set to use</param>
+        /// <param name="actionId">The id of the action within the action set</param>
+        /// <remarks>For monsters use the <see cref="Monster.ForceAction"/> method instead.</remarks>
         public unsafe void DoAction(int actionSet, int actionId)
         {
             var actionInfo = stackalloc float[2] { actionSet, actionId };
             DoActionFunc.Invoke(Instance, (nint)actionInfo);
         }
 
+
         internal static void Initialize()
         {
             _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, 0x140269c90);
-            //_launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHookFunc, 0x141cc4590);
         }
 
         private static bool DoActionHookFunc(nint instance, ref ActionInfo actionInfo)
@@ -86,11 +101,23 @@ namespace SharpPluginLoader.Core
         private static Hook<LaunchActionDelegate> _launchActionHook = null!;
     }
 
+    /// <summary>
+    /// Represents an action that can be performed by an entity.
+    /// This is a combination of an action set and an action id.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 0x8)]
     public struct ActionInfo : IMtType
     {
+        /// <summary>
+        /// The action set that this action belongs to.
+        /// </summary>
         [FieldOffset(0x0)] public int ActionSet;
+
+        /// <summary>
+        /// The id of the action within the action set.
+        /// </summary>
         [FieldOffset(0x4)] public int ActionId;
+
 
         public ActionInfo(int actionSet, int actionId)
         {

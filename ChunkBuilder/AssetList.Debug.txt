@@ -1,0 +1,10 @@
+Out:Default.Debug.bin
+Data.Debug/Reloaded.Hooks.dll
+Data.Debug/Reloaded.Hooks.Definitions.dll
+Data.Debug/Reloaded.Assembler.dll
+Data.Debug/Reloaded.Memory.dll
+Data.Debug/Reloaded.Memory.Buffers.dll
+Data.Debug/Iced.dll
+Data.Debug/ImGui.NET.dll
+Data.Debug/Roboto-Bold.ttf
+Data.Debug/Roboto-Medium.ttf

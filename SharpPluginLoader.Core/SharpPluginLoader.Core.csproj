@@ -112,5 +112,14 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Input.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\SharpPluginLoader.Bootstrapper\SharpPluginLoader.Bootstrapper.csproj">
+	    <Private>False</Private>
+	    <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+	  </ProjectReference>
+	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="$(SolutionDir)ChunkBuilder\bin\Release\net8.0\ChunkBuilder.exe $(SolutionDir)ChunkBuilder\AssetList.$(Configuration).txt" />
+	</Target>
 
 </Project>

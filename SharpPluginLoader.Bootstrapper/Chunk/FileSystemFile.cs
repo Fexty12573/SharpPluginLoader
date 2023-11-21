@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Bootstrapper.Chunk
 {
-    internal class FileSystemFile : IFileSystemItem
+    public class FileSystemFile : IFileSystemItem
     {
         public string Name { get; }
         public byte[] Contents { get; }

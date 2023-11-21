@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace ChunkBuilder
 {
@@ -8,23 +9,27 @@ namespace ChunkBuilder
         {
             var root = new FileSystemFolder("/");
             var assemblies = new FileSystemFolder("Assemblies");
+            var resources = new FileSystemFolder("Resources");
 
-            assemblies.Add(CreateFile("./Data/Reloaded.Hooks.dll"));
-            assemblies.Add(CreateFile("./Data/Reloaded.Hooks.Definitions.dll"));
-            assemblies.Add(CreateFile("./Data/Reloaded.Assembler.dll"));
-            assemblies.Add(CreateFile("./Data/Reloaded.Memory.dll"));
-            assemblies.Add(CreateFile("./Data/Reloaded.Memory.Buffers.dll"));
-            assemblies.Add(CreateFile("./Data/Iced.dll"));
-            assemblies.Add(CreateFile("./Data/ImGui.NET.dll"));
+            var exeDir = Assembly.GetExecutingAssembly().Location[..^"ChunkBuilder.exe".Length];
+            var assetList = args.Length > 0 ? args[0] : exeDir + "/AssetList.txt";
+            var assets = File.ReadAllLines(assetList);
+            var outputFile = assets.FirstOrDefault(s => s.StartsWith("Out:"), "Out:./Out.bin")[4..];
+
+            foreach (var asset in assets[1..])
+            {
+                var file = CreateFile(exeDir + "/" + asset);
+                if (asset.EndsWith(".dll"))
+                    assemblies.Add(file);
+                else
+                    resources.Add(file);
+            }
 
             root.Add(assemblies);
+            root.Add(resources);
             var chunk = new Chunk(root);
 
-#if DEBUG
-            chunk.WriteToFile("./Data/Default.Debug.bin");
-#else
-            chunk.WriteToFile("./Data/Default.bin");
-#endif
+            chunk.WriteToFile(exeDir + "/" + outputFile);
         }
 
         internal static FileSystemFile CreateFile(string path)

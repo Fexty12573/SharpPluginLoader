@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Bootstrapper.Chunk
 {
-    internal class Chunk
+    public class Chunk
     {
         private static string Magic => "bin\x00";
         private static uint Version => 0x20230611;

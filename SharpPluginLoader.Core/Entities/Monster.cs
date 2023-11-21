@@ -151,7 +151,7 @@ namespace SharpPluginLoader.Core.Entities
 
         internal static void Initialize()
         {
-            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, 0x1402a7f80);
+            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, 0x141cc4590);
         }
 
         private delegate bool LaunchActionDelegate(nint monster, int actionId);

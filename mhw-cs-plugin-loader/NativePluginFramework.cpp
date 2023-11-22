@@ -1,5 +1,6 @@
 #include "NativePluginFramework.h"
 
+#include "ChunkModule.h"
 #include "CoreModule.h"
 #include "D3DModule.h"
 #include "GuiModule.h"
@@ -11,6 +12,7 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
     m_modules.push_back(std::make_shared<CoreModule>());
     m_modules.push_back(std::make_shared<GuiModule>());
     m_modules.push_back(std::make_shared<D3DModule>());
+    m_modules.push_back(std::make_shared<ChunkModule>());
 
     for (const auto& module : m_modules) {
         module->initialize(coreclr);

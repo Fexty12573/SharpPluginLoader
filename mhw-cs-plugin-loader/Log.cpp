@@ -36,11 +36,12 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
             s_console_log_level = loader::DEBUG;
         } else if (log_level == "INFO") {
             s_console_log_level = loader::INFO;
-        } else if (log_level == "WARN") {
+        } else if (log_level == "WARNING") {
             s_console_log_level = loader::WARN;
         } else if (log_level == "ERROR") {
             s_console_log_level = loader::ERR;
         } else {
+            loader::LOG(loader::ERR) << "[SPL] Invalid log level: " << log_level;
             return;
         }
 

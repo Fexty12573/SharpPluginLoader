@@ -76,6 +76,8 @@ CoreClr::CoreClr() {
     const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Bootstrapper.dll");
 #endif
 
+    dlog::debug("Loading bootstrapper from {}", bootstrapper_path.string());
+
     // Load the bootstrapper assembly into the default ALC
     hr = m_load_assembly(bootstrapper_path.c_str(), nullptr, nullptr);
     if (FAILED(hr)) {

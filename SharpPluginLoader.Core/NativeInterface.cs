@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core
 {

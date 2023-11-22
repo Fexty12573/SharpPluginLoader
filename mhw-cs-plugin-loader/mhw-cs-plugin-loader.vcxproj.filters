@@ -22,6 +22,9 @@
     <Filter Include="Header Files\ImGui">
       <UniqueIdentifier>{c66af5d4-10bf-40f8-bd49-a0a003037d40}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Chunk">
+      <UniqueIdentifier>{0c4e9f57-5e77-4b71-94ea-e45abb7a2170}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -61,6 +64,12 @@
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="DelayLoad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -106,6 +115,24 @@
     </ClInclude>
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h">
       <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunk.h">
+      <Filter>Header Files\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystemItem.h">
+      <Filter>Header Files\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystemFile.h">
+      <Filter>Header Files\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystemFolder.h">
+      <Filter>Header Files\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiModule.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

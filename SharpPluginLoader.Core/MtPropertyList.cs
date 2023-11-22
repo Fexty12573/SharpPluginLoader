@@ -123,10 +123,10 @@ namespace SharpPluginLoader.Core
             object IEnumerator.Current => Current;
         }
 
-        private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(0x14218e740);
-        private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(0x14218e6b0);
+        private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(0x142170960);
+        private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(0x1421708d0);
         private static readonly NativeFunction<nint, uint, nint> FindPropertyByHashFunc = new(0x1421707f0);
-        private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(0x01d6d290);
+        private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(0x142170610);
 
         internal Action<MtPropertyList>? Deleter = null;
     }

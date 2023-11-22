@@ -47,7 +47,6 @@ namespace SharpPluginLoader.Bootstrapper
 
             var bytes = File.ReadAllBytes(assemblyPath);
             return LoadFromStream(new MemoryStream(bytes));
-
         }
 
         private Assembly? LoadFromChunk(AssemblyName assemblyName)

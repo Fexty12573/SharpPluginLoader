@@ -55,6 +55,8 @@ void D3DModule::common_initialize() {
         return;
     }
 
+    
+
     const auto window_class = new WNDCLASSEX;
     window_class->cbSize = sizeof(WNDCLASSEX);
     window_class->style = CS_HREDRAW | CS_VREDRAW;

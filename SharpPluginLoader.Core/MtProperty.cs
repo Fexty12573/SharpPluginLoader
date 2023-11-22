@@ -102,8 +102,8 @@
         //}
 
 
-        //internal bool IsArray => (Attr & 0x80000) != 0;
-
-        //internal bool IsProperty => (Attr & 0x20000) != 0;
+        public bool IsArray => (Attr & 0x20) != 0;
+        
+        public bool IsProperty => (Attr & 0x80) != 0;
     }
 }

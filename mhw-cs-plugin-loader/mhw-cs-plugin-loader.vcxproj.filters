@@ -72,6 +72,12 @@
     <ClCompile Include="ImGuiModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_internal.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_sequencer.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">

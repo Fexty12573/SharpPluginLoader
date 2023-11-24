@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core.Models
 {
@@ -16,34 +17,34 @@ namespace SharpPluginLoader.Core.Models
         public Model() { }
 
         /// <summary>
-        /// The position of the entity
+        /// The position of the model
         /// </summary>
         public ref MtVector3 Position => ref GetMtTypeRef<MtVector3>(0x160);
 
         /// <summary>
-        /// The size of the entity
+        /// The size of the model
         /// </summary>
         public ref MtVector3 Size => ref GetMtTypeRef<MtVector3>(0x180);
 
         /// <summary>
-        /// The position of the entity's collision box
+        /// The position of the model's collision box
         /// </summary>
         public ref MtVector3 CollisionPosition => ref GetMtTypeRef<MtVector3>(0xA50);
 
         /// <summary>
-        /// The rotation of the entity
+        /// The rotation of the model
         /// </summary>
         public ref MtQuaternion Rotation => ref GetMtTypeRef<MtQuaternion>(0x170);
 
         /// <summary>
-        /// The entity's forward vector
+        /// The model's forward vector
         /// </summary>
         public MtVector3 Forward => Rotation * MtVector3.Forward;
 
         /// <summary>
-        /// Teleports the entity to the given position
+        /// Teleports the model to the given position
         /// </summary>
-        /// <remarks>Use this function if you need to move a entity and ignore walls.</remarks>
+        /// <remarks>Use this function if you need to move a model and ignore walls.</remarks>
         /// <param name="position">The target position</param>
         public void Teleport(MtVector3 position)
         {
@@ -52,16 +53,16 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// Resizes the entity on all axes to the given size
+        /// Resizes the model on all axes to the given size
         /// </summary>
-        /// <param name="size">The new size of the entity</param>
+        /// <param name="size">The new size of the model</param>
         public void Resize(float size)
         {
             Size = new MtVector3(size, size, size);
         }
 
         /// <summary>
-        /// The current frame of the entity's current animation
+        /// The current frame of the model's current animation
         /// </summary>
         public float AnimationFrame
         {
@@ -75,7 +76,7 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// The frame count of the entity's current animation
+        /// The frame count of the model's current animation
         /// </summary>
         public float MaxAnimationFrame
         {
@@ -89,7 +90,7 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// The speed of the entity's current animation. Note, this value gets set every frame.
+        /// The speed of the model's current animation. Note, this value gets set every frame.
         /// </summary>
         public float AnimationSpeed
         {
@@ -103,12 +104,12 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// Gets the current animation of the entity
+        /// Gets the current animation of the model
         /// </summary>
         public ref AnimationId CurrentAnimation => ref GetRef<AnimationId>(0x55B8);
 
         /// <summary>
-        /// Pauses the entity's current animation
+        /// Pauses the model's current animation
         /// </summary>
         public void PauseAnimations()
         {
@@ -118,7 +119,7 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// Resumes the entity's current animation
+        /// Resumes the model's current animation
         /// </summary>
         public void ResumeAnimations()
         {
@@ -128,8 +129,27 @@ namespace SharpPluginLoader.Core.Models
         }
 
         /// <summary>
-        /// The entity's animation component
+        /// The model's animation component
         /// </summary>
         public AnimationLayerComponent? AnimationLayer => GetObject<AnimationLayerComponent>(0x468);
+
+        /// <summary>
+        /// The model's motion lists.
+        /// </summary>
+        public IEnumerable<MotionList> MotionLists
+        {
+            get
+            {
+                var animLayer = AnimationLayer;
+                if (animLayer == null)
+                    yield break;
+
+                foreach (var lmt in animLayer.MotionLists)
+                {
+                    if (lmt != 0)
+                        yield return new MotionList(lmt);
+                }
+            }
+        }
     }
 }

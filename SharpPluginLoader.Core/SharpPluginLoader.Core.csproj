@@ -115,5 +115,8 @@
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="$(SolutionDir)ChunkBuilder\bin\Release\net8.0\ChunkBuilder.exe $(SolutionDir)ChunkBuilder\AssetList.$(Configuration).txt" />
 	</Target>
+	<ItemGroup>
+	  <NativeLibs Remove="NativeArray.cs" />
+	</ItemGroup>
 
 </Project>

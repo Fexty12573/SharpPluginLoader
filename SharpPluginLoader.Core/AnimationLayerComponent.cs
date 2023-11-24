@@ -86,6 +86,8 @@ namespace SharpPluginLoader.Core
         }
 
 
+        internal unsafe NativeArray<nint> MotionLists => new((nint)GetPtrInline<nint>(0xE120), 16);
+
         internal static void Initialize()
         {
             _updateHook = Hook.Create<UpdateDelegate>(UpdateHook, 0x14224c150);

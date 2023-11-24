@@ -1,0 +1,11 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "mhw-cs-plugin-loader",
+    "version": "1.0.0",
+    "description": "A C# plugin loader for MHW",
+    "dependencies": [
+        "nethost",
+        "zydis",
+        "nlohmann-json"
+]
+}

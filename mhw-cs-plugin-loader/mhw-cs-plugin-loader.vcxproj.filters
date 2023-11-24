@@ -72,10 +72,7 @@
     <ClCompile Include="ImGuiModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_internal.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_sequencer.cpp">
+    <ClCompile Include="Timeline.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -140,12 +137,18 @@
     <ClInclude Include="ImGuiModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Timeline.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\README.md">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="vcpkg.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

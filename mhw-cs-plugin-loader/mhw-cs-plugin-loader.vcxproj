@@ -80,6 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>true</VcpkgEnabled>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -116,7 +117,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\im-neo-sequencer\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -136,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\im-neo-sequencer\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -150,8 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_internal.cpp" />
-    <ClCompile Include="..\dependencies\im-neo-sequencer\src\imgui_neo_sequencer.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx12.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_win32.cpp" />
@@ -167,6 +166,7 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
+    <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h" />
@@ -189,10 +189,12 @@
     <ClInclude Include="NativeModule.h" />
     <ClInclude Include="NativePluginFramework.h" />
     <ClInclude Include="SharpPluginLoader.h" />
+    <ClInclude Include="Timeline.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include="SharpPluginLoader.runtimeconfig.json" />
+    <None Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

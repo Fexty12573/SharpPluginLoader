@@ -1,9 +1,12 @@
+using System;
+using System.Linq;
+
 namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// Represents a function pointer to a native function with no return type and no arguments. Equivalent to <see cref="NativeFunction"/>.
     /// </summary>
-    public class NativeAction
+    public readonly struct NativeAction
     {
         private readonly unsafe void* _funcPtr;
 
@@ -32,7 +35,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1>
+    public readonly struct NativeAction<T1>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -66,7 +69,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2>
+    public readonly struct NativeAction<T1, T2>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -100,7 +103,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3>
+    public readonly struct NativeAction<T1, T2, T3>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -134,7 +137,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4>
+    public readonly struct NativeAction<T1, T2, T3, T4>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -168,7 +171,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -202,7 +205,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -236,7 +239,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -270,7 +273,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -304,7 +307,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -338,7 +341,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -372,7 +375,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -406,7 +409,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -440,7 +443,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -474,7 +477,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -508,7 +511,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -542,7 +545,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
+    public readonly struct NativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
     {
         private readonly unsafe void* _funcPtr;
 

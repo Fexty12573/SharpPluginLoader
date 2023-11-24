@@ -1,9 +1,12 @@
-﻿namespace SharpPluginLoader.Core
+﻿using System;
+using System.Linq;
+
+namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// Represents a function pointer to a native function with no return type and no arguments. Equivalent to <see cref="NativeAction"/>.
     /// </summary>
-    public class NativeFunction
+    public readonly struct NativeFunction
     {
         private readonly unsafe void* _funcPtr;
 
@@ -32,7 +35,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<TRet>
+    public readonly struct NativeFunction<TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -66,7 +69,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, TRet>
+    public readonly struct NativeFunction<T1, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -100,7 +103,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, TRet>
+    public readonly struct NativeFunction<T1, T2, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -134,7 +137,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -168,7 +171,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -202,7 +205,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -236,7 +239,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -270,7 +273,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -304,7 +307,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -338,7 +341,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -372,7 +375,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -406,7 +409,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -440,7 +443,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -474,7 +477,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -508,7 +511,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -542,7 +545,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TRet>
     {
         private readonly unsafe void* _funcPtr;
 
@@ -576,7 +579,7 @@
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TRet>
+    public readonly struct NativeFunction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TRet>
     {
         private readonly unsafe void* _funcPtr;
 

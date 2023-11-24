@@ -73,7 +73,7 @@ namespace SharpPluginLoader.Core
     /// <summary>
     /// Represents a function pointer to a native function with no return type and no arguments. Equivalent to <see cref="NativeFunction"/>.
     /// </summary>
-    public class NativeAction
+    public readonly struct NativeAction
     {
         private readonly unsafe void* _funcPtr;
 
@@ -109,7 +109,7 @@ for (int i = 0; i < templates.Length; i++)
     /// <summary>
     /// Represents a function pointer to a native function with the given return type and arguments.
     /// </summary>
-    public class NativeAction<<#= template #>>
+    public readonly struct NativeAction<<#= template #>>
     {
         private readonly unsafe void* _funcPtr;
 

@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Entities;
+﻿using System.Runtime.InteropServices.Marshalling;
+using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
 
@@ -85,6 +86,51 @@ namespace SharpPluginLoader.Core
             RegisterLmtFunc.Invoke(owner, lmt.Instance, index);
         }
 
+        /// <summary>
+        /// Forces the animation layer to do the given animation. This will interrupt the current animation.
+        /// </summary>
+        /// <param name="id">The id of the animation</param>
+        /// <param name="interpolationFrame">The amount of frames used to interpolate. 0 will auto-calculate the necessary frames</param>
+        /// <param name="startFrame">The starting frame of the animation</param>
+        /// <param name="speed">The initial speed of the animation</param>
+        /// <param name="attr">Additional flags</param>
+        public unsafe void DoAnimation(AnimationId id, float interpolationFrame = 0f, float startFrame = 0f, float speed = 1f, uint attr = 0)
+        {
+            var doAnim = new NativeFunction<nint, uint, float, float, float, uint, bool>(GetVirtualFunction(15));
+            doAnim.Invoke(Instance, id, interpolationFrame, startFrame, speed, attr);
+        }
+
+        /// <summary>
+        /// Forces the animation layer to do the given animation. This will interrupt the current animation.
+        /// </summary>
+        /// <param name="id">The id of the animation</param>
+        /// <param name="interpolationFrame">The amount of frames used to interpolate. 0 will auto-calculate the necessary frames</param>
+        /// <param name="startFrame">The starting frame of the animation</param>
+        /// <param name="speed">The initial speed of the animation</param>
+        /// <param name="attr">Additional flags</param>
+        /// <remarks>
+        /// If the owner object of the animation layer this function is called on is an entity,
+        /// it will instead call the function dedicated to entities. Note that in that case the <paramref name="speed"/>
+        /// parameter will be ignored.
+        /// </remarks>
+        public unsafe void DoAnimationSafe(AnimationId id, float interpolationFrame = 0f, float startFrame = 0f,
+            float speed = 1f, uint attr = 0)
+        {
+            var owner = Owner;
+            var isEntity = owner?.GetDti()?.InheritsFrom("uCharacterModel") ?? false;
+            if (!isEntity)
+            {
+                DoAnimation(id, interpolationFrame, startFrame, speed, attr);
+                return;
+            }
+
+            if (owner == null)
+                return;
+
+            var doAnimEntity = new NativeAction<nint, uint, float, uint, uint, float, int>(0x141c00720);
+            doAnimEntity.Invoke(owner.Instance, id, startFrame, attr, 0xFFFF, interpolationFrame, -1);
+        }
+
 
         internal unsafe NativeArray<nint> MotionLists => new((nint)GetPtrInline<nint>(0xE120), 16);
 
@@ -110,7 +156,7 @@ namespace SharpPluginLoader.Core
             _updateHook.Original(animLayer, a, b, c, d, e, f, g);
         }
 
-        private static void DoLmtHook(nint instance, uint animId, float startFrame, uint b, uint c, float d, int e)
+        private static void DoLmtHook(nint instance, uint animId, float startFrame, uint flags, uint overrideId, float interFrame, int e)
         {
             var entity = new Entity(instance);
             AnimationId animIdObj = animId;
@@ -118,7 +164,7 @@ namespace SharpPluginLoader.Core
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimation))
                 plugin.OnEntityAnimation(entity, ref animIdObj, ref startFrame);
 
-            _doLmtHook.Original(instance, animIdObj, startFrame, b, c, d, e);
+            _doLmtHook.Original(instance, animIdObj, startFrame, flags, overrideId, interFrame, e);
         }
 
         private delegate void UpdateDelegate(nint instance, int unk1, uint unk2, nint unk3, nint unk4, nint unk5, nint unk6, nint unk7);

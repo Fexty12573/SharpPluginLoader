@@ -25,7 +25,11 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         public static unsafe nint Render()
         {
-            ImGui.GetIO().MouseDrawCursor = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+            var io = ImGui.GetIO();
+            var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
+            var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+            io.MouseDrawCursor = anyFocused || anyHovered;
+            ImGui.GetStyle().Alpha = anyFocused ? 1.0f : 0.5f;
 
             ImGui.NewFrame();
             ImGui.Begin("SharpPluginLoader");
@@ -133,7 +137,7 @@ namespace SharpPluginLoader.Core.Rendering
             style.Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.4980392158031464f, 0.5137255191802979f, 1.0f, 1.0f);
             style.Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.4980392158031464f, 0.5137255191802979f, 1.0f, 1.0f);
             style.Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.5372549295425415f, 0.5529412031173706f, 1.0f, 1.0f);
-            style.Colors[(int)ImGuiCol.Button] = new Vector4(0.1176470592617989f, 0.1333333402872086f, 0.1490196138620377f, 1.0f);
+            style.Colors[(int)ImGuiCol.Button] = new Vector4(0.257f, 0.267f, 0.554f, 1.0f);
             style.Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 1.0f);
             style.Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.2352941185235977f, 0.2156862765550613f, 0.5960784554481506f, 1.0f);
             style.Colors[(int)ImGuiCol.Header] = new Vector4(0.1176470592617989f, 0.1333333402872086f, 0.1490196138620377f, 1.0f);

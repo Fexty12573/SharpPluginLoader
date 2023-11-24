@@ -19,7 +19,7 @@ namespace SharpPluginLoader.Core
             {
                 var icall = internalCalls[i];
 
-                Log.Info($"[Core] Uploading internal call {icall.Name}");
+                Log.Debug($"[Core] Uploading internal call {icall.Name}");
 
                 var field = typeof(InternalCalls).GetField(icall.Name + "Ptr");
 

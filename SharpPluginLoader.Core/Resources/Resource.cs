@@ -37,6 +37,12 @@
         /// </summary>
         public unsafe string FileExtension => new((sbyte*)new NativeFunction<nint>(GetVirtualFunction(6)).Invoke());
 
+        /// <summary>
+        /// Gets the reference count of this resource. If the reference count reaches 0, the resource is unloaded.
+        /// </summary>
+        public uint RefCount => Get<uint>(0x5C);
+
+
         private static readonly NativeAction<nint> AddRefFunc = new(0x142215a60);
         private static readonly NativeAction<nint> ReleaseFunc = new(0x1422160f0);
     }

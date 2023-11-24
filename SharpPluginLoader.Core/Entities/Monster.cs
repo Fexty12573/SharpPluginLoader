@@ -5,6 +5,8 @@ namespace SharpPluginLoader.Core.Entities
 {
     public class Monster : Entity
     {
+        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x14500ad00);
+
         /// <summary>
         /// Constructs a new Monster from a native pointer
         /// </summary>

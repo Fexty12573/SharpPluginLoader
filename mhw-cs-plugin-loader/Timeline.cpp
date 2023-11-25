@@ -34,6 +34,7 @@ struct ImTimelineContext {
     float InitialScroll = 0.0f;
     float InitialFrame = 0.0f;
     ImGuiTimelineFlags Flags = 0;
+    bool IsOpen = false;
 
     // The frame range passed to BeginTimeline
     float StartFrame = 0.0f;
@@ -137,10 +138,11 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     IM_ASSERT(start_frame < end_frame && "Start frame must be less that end frame");
     IM_ASSERT(!g_InTimeline && "Timeline Begin/End mismatch. You probably forgot a call to EndTimeline");
 
-    const bool child_open = igBeginChild_Str(std::format("##{}_child", label).c_str(), {}, 0, 0);
+    /*const bool child_open = igBeginChild_Str(std::format("##{}_child", label).c_str(), 
+        {0, 0}, ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY, 0);
     if (!child_open) {
         return false;
-    }
+    }*/
 
     const ImGuiID id = igGetID_Str(label.data());
     igPushOverrideID(id);
@@ -193,9 +195,14 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
 
     // Scrollbar Item
     igItemSize_Rect(header_rect, 0.0f);
-    if (!igItemAdd(scrollbar_rect, id, nullptr, 0)) {
-        return false;
+    if (igItemAdd(scrollbar_rect, id, nullptr, 0)) {
+        igSetItemKeyOwner(ImGuiKey_MouseWheelY, ImGuiInputFlags_CondHovered);
     }
+    /*if (!igItemAdd(scrollbar_rect, id, nullptr, 0)) {
+        ctx.IsOpen = false;
+        EndTimeline();
+        return false;
+    }*/
 
     const auto scrollbar_hovered = igIsItemHovered(0);
     const auto scrollbar_active = igIsItemActive();
@@ -264,10 +271,10 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     const float timeline_x_pos = cursor_pos.x + TIMELINE_TRACK_LABEL_TO_TRACK_WIDTH_RATIO * avail.x;
     const float timeline_avail_x = (cursor_pos.x + avail.x) - timeline_x_pos - timeline_track_right_padding;
     const float frame_count = end_frame - start_frame;
-    const int frame_count_visible = frame_count * ctx.Zoom;
-    const int first_frame = start_frame + (frame_count - frame_count_visible) * ctx.Scroll;
+    const int frame_count_visible = (int)(frame_count * ctx.Zoom);
+    const int first_frame = (int)(start_frame + (frame_count - (float)frame_count_visible) * ctx.Scroll);
     const int last_frame = first_frame + frame_count_visible;
-    const float frame_width = timeline_avail_x / frame_count_visible;
+    const float frame_width = timeline_avail_x / (float)frame_count_visible;
 
     // -5 because frame markers shouldn't touch the scrollbar
     constexpr float frame_marker_height = TIMELINE_HEADER_BASE_HEIGHT - TIMELINE_HEADER_TOP_PADDING;
@@ -327,9 +334,12 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
             ImVec2(frame_pointer_x_end, frame_pointer_triangle_y_pos + frame_pointer_triangle_height)
         };
 
-        if (!igItemAdd(frame_pointer_rect, frame_pointer_id, nullptr, 0)) {
+        igItemAdd(frame_pointer_rect, frame_pointer_id, nullptr, 0);
+        /*if (!igItemAdd(frame_pointer_rect, frame_pointer_id, nullptr, 0)) {
+            ctx.IsOpen = false;
+            EndTimeline();
             return false;
-        }
+        }*/
 
         const bool frame_pointer_hovered = igIsItemHovered(0);
         const bool frame_pointer_active = igIsItemActive();
@@ -374,35 +384,25 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
         }
     }
 
-    return true;
+    return ctx.IsOpen = true;
 }
 
 void ImGui::EndTimeline() {
     const auto& ctx = g_TimelineContexts[g_CurrentTimelineId];
-    const auto draw_list = igGetCurrentWindow()->DrawList;
 
-    if (ctx.Flags & ImGuiTimelineFlags_ExtendFramePointer) {
-        ImDrawList_AddLine(draw_list,
-            ImVec2(ctx.FramePointerXPos, ctx.FramePointerYPos),
-            ImVec2(ctx.FramePointerXPos, ctx.CurrentTrackYPos),
-            igGetColorU32_Col(ImGuiCol_Border, 1.0f),
-            1.0f
-        );
-    }
+    if (ctx.IsOpen) {
+        const auto draw_list = igGetCurrentWindow()->DrawList;
+        if (ctx.Flags & ImGuiTimelineFlags_ExtendFramePointer) {
+            ImDrawList_AddLine(draw_list,
+                ImVec2(ctx.FramePointerXPos, ctx.FramePointerYPos),
+                ImVec2(ctx.FramePointerXPos, ctx.CurrentTrackYPos),
+                igGetColorU32_Col(ImGuiCol_Border, 1.0f),
+                1.0f
+            );
+        }
 
-    if (ctx.Flags & ImGuiTimelineFlags_ShowSelectedKeyframeMarkers) {
-        const float frame_x_pos = ctx.TimelineXPos + (ctx.SelectedKeyframe.Frame - (float)ctx.FirstVisibleFrame) * ctx.FrameWidth;
-        ImDrawList_AddLine(draw_list,
-            ImVec2(frame_x_pos, ctx.FramePointerYPos),
-            ImVec2(frame_x_pos, ctx.CurrentTrackYPos),
-            igGetColorU32_Col(ImGuiCol_Border, 1.0f),
-            1.0f
-        );
-    }
-    if (ctx.Flags & ImGuiTimelineFlags_ExtendFrameMarkers) {
-        const int first_frame = ctx.FirstVisibleFrame + (10 - ctx.FirstVisibleFrame % 10);
-        for (int frame = first_frame; frame <= ctx.LastVisibleFrame; frame += 10) {
-            const float frame_x_pos = ctx.TimelineXPos + (float)(frame - ctx.FirstVisibleFrame) * ctx.FrameWidth;
+        if (ctx.Flags & ImGuiTimelineFlags_ShowSelectedKeyframeMarkers) {
+            const float frame_x_pos = ctx.TimelineXPos + (ctx.SelectedKeyframe.Frame - (float)ctx.FirstVisibleFrame) * ctx.FrameWidth;
             ImDrawList_AddLine(draw_list,
                 ImVec2(frame_x_pos, ctx.FramePointerYPos),
                 ImVec2(frame_x_pos, ctx.CurrentTrackYPos),
@@ -410,10 +410,24 @@ void ImGui::EndTimeline() {
                 1.0f
             );
         }
+        if (ctx.Flags & ImGuiTimelineFlags_ExtendFrameMarkers) {
+            const int first_frame = ctx.FirstVisibleFrame + (10 - ctx.FirstVisibleFrame % 10);
+            for (int frame = first_frame; frame <= ctx.LastVisibleFrame; frame += 10) {
+                const float frame_x_pos = ctx.TimelineXPos + (float)(frame - ctx.FirstVisibleFrame) * ctx.FrameWidth;
+                ImDrawList_AddLine(draw_list,
+                    ImVec2(frame_x_pos, ctx.FramePointerYPos),
+                    ImVec2(frame_x_pos, ctx.CurrentTrackYPos),
+                    igGetColorU32_Col(ImGuiCol_Border, 1.0f),
+                    1.0f
+                );
+            }
+        }
     }
 
+    igGetCurrentWindow()->DC.CursorPos.y = ctx.CurrentTrackYPos;
+
     igPopID();
-    igEndChild();
+    //igEndChild();
 
     g_InTimeline = false;
 }
@@ -425,6 +439,7 @@ bool ImGui::BeginTimelineGroup(std::string_view label, bool* open) {
 void ImGui::EndTimelineGroup() {
     auto& ctx = g_TimelineContexts[g_CurrentTimelineId];
     ctx.IndentLevel--;
+    igPopID(); // Pop the ID pushed by TimelineTrack(Group)
 }
 
 bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe_count, ImGuiTimelineTrackFlags flags, int* out_selected_keyframe) {
@@ -471,10 +486,11 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
     bool group_open = false;
     if (is_group) {
         const ImGuiID group_id = igGetID_Str("##group_toggle");
-        if (!igItemAdd(label_rect, group_id, nullptr, 0)) {
+        igItemAdd(label_rect, group_id, nullptr, 0);
+        /*if (!igItemAdd(label_rect, group_id, nullptr, 0)) {
             igPopID();
             return false;
-        }
+        }*/
 
         group_toggled = igButtonBehavior(label_rect, group_id, nullptr, nullptr,
             ImGuiButtonFlags_PressedOnClickRelease);
@@ -567,7 +583,7 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
     if (is_group) {
         ctx.CurrentTrackIndex = 0;
         ctx.IndentLevel += group_open;
-        igPopID(); // track
+        if (!group_open) igPopID();
         return group_open;
     }
 

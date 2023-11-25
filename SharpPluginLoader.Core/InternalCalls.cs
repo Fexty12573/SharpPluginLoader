@@ -55,19 +55,19 @@ namespace SharpPluginLoader.Core
             return TimelineTrackPtr(label, keyFrames, keyframeCount, out selectedKeyframe);
         }
 
-        public static bool TimelineTrack(string label, float[] keyFrames, out int selectedKeyframe)
+        public static bool TimelineTrack(string label, float[] keyFrames, out int selectedKeyframe, int explicitCount = -1)
         {
             fixed (float* ptr = keyFrames)
             {
-                return TimelineTrack(label, ptr, keyFrames.Length, out selectedKeyframe);
+                return TimelineTrack(label, ptr, explicitCount == -1 ? keyFrames.Length : explicitCount, out selectedKeyframe);
             }
         }
 
-        public static bool TimelineTrack(string label, Span<float> keyFrames, out int selectedKeyframe)
+        public static bool TimelineTrack(string label, Span<float> keyFrames, out int selectedKeyframe, int explicitCount = -1)
         {
             fixed (float* ptr = keyFrames)
             {
-                return TimelineTrack(label, ptr, keyFrames.Length, out selectedKeyframe);
+                return TimelineTrack(label, ptr, explicitCount == -1 ? keyFrames.Length : explicitCount, out selectedKeyframe);
             }
         }
     }

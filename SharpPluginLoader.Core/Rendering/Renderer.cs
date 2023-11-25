@@ -45,7 +45,7 @@ namespace SharpPluginLoader.Core.Rendering
 
             ImGui.End();
 
-            ImGui.ShowStyleEditor();
+            ImGui.ShowDemoWindow();
 
             ImGui.EndFrame();
             ImGui.Render();

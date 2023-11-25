@@ -30,14 +30,14 @@ namespace SharpPluginLoader.Core.Rendering
 
         public static void EndTimelineGroup() => InternalCalls.EndTimelineGroup();
 
-        public static bool TimelineTrack(string label, Span<float> keyframes, out int selectedKeyframe)
+        public static bool TimelineTrack(string label, Span<float> keyframes, out int selectedKeyframe, int explicitCount = -1)
         {
-            return InternalCalls.TimelineTrack(label, keyframes, out selectedKeyframe);
+            return InternalCalls.TimelineTrack(label, keyframes, out selectedKeyframe, explicitCount);
         }
 
-        public static bool TimelineTrack(string label, Span<float> keyframes)
+        public static bool TimelineTrack(string label, Span<float> keyframes, int explicitCount = -1)
         {
-            return InternalCalls.TimelineTrack(label, keyframes, out _);
+            return InternalCalls.TimelineTrack(label, keyframes, out _, explicitCount);
         }
 
         public static unsafe bool InputScalar(string label, ref sbyte value, sbyte step = 1, sbyte stepFast = 10,

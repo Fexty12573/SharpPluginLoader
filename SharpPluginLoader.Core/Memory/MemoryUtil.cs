@@ -1,20 +1,21 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.Memory
 {
-    public static class MemoryUtil
+    public static unsafe class MemoryUtil
     {
-        public static unsafe T Read<T>(this nint address, long offset = 0) where T : unmanaged
+        public static T Read<T>(this nint address, long offset = 0) where T : unmanaged
         {
             return *(T*)(address + offset);
         }
 
-        public static unsafe ref T ReadRef<T>(this nint address, long offset = 0) where T : unmanaged
+        public static ref T ReadRef<T>(this nint address, long offset = 0) where T : unmanaged
         {
             return ref *(T*)(address + offset);
         }
 
-        public static unsafe T[] ReadArray<T>(this nint address, long offset = 0, int count = 1) where T : unmanaged
+        public static T[] ReadArray<T>(this nint address, long offset = 0, int count = 1) where T : unmanaged
         {
             var array = new T[count];
             for (var i = 0; i < count; i++)
@@ -37,12 +38,12 @@ namespace SharpPluginLoader.Core.Memory
             return array;
         }
 
-        public static unsafe T Read<T>(long address) where T : unmanaged
+        public static T Read<T>(long address) where T : unmanaged
         {
             return *(T*)address;
         }
 
-        public static unsafe T[] ReadArray<T>(long address, int count = 1) where T : unmanaged
+        public static  T[] ReadArray<T>(long address, int count = 1) where T : unmanaged
         {
             var array = new T[count];
             for (var i = 0; i < count; i++)
@@ -85,6 +86,35 @@ namespace SharpPluginLoader.Core.Memory
         {
             using var protection = new MemoryProtection(address, bytes.Length);
             Marshal.Copy(bytes, 0, address, bytes.Length);
+        }
+
+        /// <summary>
+        /// Creates a span around a native array from a given address and count.
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
+        /// <param name="address">The address of the first element</param>
+        /// <param name="count">The length of the array</param>
+        /// <returns>A new span that represents the native array</returns>
+        public static Span<T> AsSpan<T>(nint address, int count) where T : unmanaged
+        {
+            return new Span<T>((void*)address, count);
+        }
+
+        /// <inheritdoc cref="AsSpan{T}(nint,int)"/>
+        public static Span<T> AsSpan<T>(long address, int count) where T : unmanaged
+        {
+            return new Span<T>((void*)address, count);
+        }
+
+        /// <summary>
+        /// Converts a given reference to a pointer.
+        /// </summary>
+        /// <typeparam name="T">The type of the value</typeparam>
+        /// <param name="value">The reference to convert</param>
+        /// <returns>A pointer of type <typeparamref name="T"/>* that points to <paramref name="value"/></returns>
+        public static T* AsPointer<T>(ref T value) where T : unmanaged
+        {
+            return (T*)Unsafe.AsPointer(ref value);
         }
     }
 }

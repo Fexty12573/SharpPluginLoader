@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
@@ -38,19 +39,117 @@ namespace SharpPluginLoader.Core.Rendering
         {
             return InternalCalls.TimelineTrack(label, keyframes, out _);
         }
+
+        public static unsafe bool InputScalar(string label, ref sbyte value, sbyte step = 1, sbyte stepFast = 10,
+            string format = "%d", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.S8,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref byte value, byte step = 1, byte stepFast = 10,
+            string format = "%u", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.U8,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref short value, short step = 1, short stepFast = 10,
+            string format = "%d", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.S16,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref ushort value, ushort step = 1, ushort stepFast = 10,
+            string format = "%u", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.U16,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref int value, int step = 1, int stepFast = 10,
+            string format = "%d", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.S32,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref uint value, uint step = 1, uint stepFast = 10,
+            string format = "%u", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.U32,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
+
+        public static unsafe bool InputScalar(string label, ref long value, long step = 1, long stepFast = 10,
+            string format = "%d", ImGuiInputTextFlags flags = 0)
+        {
+            return ImGui.InputScalar(
+                label,
+                ImGuiDataType.S64,
+                (nint)Unsafe.AsPointer(ref value),
+                (nint)Unsafe.AsPointer(ref step),
+                (nint)Unsafe.AsPointer(ref stepFast),
+                format,
+                flags
+            );
+        }
     }
 
-    [Flags]
-    public enum ImGuiTimelineFlags
-    {
-        None = 0,
-        EnableFramePointerSnapping = 1 << 0,
-        EnableKeyframeSnapping = 1 << 1,
-        ExtendFramePointer = 1 << 2,
-        ExtendFrameMarkers = 1 << 3,
-        ShowSelectedKeyframeMarkers = 1 << 4,
+        [Flags]
+        public enum ImGuiTimelineFlags
+        {
+            None = 0,
+            EnableFramePointerSnapping = 1 << 0,
+            EnableKeyframeSnapping = 1 << 1,
+            ExtendFramePointer = 1 << 2,
+            ExtendFrameMarkers = 1 << 3,
+            ShowSelectedKeyframeMarkers = 1 << 4,
 
-        EnableSnapping = EnableFramePointerSnapping | EnableKeyframeSnapping,
-        ExtendMarkers = ExtendFramePointer | ExtendFrameMarkers | ShowSelectedKeyframeMarkers
+            EnableSnapping = EnableFramePointerSnapping | EnableKeyframeSnapping,
+            ExtendMarkers = ExtendFramePointer | ExtendFrameMarkers | ShowSelectedKeyframeMarkers
+        }
     }
-}

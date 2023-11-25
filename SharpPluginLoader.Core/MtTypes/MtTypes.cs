@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.MtTypes
 {
@@ -370,6 +371,19 @@ namespace SharpPluginLoader.Core.MtTypes
         [FieldOffset(0x1)] public byte G;
         [FieldOffset(0x2)] public byte B;
         [FieldOffset(0x3)] public byte A;
+
+        public static implicit operator MtColor(uint rgba) => new() { Rgba = rgba };
+        public static implicit operator uint(MtColor color) => color.Rgba;
+        public static implicit operator MtColor(Vector4 color) => new()
+        {
+            R = (byte)(color.X * 255), 
+            G = (byte)(color.Y * 255), 
+            B = (byte)(color.Z * 255), 
+            A = (byte)(color.W * 255)
+        };
+        
+        public MtVector4 ToMtVector4() => new() { X = R / 255.0f, Y = G / 255.0f, Z = B / 255.0f, W = A / 255.0f };
+        public Vector4 ToVector4() => new() { X = R / 255.0f, Y = G / 255.0f, Z = B / 255.0f, W = A / 255.0f };
     }
 
     [StructLayout(LayoutKind.Sequential)]

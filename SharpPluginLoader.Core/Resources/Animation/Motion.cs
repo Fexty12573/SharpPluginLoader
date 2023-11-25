@@ -1,11 +1,13 @@
 ﻿using SharpPluginLoader.Core.MtTypes;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.Resources.Animation
 {
@@ -38,7 +40,7 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x58)] private readonly Metadata* _metadata;
 
         
-        public ref Metadata Metadata => ref *_metadata;
+        public readonly ref Metadata Metadata => ref *_metadata;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x30)]
@@ -66,8 +68,8 @@ namespace SharpPluginLoader.Core.Resources.Animation
     [StructLayout(LayoutKind.Explicit, Size = 0x28)]
     public unsafe struct Metadata
     {
-        [FieldOffset(0x00)] private readonly MetadataParam* _params;
-        [FieldOffset(0x08)] public uint ParamNum;
+        [FieldOffset(0x00)] public MetadataParam* ParamPtr;
+        [FieldOffset(0x08)] public int ParamNum;
 
         [FieldOffset(0x10)] public uint Type1;
         [FieldOffset(0x14)] public uint Type2;
@@ -76,51 +78,56 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x20)] public uint LoopValue;
         [FieldOffset(0x24)] public uint Hash;
 
-        public ref MetadataParam GetParam(int index)
+        public readonly ref MetadataParam GetParam(int index)
         {
             if (index >= ParamNum || index < 0)
                 throw new IndexOutOfRangeException();
-
-            return ref *(_params + index);
+            
+            return ref *(ParamPtr + index);
         }
+
+        public readonly Span<MetadataParam> Params => new(ParamPtr, ParamNum);
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x18)]
     public unsafe struct MetadataParam
     {
-        [FieldOffset(0x00)] private readonly MetadataParamMember* _members;
-        [FieldOffset(0x08)] public uint MemberNum;
-
+        [FieldOffset(0x00)] public MetadataParamMember* MemberPtr;
+        [FieldOffset(0x08)] public int MemberNum;
         [FieldOffset(0x10)] public uint Hash;
         [FieldOffset(0x14)] public uint UniqueId;
 
-        public ref MetadataParamMember GetMember(int index)
+        public readonly ref MetadataParamMember GetMember(int index)
         {
             if (index >= MemberNum || index < 0)
                 throw new IndexOutOfRangeException();
 
-            return ref *(_members + index);
+            return ref *(MemberPtr + index);
         }
 
-        public MtDti? Dti => MtDti.Find(Hash);
+        public readonly Span<MetadataParamMember> Members => new(MemberPtr, MemberNum);
+
+        public readonly MtDti? Dti => MtDti.Find(Hash);
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x18)]
     public unsafe struct MetadataParamMember
     {
-        [FieldOffset(0x00)] private readonly MetadataKeyframe* _keyframes;
-        [FieldOffset(0x08)] public uint KeyframeNum;
+        [FieldOffset(0x00)] public MetadataKeyframe* KeyframePtr;
+        [FieldOffset(0x08)] public int KeyframeNum;
 
         [FieldOffset(0x10)] public uint Hash;
         [FieldOffset(0x14)] public uint KeyframeType;
 
-        public ref MetadataKeyframe GetKeyframe(int index)
+        public readonly ref MetadataKeyframe GetKeyframe(int index)
         {
             if (index >= KeyframeNum || index < 0)
                 throw new IndexOutOfRangeException();
 
-            return ref *(_keyframes + index);
+            return ref *(KeyframePtr + index);
         }
+
+        public readonly Span<MetadataKeyframe> Keyframes => new(KeyframePtr, KeyframeNum);
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x14)]
@@ -128,10 +135,11 @@ namespace SharpPluginLoader.Core.Resources.Animation
     {
         [FieldOffset(0x00)] private int _value;
         [FieldOffset(0x04)] public float BounceForwardLimit;
+        [FieldOffset(0x04)] public uint FlagsMask;
         [FieldOffset(0x08)] public float BounceBackLimit;
-        [FieldOffset(0x0C)] public float FrameTime;
-        [FieldOffset(0x10)] public ushort EasingType;
-        [FieldOffset(0x12)] public ushort InterpolationType;
+        [FieldOffset(0x0C)] public float Frame;
+        [FieldOffset(0x10)] public ApplyType ApplyType;
+        [FieldOffset(0x12)] public InterpType InterpolationType;
 
         public ref float FloatValue => ref Unsafe.AsRef<float>(ValuePtr);
         public ref int IntValue => ref Unsafe.AsRef<int>(ValuePtr);
@@ -140,5 +148,25 @@ namespace SharpPluginLoader.Core.Resources.Animation
         public ref bool BoolValue => ref Unsafe.AsRef<bool>(ValuePtr);
 
         private void* ValuePtr => Unsafe.AsPointer(ref _value);
+    }
+
+    public enum ApplyType : short
+    {
+        None = 0,
+        Absolute = 1,
+        Interpolated = 2,
+        Eased = 3,
+        Interpolated2 = 4,
+        Flags = 5,
+        Count = 6,
+    }
+
+    public enum InterpType : short
+    {
+        I32 = 0,
+        U32 = 1,
+        Float = 2,
+        Color = 3,
+        Count = 4,
     }
 }

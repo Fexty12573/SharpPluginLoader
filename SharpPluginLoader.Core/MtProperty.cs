@@ -19,6 +19,22 @@
         public unsafe string Comment => Get<nint>(0x8) != 0 ? new string(GetPtr<sbyte>(0x8)) : string.Empty;
 
         /// <summary>
+        /// Returns the comment if it exists, otherwise returns the name.
+        /// </summary>
+        /// <remarks>Whatever this property returns is used for hash lookups.</remarks>
+        public unsafe string HashName
+        {
+            get
+            {
+                var commentPtr = GetPtr<sbyte>(0x8);
+                if (commentPtr != null)
+                    return new string(commentPtr);
+                var namePtr = GetPtr<sbyte>(0x0);
+                return namePtr != null ? new string(namePtr) : string.Empty;
+            }
+        }
+
+        /// <summary>
         /// The type of the property.
         /// </summary>
         public PropType Type => (PropType)(Get<uint>(0x10) & 0xFFF);

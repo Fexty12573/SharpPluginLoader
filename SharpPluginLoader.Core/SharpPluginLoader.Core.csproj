@@ -118,5 +118,8 @@
 	<ItemGroup>
 	  <NativeLibs Remove="NativeArray.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Ensure.cs" />
+	</ItemGroup>
 
 </Project>

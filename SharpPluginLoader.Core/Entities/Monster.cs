@@ -5,7 +5,32 @@ namespace SharpPluginLoader.Core.Entities
 {
     public class Monster : Entity
     {
+        /// <summary>
+        /// The sEnemy singleton instance
+        /// </summary>
         public static nint SingletonInstance => MemoryUtil.Read<nint>(0x14500ad00);
+
+        /// <summary>
+        /// Gets a list of all monsters in the game
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<Monster> GetAllMonsters()
+        {
+            if (SingletonInstance == 0)
+                yield break;
+
+            var enemyList = new NativeArray<nint>(SingletonInstance + 0x38, 128);
+            foreach (var aiData in enemyList)
+            {
+                if (aiData == 0)
+                    continue;
+                var monster = aiData.Read<nint>(0x138);
+                if (monster == 0)
+                    continue;
+
+                yield return new Monster(monster);
+            }
+        }
 
         /// <summary>
         /// Constructs a new Monster from a native pointer

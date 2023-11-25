@@ -18,6 +18,8 @@ namespace SharpPluginLoader.Core.Resources.Animation
 
         [FieldOffset(0x10)] private nint _motions;
 
+        public bool HasMotion(int id) => id < MotionCount && id >= 0 && Motions[id] != null;
+
         public ref Motion GetMotion(int id) => ref *Motions[id];
 
         internal Motion** Motions => (Motion**)Unsafe.AsPointer(ref _motions);

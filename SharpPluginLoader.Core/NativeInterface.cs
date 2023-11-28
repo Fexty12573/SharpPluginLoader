@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core
@@ -53,6 +54,7 @@ namespace SharpPluginLoader.Core
 
         public static void Initialize()
         {
+            AddressRepository.Initialize();
             Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();

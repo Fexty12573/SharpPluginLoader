@@ -127,7 +127,7 @@ namespace SharpPluginLoader.Core
             if (owner == null)
                 return;
 
-            var doAnimEntity = new NativeAction<nint, uint, float, uint, uint, float, int>(0x141c00720);
+            var doAnimEntity = new NativeAction<nint, uint, float, uint, uint, float, int>(AddressRepository.Get("Entity:DoAnimation"));
             doAnimEntity.Invoke(owner.Instance, id, startFrame, attr, 0xFFFF, interpolationFrame, -1);
         }
 
@@ -136,8 +136,8 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _updateHook = Hook.Create<UpdateDelegate>(UpdateHook, 0x14224c150);
-            _doLmtHook = Hook.Create<DoLmtDelegate>(DoLmtHook, 0x141c00720);
+            _updateHook = Hook.Create<UpdateDelegate>(UpdateHook, AddressRepository.Get("AnimationLayerComponent:Update"));
+            _doLmtHook = Hook.Create<DoLmtDelegate>(DoLmtHook, AddressRepository.Get("Entity:DoAnimation"));
         }
 
         private static void UpdateHook(nint animLayer, int a, uint b, nint c, nint d, nint e, nint f, nint g)
@@ -171,7 +171,7 @@ namespace SharpPluginLoader.Core
         private delegate void DoLmtDelegate(nint instance, uint animId, float unk1, uint unk2, uint unk3, float unk4, int unk5);
         private static Hook<UpdateDelegate> _updateHook = null!;
         private static Hook<DoLmtDelegate> _doLmtHook = null!;
-        private static readonly NativeAction<nint, nint, uint> RegisterLmtFunc = new(0x142236450);
+        private static readonly NativeAction<nint, nint, uint> RegisterLmtFunc = new(AddressRepository.Get("AnimationLayerComponent:RegisterLmt"));
         private static readonly Dictionary<nint, float> SpeedLocks = new();
     }
 

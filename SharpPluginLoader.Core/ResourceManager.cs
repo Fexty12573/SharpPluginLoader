@@ -31,7 +31,7 @@ namespace SharpPluginLoader.Core
         }
 
         private static Hook<GetResourceDelegate> _getResourceHook = null!;
-        private static readonly NativeFunction<nint, nint, string, uint, nint> GetResourceFunc = new(0x1422214f0);
+        private static readonly NativeFunction<nint, nint, string, uint, nint> GetResourceFunc = new(AddressRepository.Get("ResourceManager:GetResource"));
 
         private delegate nint GetResourceDelegate(nint resourceMgr, nint dti, string path, uint flags);
     }

@@ -77,6 +77,8 @@ namespace ChunkBuilder
             writer.Write(writer.BaseStream.Position + 8);
 
             WriteFolder(writer, _root);
+            writer.Flush();
+            writer.Close();
         }
 
         private static IFileSystemItem ReadItem(BinaryReader reader)
@@ -92,7 +94,8 @@ namespace ChunkBuilder
 
         private static FileSystemFile ReadFile(BinaryReader reader)
         {
-            var contentsLength = reader.ReadInt32();
+            var contentsLength = reader.ReadInt32(); // Compressed length
+            var _ = reader.ReadInt32(); // Decompressed length
             var nameLength = reader.ReadInt16();
             var name = Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
 
@@ -134,6 +137,7 @@ namespace ChunkBuilder
         {
             var compressed = Compress(file.Contents);
             writer.Write(compressed.Length);
+            writer.Write(file.Contents.Length);
             writer.Write((short)file.Name.Length);
             writer.Write(Encoding.UTF8.GetBytes(file.Name));
             writer.Write(compressed);
@@ -152,9 +156,8 @@ namespace ChunkBuilder
         private static byte[] Compress(byte[] data)
         {
             using var stream = new MemoryStream();
-            using var deflate = new ZLibStream(stream, CompressionLevel.Optimal);
-            deflate.Write(data);
-            deflate.Flush();
+            using (var deflate = new ZLibStream(stream, CompressionLevel.Optimal))
+                deflate.Write(data, 0 ,data.Length);
             return stream.ToArray();
         }
 

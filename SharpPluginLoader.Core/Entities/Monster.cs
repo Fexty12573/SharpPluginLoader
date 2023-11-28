@@ -178,15 +178,15 @@ namespace SharpPluginLoader.Core.Entities
 
         internal static void Initialize()
         {
-            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, 0x141cc4590);
+            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, AddressRepository.Get("Monster:LaunchAction"));
         }
 
         private delegate bool LaunchActionDelegate(nint monster, int actionId);
-        private static readonly NativeAction<nint, nint> ForceActionFunc = new(0x1413966e0);
-        private static readonly NativeFunction<nint, bool> EnrageFunc = new(0x1402a8120);
-        private static readonly NativeAction<nint> UnenrageFunc = new(0x1402a83b0);
-        private static readonly Patch SpeedResetPatch1 = new(0x141cb08ab, Enumerable.Repeat((byte)0x90, 10).ToArray());
-        private static readonly Patch SpeedResetPatch2 = new(0x140b00fff, Enumerable.Repeat((byte)0x90, 6).ToArray());
+        private static readonly NativeAction<nint, nint> ForceActionFunc = new(AddressRepository.Get("Monster:ForceAction"));
+        private static readonly NativeFunction<nint, bool> EnrageFunc = new(AddressRepository.Get("Monster:Enrage"));
+        private static readonly NativeAction<nint> UnenrageFunc = new(AddressRepository.Get("Monster:Unenrage"));
+        private static readonly Patch SpeedResetPatch1 = new(AddressRepository.Get("Monster:SpeedResetPatch1"), Enumerable.Repeat((byte)0x90, 10).ToArray());
+        private static readonly Patch SpeedResetPatch2 = new(AddressRepository.Get("Monster:SpeedResetPatch2"), Enumerable.Repeat((byte)0x90, 6).ToArray());
         private static Hook<LaunchActionDelegate> _launchActionHook = null!;
     }
 

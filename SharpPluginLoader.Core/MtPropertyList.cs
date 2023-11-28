@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
 {
@@ -123,10 +124,10 @@ namespace SharpPluginLoader.Core
             object IEnumerator.Current => Current;
         }
 
-        private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(0x142170960);
-        private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(0x1421708d0);
-        private static readonly NativeFunction<nint, uint, nint> FindPropertyByHashFunc = new(0x1421707f0);
-        private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(0x142170610);
+        private static readonly NativeFunction<nint, string, nint> FindPropertyFunc = new(AddressRepository.Get("MtPropertyList:Find"));
+        private static readonly NativeFunction<nint, uint, string, nint> FindPropertyOfTypeFunc = new(AddressRepository.Get("MtPropertyList:FindByType"));
+        private static readonly NativeFunction<nint, uint, nint> FindPropertyByHashFunc = new(AddressRepository.Get("MtPropertyList:FindByHash"));
+        private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(AddressRepository.Get("MtPropertyList:operator[]"));
 
         internal Action<MtPropertyList>? Deleter = null;
     }

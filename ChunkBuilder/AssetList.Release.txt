@@ -1,4 +1,4 @@
-Out:./Default.bin
+Out:Default.bin
 Data/Reloaded.Hooks.dll
 Data/Reloaded.Hooks.Definitions.dll
 Data/Reloaded.Assembler.dll
@@ -9,3 +9,4 @@ Data/ImGui.NET.dll
 Data/Roboto-Bold.ttf
 Data/Roboto-Medium.ttf
 Data/NotoSansJP-Regular.ttf
+Data/AddressRecords.json

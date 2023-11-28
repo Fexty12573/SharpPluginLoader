@@ -113,7 +113,7 @@
 	  <NativeLibs Remove="Input.cs" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="$(SolutionDir)ChunkBuilder\bin\Release\net8.0\ChunkBuilder.exe $(SolutionDir)ChunkBuilder\AssetList.$(Configuration).txt" />
+	  <Exec Command="call $(SolutionDir)post-build.bat $(SolutionDir) $(Configuration)" />
 	</Target>
 	<ItemGroup>
 	  <NativeLibs Remove="NativeArray.cs" />

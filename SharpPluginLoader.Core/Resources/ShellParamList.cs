@@ -27,6 +27,6 @@ namespace SharpPluginLoader.Core.Resources
             return shellObj == 0 ? null : new ShellParam(shellObj);
         }
 
-        private static readonly NativeFunction<nint, uint, nint> GetShellFunc = new(0x140f7cf20);
+        private static readonly NativeFunction<nint, uint, nint> GetShellFunc = new(AddressRepository.Get("ShellParamList:GetShell"));
     }
 }

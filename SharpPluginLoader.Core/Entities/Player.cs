@@ -75,7 +75,7 @@ namespace SharpPluginLoader.Core.Entities
 
         internal static void Initialize()
         {
-            _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, 0x141f59090);
+            _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, AddressRepository.Get("Player:ChangeWeapon"));
         }
 
         private static void ChangeWeaponHook(nint player, WeaponType weaponType, int weaponId)
@@ -89,8 +89,8 @@ namespace SharpPluginLoader.Core.Entities
         private delegate void ChangeWeaponDelegate(nint player, WeaponType weaponType, int weaponId);
 
         private static Hook<ChangeWeaponDelegate> _changeWeaponHook = null!;
-        private static readonly NativeFunction<nint, nint> FindMasterPlayerFunc = new(0x141b41240);
-        private static readonly NativeFunction<nint, nint, nint, nint, nint> CreateShellFunc = new(0x141aa67d0);
+        private static readonly NativeFunction<nint, nint> FindMasterPlayerFunc = new(AddressRepository.Get("Player:FindMasterPlayer"));
+        private static readonly NativeFunction<nint, nint, nint, nint, nint> CreateShellFunc = new(AddressRepository.Get("Player:CreateShell"));
     }
 
     public enum WeaponType

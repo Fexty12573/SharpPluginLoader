@@ -12,7 +12,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The singleton instance of the sMhGUI class.
         /// </summary>
-        public static unsafe nint SingletonInstance => *(nint*)0x1451c2400;
+        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c2400);
 
         /// <summary>
         /// Displays a popup message on the screen.
@@ -62,7 +62,7 @@ namespace SharpPluginLoader.Core
 
             if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
-
+            
             InternalCalls.QueueYesNoDialog(msgPtr);
         }
 
@@ -102,16 +102,16 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, 0x14239d640);
+            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, AddressRepository.Get("Chat:MessageSent"));
         }
 
         private static unsafe nint ChatInstance => *(nint*)0x14500ac30;
         private static readonly Queue<DialogCallback> DialogCallbacks = new();
         private static readonly Queue<nint> CachedMessages = new();
-        private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(0x141ae2700);
-        private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(0x141a53400);
-        private static readonly NativeAction<nint, nint, nint, nint, bool> DisplayMessageWindowFunc = new(0x141ae3220);
-        private static readonly NativeAction<string> DisplayAlertFunc = new(0x1418d5960);
+        private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(AddressRepository.Get("Gui:DisplayPopup"));
+        private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(AddressRepository.Get("Gui:DisplayMessage"));
+        private static readonly NativeAction<nint, nint, nint, nint, bool> DisplayMessageWindowFunc = new(AddressRepository.Get("Gui:DisplayMessageWindow"));
+        private static readonly NativeAction<string> DisplayAlertFunc = new(AddressRepository.Get("Gui:DisplayAlert"));
         private static Hook<ChatMessageSentDelegate> _chatMessageSentHook = null!;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]

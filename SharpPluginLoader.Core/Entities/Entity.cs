@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Models;
+﻿using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Models;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
 
@@ -107,6 +108,6 @@ namespace SharpPluginLoader.Core.Entities
         public ActionController ActionController => GetInlineObject<ActionController>(0x61C8);
 
 
-        private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(0x1412c5ee0);
+        private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(AddressRepository.Get("Entity:CreateShell"));
     }
 }

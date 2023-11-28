@@ -1,4 +1,6 @@
-﻿namespace SharpPluginLoader.Core.Resources
+﻿using SharpPluginLoader.Core.Memory;
+
+namespace SharpPluginLoader.Core.Resources
 {
     /// <summary>
     /// Represents an instance of the cResource class.
@@ -16,7 +18,7 @@
         /// This class automatically increments and decrements the reference counter when it is created/destroyed.
         /// You should not have to call this method explicitly.
         /// </remarks>
-        public unsafe void AddRef() => AddRefFunc.Invoke(Instance);
+        public unsafe void AddRef() => AddRefFunc.Invoke(ResourceManager.SingletonInstance, Instance);
 
         /// <summary>
         /// Decrements the reference count of this resource. If the reference count reaches 0, the resource is unloaded.
@@ -25,7 +27,7 @@
         /// This class automatically increments and decrements the reference counter when it is created/destroyed.
         /// You should not have to call this method explicitly.
         /// </remarks>
-        public unsafe void Release() => ReleaseFunc.Invoke(Instance);
+        public unsafe void Release() => ReleaseFunc.Invoke(ResourceManager.SingletonInstance, Instance);
 
         /// <summary>
         /// Gets the file path of this resource without the extension.
@@ -43,7 +45,7 @@
         public uint RefCount => Get<uint>(0x5C);
 
 
-        private static readonly NativeAction<nint> AddRefFunc = new(0x142215a60);
-        private static readonly NativeAction<nint> ReleaseFunc = new(0x1422160f0);
+        private static readonly NativeAction<nint, nint> AddRefFunc = new(AddressRepository.Get("ResourceManager:AddRef"));
+        private static readonly NativeAction<nint, nint> ReleaseFunc = new(AddressRepository.Get("ResourceManager:Release"));
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
 using SharpPluginLoader.Core.Resources;
 
@@ -43,7 +44,7 @@ namespace SharpPluginLoader.Core.Weapons
 
         internal nint ObjCollisionComponent => Get<nint>(0x6A8);
 
-        private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(0x141f61470);
-        private static readonly NativeAction<nint, nint, uint, bool> RegisterObjCollisionFunc = new(0x1412dddf0);
+        private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(AddressRepository.Get("Weapon:GetWeaponType"));
+        private static readonly NativeAction<nint, nint, uint, bool> RegisterObjCollisionFunc = new(AddressRepository.Get("Weapon:RegisterCol"));
     }
 }

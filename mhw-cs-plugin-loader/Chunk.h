@@ -81,10 +81,11 @@ private:
 
     static FileSystemFile read_file(std::istream& stream) {
         const auto contents_length = read<i32>(stream);
+        const auto decompressed_length = read<i32>(stream);
         const auto name_length = read<u16>(stream);
         const auto name = read<std::string>(stream, name_length);
 
-        return { name, decompress(read<std::vector<u8>>(stream, contents_length)) };
+        return { name, decompress(read<std::vector<u8>>(stream, contents_length), decompressed_length) };
     }
 
     static FileSystemFolder read_folder(std::istream& stream) {
@@ -112,14 +113,16 @@ private:
         return compressed;
     }
 
-    static std::vector<u8> decompress(const std::vector<u8>& data) {
+    static std::vector<u8> decompress(const std::vector<u8>& data, i32 decompressed_size) {
         std::vector<u8> decompressed;
-        decompressed.resize(data.size() * 2);
+        uLong decomp_size = (u32)(decompressed_size * 1.5);
+        decompressed.resize(decomp_size);
+        
+        if (::uncompress(decompressed.data(), &decomp_size, data.data(), (u32)data.size()) != Z_OK) {
+            throw std::runtime_error("Failed to decompress");
+        }
 
-        uLong decompressed_size = (u32)decompressed.size();
-        ::uncompress(decompressed.data(), &decompressed_size, data.data(), (u32)data.size());
-
-        decompressed.resize(decompressed_size);
+        decompressed.resize(decomp_size);
         return decompressed;
     }
 

@@ -1,4 +1,5 @@
 ﻿using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.Resources
 {
@@ -23,6 +24,6 @@ namespace SharpPluginLoader.Core.Resources
         }
 
 
-        private static readonly NativeFunction<nint, uint, uint, nint> GetEffectFunc = new(0x1423621e0);
+        private static readonly NativeFunction<nint, uint, uint, nint> GetEffectFunc = new(AddressRepository.Get("EffectProvider:GetEffect"));
     }
 }

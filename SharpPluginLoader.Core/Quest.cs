@@ -19,28 +19,28 @@ namespace SharpPluginLoader.Core
         internal static void Initialize()
         {
             // AcceptQuest: 141b64be0 (When you accept a quest)
-            _acceptQuestHook = Hook.Create<AcceptQuest>(AcceptQuestHook, 0x141b64be0);
+            _acceptQuestHook = Hook.Create<AcceptQuest>(AcceptQuestHook, AddressRepository.Get("Quest:AcceptQuest"));
 
             // EnterQuest: 141b699a0 (When you arrive in the quest)
-            _enterQuestHook = Hook.Create<EnterQuest>(EnterQuestHook, 0x141b699a0);
+            _enterQuestHook = Hook.Create<EnterQuest>(EnterQuestHook, AddressRepository.Get("Quest:EnterQuest"));
 
             // ReturnFromQuest: 141b6f600 (When you click return from quest)
-            _returnFromQuestHook = Hook.Create<ReturnFromQuest>(ReturnFromQuestHook, 0x141b6f600);
+            _returnFromQuestHook = Hook.Create<ReturnFromQuest>(ReturnFromQuestHook, AddressRepository.Get("Quest:ReturnFromQuest"));
 
             // LeaveQuest: 141b660d0 (Return/Abandon/Fail/Complete)
-            _leaveQuestHook = Hook.Create<LeaveQuest>(LeaveQuestHook, 0x141b660d0);
+            _leaveQuestHook = Hook.Create<LeaveQuest>(LeaveQuestHook, AddressRepository.Get("Quest:LeaveQuest"));
 
             // AbandonQuest: 141b707a0 (When you click abandon quest)
-            _abandonQuestHook = Hook.Create<AbandonQuest>(AbandonQuestHook, 0x141b707a0);
+            _abandonQuestHook = Hook.Create<AbandonQuest>(AbandonQuestHook, AddressRepository.Get("Quest:AbandonQuest"));
 
             // CancelQuest: 141b655a0 (When you cancel the quest before entering)
-            _cancelQuestHook = Hook.Create<CancelQuest>(CancelQuestHook, 0x141b655a0);
+            _cancelQuestHook = Hook.Create<CancelQuest>(CancelQuestHook, AddressRepository.Get("Quest:CancelQuest"));
 
             // EndQuest: 141b646c0 (When you complete/fail the quest)
-            _endQuestHook = Hook.Create<EndQuest>(EndQuestHook, 0x141b646c0);
+            _endQuestHook = Hook.Create<EndQuest>(EndQuestHook, AddressRepository.Get("Quest:EndQuest"));
 
             // DepartOnQuest: 141b69140 (When you click depart on quest)
-            _departOnQuestHook = Hook.Create<DepartOnQuest>(DepartOnQuestHook, 0x141b69140);
+            _departOnQuestHook = Hook.Create<DepartOnQuest>(DepartOnQuestHook, AddressRepository.Get("Quest:DepartOnQuest"));
         }
 
 
@@ -131,7 +131,7 @@ namespace SharpPluginLoader.Core
         private static Hook<CancelQuest> _cancelQuestHook = null!;
         private static Hook<DepartOnQuest> _departOnQuestHook = null!;
         private static Hook<EndQuest> _endQuestHook = null!;
-        private static readonly NativeFunction<nint, int, int, nint> GetQuestNameFunc = new(0x141b56e10);
+        private static readonly NativeFunction<nint, int, int, nint> GetQuestNameFunc = new(AddressRepository.Get("Quest:GetQuestName"));
 
         private delegate void AcceptQuest(nint questMgr, int questId, bool unk);
         private delegate void EnterQuest(nint questMgr);

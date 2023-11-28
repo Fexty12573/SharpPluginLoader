@@ -62,7 +62,7 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, 0x140269c90);
+            _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, AddressRepository.Get("ActionController:DoAction"));
         }
 
         private static bool DoActionHookFunc(nint instance, ref ActionInfo actionInfo)
@@ -96,7 +96,7 @@ namespace SharpPluginLoader.Core
 
         private delegate bool DoActionDelegate(nint instance, ref ActionInfo actionInfo);
         private delegate bool LaunchActionDelegate(nint instance, int actionId);
-        private static readonly NativeFunction<nint, nint, bool> DoActionFunc = new(0x140269c90);
+        private static readonly NativeFunction<nint, nint, bool> DoActionFunc = new(AddressRepository.Get("ActionController:DoAction"));
         private static Hook<DoActionDelegate> _doActionHook = null!;
         private static Hook<LaunchActionDelegate> _launchActionHook = null!;
     }

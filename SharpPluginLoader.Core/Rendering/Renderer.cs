@@ -12,6 +12,11 @@ namespace SharpPluginLoader.Core.Rendering
         public static nint Initialize()
         {
             ImGui.CreateContext();
+            var io = ImGui.GetIO();
+            io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            // Currently causes a crash when dragging a window outside of the main window
+            //io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
             SetupImGuiStyle();
             SetupFonts();
 
@@ -45,8 +50,6 @@ namespace SharpPluginLoader.Core.Rendering
 
             ImGui.End();
 
-            ImGui.ShowDemoWindow();
-
             ImGui.EndFrame();
             ImGui.Render();
 
@@ -65,6 +68,12 @@ namespace SharpPluginLoader.Core.Rendering
             var io = ImGui.GetIO();
             io.Fonts.Clear();
 
+            LoadFont("/Resources/Roboto-Medium.ttf");
+            LoadFont("/Resources/Roboto-Bold.ttf");
+
+            io.Fonts.Build();
+            return;
+
             void LoadFont(string path)
             {
                 var file = InternalCalls.ChunkGetFile(chunk, path);
@@ -74,11 +83,6 @@ namespace SharpPluginLoader.Core.Rendering
                     16.0f
                 );
             }
-
-            LoadFont("/Resources/Roboto-Medium.ttf");
-            LoadFont("/Resources/Roboto-Bold.ttf");
-
-            io.Fonts.Build();
         }
 
         private static void SetupImGuiStyle()
@@ -89,7 +93,7 @@ namespace SharpPluginLoader.Core.Rendering
             style.DisabledAlpha = 1.0f;
             style.WindowPadding = new Vector2(12.0f, 12.0f);
             style.WindowRounding = 2.0f;
-            style.WindowBorderSize = 0.0f;
+            style.WindowBorderSize = 1.0f;
             style.WindowMinSize = new Vector2(20.0f, 20.0f);
             style.WindowTitleAlign = new Vector2(0.5f, 0.5f);
             style.WindowMenuButtonPosition = ImGuiDir.None;

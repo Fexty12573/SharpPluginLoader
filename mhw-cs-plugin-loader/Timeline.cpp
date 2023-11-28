@@ -1,6 +1,9 @@
 #include "Timeline.h"
 
 #include <imgui_impl.h>
+#ifdef IMGUI_DEFINE_STRUCTS
+#include <imgui_internal.h>
+#endif
 #include <unordered_map>
 
 #include <format>
@@ -87,7 +90,7 @@ static float GetScrollBarWidth(float avail_width, float zoom) {
     return avail_width * zoom;
 }
 
-namespace ImGui {
+namespace ImGuiImpl {
 inline ImVec2 CalcTextSize(const char* text, const char* text_end = nullptr, bool hide_text_after_double_hash = false, float wrap_width = -1.0f) {
     ImVec2 out;
     igCalcTextSize(&out, text, text_end, hide_text_after_double_hash, wrap_width);
@@ -114,7 +117,7 @@ inline ImVec2 GetMousePos() {
 // and a pointer to the last character+1 that can be displayed (or nullptr if the entire text fits)
 static std::pair<ImVec2, const char*> TrimTextAndGetSize(std::string_view in_text, float max_width) {
     const auto& style = *igGetStyle();
-    const ImVec2 text_size = ImGui::CalcTextSize(in_text.data());
+    const ImVec2 text_size = ImGuiImpl::CalcTextSize(in_text.data());
     const float text_width = text_size.x;
 
     if (text_width <= max_width) {
@@ -122,11 +125,11 @@ static std::pair<ImVec2, const char*> TrimTextAndGetSize(std::string_view in_tex
     }
 
     constexpr auto ellipsis = "...";
-    const ImVec2 ellipsis_size = ImGui::CalcTextSize(ellipsis);
+    const ImVec2 ellipsis_size = ImGuiImpl::CalcTextSize(ellipsis);
     const float ellipsis_width = ellipsis_size.x;
 
     const float max_text_width = max_width - ellipsis_width;
-    const ImVec2 max_text_size = ImGui::CalcTextSize(in_text.data(), in_text.data() + in_text.size(),
+    const ImVec2 max_text_size = ImGuiImpl::CalcTextSize(in_text.data(), in_text.data() + in_text.size(),
         false, max_text_width);
     const char* max_text_end = in_text.data() + (int)(max_text_size.x / text_width * in_text.size());
 
@@ -163,12 +166,12 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     const auto draw_list = window->DrawList;
     const ImVec2 cursor_pos = window->DC.CursorPos;
 
-    const ImVec2 avail = GetContentRegionAvail();
+    const ImVec2 avail = ImGuiImpl::GetContentRegionAvail();
     const float scrollbar_width = GetScrollBarWidth(avail.x, ctx.Zoom);
     const float scroll_x = cursor_pos.x + ctx.Scroll * (avail.x - scrollbar_width);
 
     // Allocate extra space for the frame labels
-    const ImVec2 frame_label_size = CalcTextSize("100");
+    const ImVec2 frame_label_size = ImGuiImpl::CalcTextSize("100");
     const float timeline_track_right_padding = frame_label_size.x + TIMELINE_TRACK_RIGHT_EXTRA_PADDING;
     const float timeline_header_height = TIMELINE_HEADER_BASE_HEIGHT + frame_label_size.y;
 
@@ -184,7 +187,7 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
         0.0f, 0
     );
 
-    const ImRectExt header_rect = {
+    const ImRect header_rect = {
         ImVec2(cursor_pos.x, ctx.YPos),
         ImVec2(cursor_pos.x + avail.x, ctx.YPos + TIMELINE_SCROLL_BAR_HEIGHT)
     };
@@ -245,7 +248,7 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
         ctx.InitialScroll = ctx.Scroll;
     }
 
-    const auto mouse_drag_delta = GetMouseDragDelta(0, 0.0f);
+    const auto mouse_drag_delta = ImGuiImpl::GetMouseDragDelta(0, 0.0f);
     ctx.MouseDragDelta = mouse_drag_delta;
     if (scrollbar_active && ctx.Zoom < 1.0f) {
         const auto mouse_delta = mouse_drag_delta.x / (avail.x - scrollbar_width);
@@ -298,7 +301,7 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
         // Draw frame number
         if (frame == first_frame || frame == last_frame || frame % 10 == 0) {
             const std::string frame_number = std::to_string(frame);
-            const ImVec2 frame_number_size = CalcTextSize(frame_number.c_str());
+            const ImVec2 frame_number_size = ImGuiImpl::CalcTextSize(frame_number.c_str());
             const ImVec2 frame_number_pos = { frame_x_pos - frame_number_size.x * 0.5f, frame_marker_y_pos };
             ImDrawList_AddText_Vec2(draw_list, frame_number_pos, igGetColorU32_Col(ImGuiCol_Text, 1.0f), frame_number.c_str(), nullptr);
         }
@@ -455,10 +458,10 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
     auto& ctx = g_TimelineContexts[g_CurrentTimelineId];
 
     const ImVec2 cursor_pos = window->DC.CursorPos;
-    const ImVec2 avail = GetContentRegionAvail();
+    const ImVec2 avail = ImGuiImpl::GetContentRegionAvail();
 
     const float track_y_pos = ctx.CurrentTrackYPos;
-    const float track_height = ImMax(TIMELINE_TRACK_BASE_HEIGHT, CalcTextSize("Text").y + igGetStyle()->FramePadding.y * 2.0f);
+    const float track_height = ImMax(TIMELINE_TRACK_BASE_HEIGHT, ImGuiImpl::CalcTextSize("Text").y + igGetStyle()->FramePadding.y * 2.0f);
     const float label_width = avail.x * TIMELINE_TRACK_LABEL_TO_TRACK_WIDTH_RATIO;
     ctx.CurrentTrackYPos += track_height;
     ctx.TrackCount++;
@@ -590,7 +593,7 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
     // Draw keyframes
     const float keyframe_radius = (track_height - 6.0f) * 0.5f;
     const bool mouse_released = igIsMouseReleased_Nil(0);
-    const ImVec2 mouse_pos = GetMousePos();
+    const ImVec2 mouse_pos = ImGuiImpl::GetMousePos();
 
     float distance_to_edge = ImMin(
         ImAbs(mouse_pos.x - track_x_pos),

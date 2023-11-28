@@ -329,7 +329,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     m_d3d12_buffer_count = desc.BufferCount;
     m_d3d12_frame_contexts.resize(desc.BufferCount, FrameContext{});
 
-    D3D12_DESCRIPTOR_HEAP_DESC dp_imgui_desc = {
+    const D3D12_DESCRIPTOR_HEAP_DESC dp_imgui_desc = {
         .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
         .NumDescriptors = desc.BufferCount,
         .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
@@ -494,6 +494,12 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     self->m_d3d12_command_list->Close();
 
     self->m_d3d12_command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const*)self->m_d3d12_command_list.GetAddressOf());
+
+    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        igUpdatePlatformWindows();
+        igRenderPlatformWindowsDefault(nullptr, self->m_d3d12_command_list.Get());
+    }
 
     return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
 }

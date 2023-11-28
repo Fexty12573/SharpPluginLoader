@@ -1,7 +1,19 @@
 #pragma once
 
+#define IMGUI_DEFINE_STRUCTS
+
+#ifndef IMGUI_DEFINE_STRUCTS
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui/cimgui.h>
+#else
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <imstb_rectpack.h>
+#include <imstb_truetype.h>
+#include <imstb_textedit.h>
+#include <cimgui/cimgui.h>
+#endif
 
 #ifndef IMGUI_API
 #define IMGUI_IMPL_API
@@ -12,11 +24,18 @@
 struct ImNewWrapper {};
 inline void* operator new(size_t, ImNewWrapper, void* ptr) { return ptr; }
 inline void  operator delete(void*, ImNewWrapper, void*) {} // This is only required so we can use the symmetrical new()
+#else
+#undef IM_NEW
+#undef IM_ALLOC
+#undef IM_FREE
+#undef IM_PLACEMENT_NEW
+
 #define IM_ALLOC(_SIZE)                     igMemAlloc(_SIZE)
 #define IM_FREE(_PTR)                       igMemFree(_PTR)
 #define IM_PLACEMENT_NEW(_PTR)              new(ImNewWrapper(), _PTR)
 #define IM_NEW(_TYPE)                       new(ImNewWrapper(), igMemAlloc(sizeof(_TYPE))) _TYPE
-template<typename T> void IM_DELETE(T* p) { if (p) { p->~T(); igMemFree(p); } }
+#define IM_DELETE(_PTR)                     IM_DELETE_IMPL(_PTR)
+template<typename T> void IM_DELETE_IMPL(T* p) { if (p) { p->~T(); igMemFree(p); } }
 #endif
 
 #ifndef IM_ASSERT
@@ -92,6 +111,7 @@ struct ImVectorExt {
 
 #pragma region Other Type Extensions
 #include <cmath>
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
 inline ImVec2  operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
 inline ImVec2  operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
 inline ImVec2  operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
@@ -121,7 +141,9 @@ inline int    ImAbs(int x) { return x < 0 ? -x : x; }
 inline float  ImAbs(float x) { return std::fabsf(x); }
 inline double ImAbs(double x) { return std::fabs(x); }
 #define IM_TRUNC(_VAL)                  ((float)(int)(_VAL))                                    // ImTrunc() is not inlined in MSVC debug builds
+#endif
 
+#ifndef IMGUI_DEFINE_STRUCTS
 struct IMGUI_API ImRectExt
 {
     ImVec2      Min;    // Upper-left
@@ -160,6 +182,7 @@ struct IMGUI_API ImRectExt
 
     operator ImRect() const { return ImRect(Min, Max); }
 };
+#endif
 #pragma endregion
 
 #ifndef IM_COL32_R_SHIFT
@@ -179,4 +202,6 @@ struct IMGUI_API ImRectExt
 #endif
 #define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
 
+#ifndef ImDrawCallback_ResetRenderState
 #define ImDrawCallback_ResetRenderState     (ImDrawCallback)(-8)
+#endif

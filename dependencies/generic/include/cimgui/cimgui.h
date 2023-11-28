@@ -3224,10 +3224,6 @@ typedef union SDL_Event SDL_Event;
 #ifndef CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 typedef struct ImGuiStorage::ImGuiStoragePair ImGuiStoragePair;
 typedef struct ImGuiTextFilter::ImGuiTextRange ImGuiTextRange;
-typedef ImStb::STB_TexteditState STB_TexteditState;
-typedef ImStb::StbTexteditRow StbTexteditRow;
-typedef ImStb::StbUndoRecord StbUndoRecord;
-typedef ImStb::StbUndoState StbUndoState;
 typedef ImChunkStream<ImGuiTableSettings> ImChunkStream_ImGuiTableSettings;
 typedef ImChunkStream<ImGuiWindowSettings> ImChunkStream_ImGuiWindowSettings;
 typedef ImPool<ImGuiTabBar> ImPool_ImGuiTabBar;

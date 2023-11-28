@@ -117,7 +117,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -169,6 +169,7 @@
     <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dependencies\cimgui\imgui\imgui.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx12.h" />
@@ -193,8 +194,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="..\vcpkg.json" />
     <None Include="SharpPluginLoader.runtimeconfig.json" />
-    <None Include="vcpkg.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

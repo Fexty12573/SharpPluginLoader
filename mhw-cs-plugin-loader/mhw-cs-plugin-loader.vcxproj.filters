@@ -140,6 +140,9 @@
     <ClInclude Include="Timeline.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="..\dependencies\cimgui\imgui\imgui.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">
@@ -148,7 +151,7 @@
     <None Include="..\README.md">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="vcpkg.json">
+    <None Include="..\vcpkg.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

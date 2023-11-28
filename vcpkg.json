@@ -6,6 +6,7 @@
     "dependencies": [
         "nethost",
         "zydis",
-        "nlohmann-json"
-]
+        "nlohmann-json",
+        "zlib"
+    ]
 }

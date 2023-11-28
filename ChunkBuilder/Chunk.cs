@@ -1,12 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using System.IO.Compression;
 
 namespace ChunkBuilder
 {
     internal class Chunk
     {
         private static string Magic => "bin\x00";
-        private static uint Version => 0x20230611;
+        private static uint Version => 0x20231128;
 
         private readonly FileSystemFolder _root;
 
@@ -95,7 +96,7 @@ namespace ChunkBuilder
             var nameLength = reader.ReadInt16();
             var name = Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
 
-            return new FileSystemFile(name, reader.ReadBytes(contentsLength));
+            return new FileSystemFile(name, Decompress(reader.ReadBytes(contentsLength)));
         }
 
         private static FileSystemFolder ReadFolder(BinaryReader reader)
@@ -131,10 +132,11 @@ namespace ChunkBuilder
 
         private static void WriteFile(BinaryWriter writer, FileSystemFile file)
         {
-            writer.Write(file.Contents.Length);
+            var compressed = Compress(file.Contents);
+            writer.Write(compressed.Length);
             writer.Write((short)file.Name.Length);
             writer.Write(Encoding.UTF8.GetBytes(file.Name));
-            writer.Write(file.Contents);
+            writer.Write(compressed);
         }
 
         private static void WriteFolder(BinaryWriter writer, FileSystemFolder folder)
@@ -145,6 +147,24 @@ namespace ChunkBuilder
 
             foreach (var child in folder.Children)
                 WriteItem(writer, child);
+        }
+
+        private static byte[] Compress(byte[] data)
+        {
+            using var stream = new MemoryStream();
+            using var deflate = new ZLibStream(stream, CompressionLevel.Optimal);
+            deflate.Write(data);
+            deflate.Flush();
+            return stream.ToArray();
+        }
+
+        private static byte[] Decompress(byte[] data)
+        {
+            using var stream = new MemoryStream(data);
+            using var deflate = new ZLibStream(stream, CompressionMode.Decompress);
+            using var result = new MemoryStream();
+            deflate.CopyTo(result);
+            return result.ToArray();
         }
     }
 

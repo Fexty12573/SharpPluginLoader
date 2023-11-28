@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using System.IO.Compression;
 
 namespace SharpPluginLoader.Bootstrapper.Chunk
 {
-    public class Chunk
+    internal class Chunk
     {
         private static string Magic => "bin\x00";
-        private static uint Version => 0x20230611;
+        private static uint Version => 0x20231128;
 
         private readonly FileSystemFolder _root;
 
@@ -24,18 +20,15 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
                 Share = FileShare.Read
             }));
 
-            // Header
-            var magic = Encoding.UTF8.GetString(reader.ReadBytes(4));
-            var version = reader.ReadUInt32();
-            var rootOffset = reader.ReadInt64();
+            var header = reader.ReadStruct<ChunkHeader>();
 
-            if (magic != Magic)
-                throw new Exception($"Invalid magic: {magic}");
+            if (header.Magic != Magic)
+                throw new Exception($"Invalid magic: {header.Magic}");
 
-            if (version != Version)
-                throw new Exception($"Invalid version: {version}, should be {Version}");
+            if (header.Version != Version)
+                throw new Exception($"Invalid version: {header.Version}, should be {Version}");
 
-            reader.BaseStream.Position = rootOffset;
+            reader.BaseStream.Position = header.RootOffset;
 
             _root = ReadFolder(reader);
         }
@@ -103,7 +96,7 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
             var nameLength = reader.ReadInt16();
             var name = Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
 
-            return new FileSystemFile(name, reader.ReadBytes(contentsLength));
+            return new FileSystemFile(name, Decompress(reader.ReadBytes(contentsLength)));
         }
 
         private static FileSystemFolder ReadFolder(BinaryReader reader)
@@ -125,9 +118,11 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
             switch (item)
             {
                 case FileSystemFile file:
+                    writer.Write((byte)ChunkItemType.File);
                     WriteFile(writer, file);
                     break;
                 case FileSystemFolder folder:
+                    writer.Write((byte)ChunkItemType.Folder);
                     WriteFolder(writer, folder);
                     break;
                 default:
@@ -137,16 +132,15 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
 
         private static void WriteFile(BinaryWriter writer, FileSystemFile file)
         {
-            writer.Write((byte)ChunkItemType.File);
-            writer.Write(file.Contents.Length);
+            var compressed = Compress(file.Contents);
+            writer.Write(compressed.Length);
             writer.Write((short)file.Name.Length);
             writer.Write(Encoding.UTF8.GetBytes(file.Name));
-            writer.Write(file.Contents);
+            writer.Write(compressed);
         }
 
         private static void WriteFolder(BinaryWriter writer, FileSystemFolder folder)
         {
-            writer.Write((byte)ChunkItemType.Folder);
             writer.Write((short)folder.Children.Count);
             writer.Write((short)folder.Name.Length);
             writer.Write(Encoding.UTF8.GetBytes(folder.Name));
@@ -154,11 +148,38 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
             foreach (var child in folder.Children)
                 WriteItem(writer, child);
         }
+
+        private static byte[] Compress(byte[] data)
+        {
+            using var stream = new MemoryStream();
+            using var deflate = new ZLibStream(stream, CompressionLevel.Optimal);
+            deflate.Write(data);
+            deflate.Flush();
+            return stream.ToArray();
+        }
+
+        private static byte[] Decompress(byte[] data)
+        {
+            using var stream = new MemoryStream(data);
+            using var deflate = new ZLibStream(stream, CompressionMode.Decompress);
+            using var result = new MemoryStream();
+            deflate.CopyTo(result);
+            return result.ToArray();
+        }
     }
 
     internal enum ChunkItemType : byte
     {
         File,
         Folder
+    }
+
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
+    internal struct ChunkHeader
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
+        [FieldOffset(0x00)] public string Magic;
+        [FieldOffset(0x04)] public uint Version;
+        [FieldOffset(0x08)] public long RootOffset;
     }
 }

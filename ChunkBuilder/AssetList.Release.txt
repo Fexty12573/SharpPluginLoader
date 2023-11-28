@@ -8,3 +8,4 @@ Data/Iced.dll
 Data/ImGui.NET.dll
 Data/Roboto-Bold.ttf
 Data/Roboto-Medium.ttf
+Data/NotoSansJP-Regular.ttf

@@ -10,6 +10,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include <zlib.h>
+
 #define MAGIC_EQUALS(a, b) ((a)[0] == (b)[0] && (a)[1] == (b)[1] && (a)[2] == (b)[2] && (a)[3] == (b)[3])
 
 template<typename T> T read(std::istream& stream, i64 count = 1);
@@ -82,7 +84,7 @@ private:
         const auto name_length = read<u16>(stream);
         const auto name = read<std::string>(stream, name_length);
 
-        return { name, read<std::vector<u8>>(stream, contents_length) };
+        return { name, decompress(read<std::vector<u8>>(stream, contents_length)) };
     }
 
     static FileSystemFolder read_folder(std::istream& stream) {
@@ -99,11 +101,33 @@ private:
         return folder;
     }
 
+    static std::vector<u8> compress(const std::vector<u8>& data) {
+        std::vector<u8> compressed;
+        compressed.resize(compressBound((u32)data.size()));
+
+        uLong compressed_size = (u32)compressed.size();
+        ::compress(compressed.data(), &compressed_size, data.data(), (u32)data.size());
+
+        compressed.resize(compressed_size);
+        return compressed;
+    }
+
+    static std::vector<u8> decompress(const std::vector<u8>& data) {
+        std::vector<u8> decompressed;
+        decompressed.resize(data.size() * 2);
+
+        uLong decompressed_size = (u32)decompressed.size();
+        ::uncompress(decompressed.data(), &decompressed_size, data.data(), (u32)data.size());
+
+        decompressed.resize(decompressed_size);
+        return decompressed;
+    }
+
 private:
     Ref<FileSystemFolder> m_root;
 
     static constexpr const char* Magic = "bin\0";
-    static constexpr u32 Version = 0x20230611;
+    static constexpr u32 Version = 0x20231128;
 };
 
 template<typename T> T read(std::istream& stream, i64 count) {

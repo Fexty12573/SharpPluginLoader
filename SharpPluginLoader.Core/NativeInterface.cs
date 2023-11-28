@@ -12,6 +12,7 @@ namespace SharpPluginLoader.Core
         private delegate void ReloadPluginDelegate(string pluginName);
         private delegate void UploadInternalCallsDelegate(InternalCall* internalCalls, uint internalCallsCount);
         private delegate nint FindCoreMethodDelegate(string typeName, string methodName);
+        private delegate void InitializeDelegate();
 
         private readonly struct RetrievedMethod
         {
@@ -39,13 +40,19 @@ namespace SharpPluginLoader.Core
             public nint ReloadPluginPtr;
             public nint UploadInternalCallsPtr;
             public nint FindCoreMethodPtr;
+            public nint InitializePtr;
         }
 
         private static readonly Dictionary<int, RetrievedMethod> RetrievedMethods = new();
 
-        public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
+        public static void PreInitialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
             Log.Initialize(logFunc);
+            GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
+        }
+
+        public static void Initialize()
+        {
             Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();
@@ -53,8 +60,6 @@ namespace SharpPluginLoader.Core
             Monster.Initialize();
             ActionController.Initialize();
             AnimationLayerComponent.Initialize();
-
-            GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
         }
 
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
@@ -65,6 +70,7 @@ namespace SharpPluginLoader.Core
             pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
             pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls));
             pointers->FindCoreMethodPtr = Marshal.GetFunctionPointerForDelegate(new FindCoreMethodDelegate(FindCoreMethod));
+            pointers->InitializePtr = Marshal.GetFunctionPointerForDelegate(new InitializeDelegate(Initialize));
             Log.Debug("[Core] Retrieved Function pointers");
         }
 

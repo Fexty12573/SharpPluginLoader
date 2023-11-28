@@ -20,15 +20,17 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
                 Share = FileShare.Read
             }));
 
-            var header = reader.ReadStruct<ChunkHeader>();
+            var magic = Encoding.UTF8.GetString(reader.ReadBytes(4));
+            var version = reader.ReadUInt32();
+            var rootOffset = reader.ReadInt64();
 
-            if (header.Magic != Magic)
-                throw new Exception($"Invalid magic: {header.Magic}");
+            if (magic != Magic)
+                throw new Exception($"Invalid magic: {magic}");
 
-            if (header.Version != Version)
-                throw new Exception($"Invalid version: {header.Version}, should be {Version}");
+            if (version != Version)
+                throw new Exception($"Invalid version: {version}, should be {Version}");
 
-            reader.BaseStream.Position = header.RootOffset;
+            reader.BaseStream.Position = rootOffset;
 
             _root = ReadFolder(reader);
         }
@@ -172,14 +174,5 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
     {
         File,
         Folder
-    }
-
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
-    internal struct ChunkHeader
-    {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
-        [FieldOffset(0x00)] public string Magic;
-        [FieldOffset(0x04)] public uint Version;
-        [FieldOffset(0x08)] public long RootOffset;
     }
 }

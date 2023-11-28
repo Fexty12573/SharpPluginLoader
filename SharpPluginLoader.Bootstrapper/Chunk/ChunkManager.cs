@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Bootstrapper.Chunk
 {
-    public static class ChunkManager
+    internal static class ChunkManager
     {
 #if DEBUG
         private static string DefaultChunkPath => "nativePC/plugins/CSharp/Loader/Default.Debug.bin";
@@ -30,7 +30,7 @@ namespace SharpPluginLoader.Bootstrapper.Chunk
             if (chunkName == "Default")
                 return DefaultChunk;
 
-            return Chunks.ContainsKey(chunkName) ? Chunks[chunkName] : null;
+            return Chunks.GetValueOrDefault(chunkName);
         }
 
         private static void LoadChunk(string filePath)

@@ -18,6 +18,7 @@ struct ManagedFunctionPointersInternal {
     ManagedFunctionPointers PublicFunctions;
     void(*UploadInternalCalls)(void*, u32);
     void*(*FindCoreMethod)(const char*, const char*);
+    void(*Initialize)();
 };
 
 CoreClr::CoreClr() {
@@ -113,6 +114,7 @@ CoreClr::CoreClr() {
     m_managed_function_pointers = managed_function_pointers_internal.PublicFunctions;
     m_upload_internal_calls = managed_function_pointers_internal.UploadInternalCalls;
     m_find_core_method = managed_function_pointers_internal.FindCoreMethod;
+    m_core_initialize = managed_function_pointers_internal.Initialize;
 }
 
 void CoreClr::add_internal_call(std::string_view name, void* method) {
@@ -122,6 +124,10 @@ void CoreClr::add_internal_call(std::string_view name, void* method) {
 void CoreClr::upload_internal_calls() {
     m_upload_internal_calls(m_internal_calls.data(), static_cast<u32>(m_internal_calls.size()));
     m_internal_calls.clear();
+}
+
+void CoreClr::initialize_core_assembly() const {
+    m_core_initialize();
 }
 
 void* CoreClr::get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const {

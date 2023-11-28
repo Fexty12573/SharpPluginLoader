@@ -5,19 +5,24 @@
 #include <thread>
 
 
-static CoreClr* s_coreclr = nullptr;
-static NativePluginFramework* s_framework = nullptr;
 
-static void initialize_loader() {
-    //for (int i = 0; i < 10; ++i) {
-    //    dlog::info("Initializing Loader... {}", 5 - i);
-    //    Sleep(1000);
-    //}
-    
+namespace {
+
+CoreClr* s_coreclr = nullptr;
+NativePluginFramework* s_framework = nullptr;
+
+void initialize_loader() {
+    /*for (int i = 0; i < 10; ++i) {
+        dlog::info("Initializing Loader... {}", 10 - i);
+        Sleep(1000);
+    }*/
+
     s_coreclr = new CoreClr();
     s_framework = new NativePluginFramework(s_coreclr);
 
     dlog::info("Initialized");
+}
+
 }
 
 

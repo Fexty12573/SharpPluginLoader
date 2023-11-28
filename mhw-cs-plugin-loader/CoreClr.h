@@ -43,8 +43,11 @@ public:
         return m_managed_function_pointers;
     }
 
+    void initialize_core_assembly() const;
+
 private:
     void* get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const;
+
 
 private:
     HMODULE m_hostfxr = nullptr;
@@ -54,6 +57,7 @@ private:
     get_function_pointer_fn m_get_function_pointer = nullptr;
 
     void(*m_bootstrapper_initialize)(void(*)(i32, const char*), void*) = nullptr;
+    void(*m_core_initialize)() = nullptr;
     BootstrapperFn m_bootstrapper_shutdown = nullptr;
     ManagedFunctionPointers m_managed_function_pointers{};
 

@@ -10,7 +10,7 @@ namespace SharpPluginLoader.Bootstrapper
         private static Assembly? _coreAssembly;
         private static delegate* unmanaged<int, nint, void> _logFunc;
 
-        private delegate void InitializeDelegate(delegate* unmanaged<int, nint, void> logFunc, nint pointers);
+        private delegate void PreInitializeDelegate(delegate* unmanaged<int, nint, void> logFunc, nint pointers);
 
         [UnmanagedCallersOnly]
         public static void Initialize(delegate* unmanaged<int, nint, void> logFunc, nint outData)
@@ -38,14 +38,14 @@ namespace SharpPluginLoader.Bootstrapper
             }
 
             Log(LogLevel.Info, "[Bootstrapper] SharpPluginLoader.Core loaded");
-            var init = _coreAssembly.GetType("SharpPluginLoader.Core.NativeInterface")?.GetMethod("Initialize");
+            var init = _coreAssembly.GetType("SharpPluginLoader.Core.NativeInterface")?.GetMethod("PreInitialize");
             if (init == null)
             {
                 Log(LogLevel.Error, "[Bootstrapper] Failed to find SharpPluginLoader.Core.NativeInterface.Initialize");
                 return;
             }
 
-            init.CreateDelegate<InitializeDelegate>()(logFunc, outData);
+            init.CreateDelegate<PreInitializeDelegate>()(_logFunc, outData);
         }
 
         [UnmanagedCallersOnly]

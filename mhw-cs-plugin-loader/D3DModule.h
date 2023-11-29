@@ -51,6 +51,7 @@ private:
 private:
     bool m_is_d3d12 = false;
     bool m_is_initialized = false;
+    bool m_is_inside_present = false;
 
     safetyhook::InlineHook m_title_menu_ready_hook;
 
@@ -84,5 +85,13 @@ private:
     ImDrawData*(*m_core_render)() = nullptr;
 
     static constexpr const char* s_game_window_name = "MONSTER HUNTER: WORLD(421652)";
+
+    static constexpr ImWchar s_japanese_glyph_ranges[] = {
+        0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
+        0x31F0, 0x31FF, // Katakana Phonetic Extensions
+        0x4e00, 0x9FAF, // CJK Ideograms
+        0xFF00, 0xFFEF, // Half-width characters
+        0,
+    };
 };
 

@@ -16,6 +16,8 @@
 
 #include <thread>
 
+#include "ChunkModule.h"
+
 void D3DModule::initialize(CoreClr* coreclr) {
     // Directory for delay loaded DLLs
     AddDllDirectory(TEXT("nativePC/plugins/CSharp/Loader"));
@@ -314,6 +316,25 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     const auto context = m_core_initialize_imgui();
     igSetCurrentContext(context);
 
+    const auto& io = *igGetIO();
+    ImFontAtlas_Clear(io.Fonts);
+
+    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
+    const auto& default_chunk = chunk_module->request_chunk("Default");
+    const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
+    const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
+
+    ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
+    font_cfg->FontDataOwnedByAtlas = false;
+    font_cfg->MergeMode = false;
+
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
+    font_cfg->MergeMode = true;
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
+    ImFontAtlas_Build(io.Fonts);
+
+    ImFontConfig_destroy(font_cfg);
+
     CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
     DXGI_SWAP_CHAIN_DESC desc;
@@ -383,7 +404,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
             dlog::error("Failed to get DXGI swap chain buffer");
             return;
         }
-
+        
         m_d3d12_device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_handle);
         m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
         m_d3d12_frame_contexts[i].RenderTarget = back_buffer;
@@ -451,6 +472,12 @@ void D3DModule::title_menu_ready_hook(void* gui) {
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
 
+    if (self->m_is_inside_present) {
+        return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    }
+
+    self->m_is_inside_present = true;
+
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
     }
@@ -501,7 +528,10 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         igRenderPlatformWindowsDefault(nullptr, self->m_d3d12_command_list.Get());
     }
 
-    return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    const HRESULT result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    self->m_is_inside_present = false;
+
+    return result;
 }
 
 void D3DModule::d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_queue, UINT num_command_lists, ID3D12CommandList* const* command_lists) {
@@ -551,5 +581,5 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 LRESULT D3DModule::my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
     ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-    return NativePluginFramework::get_module<D3DModule>()->m_game_window_proc(hwnd, msg, wparam, lparam);
+    return CallWindowProc(NativePluginFramework::get_module<D3DModule>()->m_game_window_proc, hwnd, msg, wparam, lparam);
 }

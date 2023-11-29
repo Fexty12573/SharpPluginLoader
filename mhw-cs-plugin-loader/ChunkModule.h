@@ -13,10 +13,10 @@ public:
     void initialize(CoreClr* coreclr) override;
     void shutdown() override;
 
-private:
     void load_chunk(const std::string& path);
     Ref<Chunk> request_chunk(const std::string& name);
 
+private:
     // ChunkManager
     static void load_chunk_raw(const char* path);
     static Handle<Chunk> request_chunk_raw(const char* name);

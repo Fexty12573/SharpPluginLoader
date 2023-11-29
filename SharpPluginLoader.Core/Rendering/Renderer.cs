@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
+using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
@@ -14,11 +15,11 @@ namespace SharpPluginLoader.Core.Rendering
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            // Currently causes a crash when dragging a window outside of the main window
+            // Currently causes a freeze when dragging a window outside of the main window.
+            // Most likely the WndProc doesn't process events anymore which causes windows to think it's frozen.
             //io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
             SetupImGuiStyle();
-            SetupFonts();
 
             _getCursorPositionHook = Hook.Create<GetCursorPositionDelegate>(GetCursorPositionHook, 0x1422e7010);
 
@@ -30,25 +31,38 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         public static unsafe nint Render()
         {
+            if (Input.IsPressed(Key.F9))
+                _showMenu = !_showMenu;
+
             var io = ImGui.GetIO();
             var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
             var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
             io.MouseDrawCursor = anyFocused || anyHovered;
-            ImGui.GetStyle().Alpha = anyFocused ? 1.0f : 0.5f;
+
+            if (_showMenu)
+                ImGui.GetStyle().Alpha = anyFocused ? 1.0f : 0.5f;
 
             ImGui.NewFrame();
-            ImGui.Begin("SharpPluginLoader");
-
-            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+            if (_showMenu)
             {
-                if (ImGui.TreeNodeEx(plugin.Name, ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
                 {
-                    plugin.OnRender();
-                    ImGui.TreePop();
+                    foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+                    {
+                        if (ImGui.TreeNodeEx(plugin.Name,
+                                ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                        {
+                            plugin.OnRender();
+                            ImGui.TreePop();
+                        }
+                    }
                 }
+
+                ImGui.End();
             }
 
-            ImGui.End();
+
+            ImGui.ShowDemoWindow();
 
             ImGui.EndFrame();
             ImGui.Render();
@@ -60,29 +74,6 @@ namespace SharpPluginLoader.Core.Rendering
         {
             ImGui.DestroyContext();
             Log.Debug("Renderer.Shutdown");
-        }
-
-        private static void SetupFonts()
-        {
-            var chunk = InternalCalls.GetDefaultChunk();
-            var io = ImGui.GetIO();
-            io.Fonts.Clear();
-
-            LoadFont("/Resources/Roboto-Medium.ttf");
-            LoadFont("/Resources/Roboto-Bold.ttf");
-
-            io.Fonts.Build();
-            return;
-
-            void LoadFont(string path)
-            {
-                var file = InternalCalls.ChunkGetFile(chunk, path);
-                io.Fonts.AddFontFromMemoryTTF(
-                    InternalCalls.FileGetContents(file),
-                    (int)InternalCalls.FileGetSize(file),
-                    16.0f
-                );
-            }
         }
 
         private static void SetupImGuiStyle()
@@ -192,5 +183,6 @@ namespace SharpPluginLoader.Core.Rendering
 
         private delegate nint GetCursorPositionDelegate(nint app, out MtPoint pos);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
+        private static bool _showMenu = false;
     }
 }

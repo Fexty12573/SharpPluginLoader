@@ -33,6 +33,8 @@ namespace SharpPluginLoader.Core.Rendering
         {
             if (Input.IsPressed(Key.F9))
                 _showMenu = !_showMenu;
+            if (Input.IsPressed(Key.F10))
+                _showDemo = !_showDemo;
 
             var io = ImGui.GetIO();
             var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
@@ -61,8 +63,10 @@ namespace SharpPluginLoader.Core.Rendering
                 ImGui.End();
             }
 
-
-            ImGui.ShowDemoWindow();
+#if DEBUG
+            if (_showDemo)
+                ImGui.ShowDemoWindow(ref _showDemo);
+#endif
 
             ImGui.EndFrame();
             ImGui.Render();
@@ -184,5 +188,6 @@ namespace SharpPluginLoader.Core.Rendering
         private delegate nint GetCursorPositionDelegate(nint app, out MtPoint pos);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static bool _showMenu = false;
+        private static bool _showDemo = false;
     }
 }

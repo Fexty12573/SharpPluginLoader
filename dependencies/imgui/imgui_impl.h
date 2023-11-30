@@ -6,6 +6,8 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui/cimgui.h>
 #else
+#define IMGUI_DISABLE_OBSOLETE_KEYIO
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>

@@ -160,7 +160,7 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     ctx.TrackCount = 0;
     ctx.IndentLevel = 1;
 
-    const auto& io = *igGetIO();
+    auto& io = *igGetIO();
     const auto& style = *igGetStyle();
     const auto window = igGetCurrentWindow();
     const auto draw_list = window->DrawList;
@@ -197,22 +197,29 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     };
 
     // Scrollbar Item
+    const ImGuiID scrollbar_id = igGetID_Str("##scrollbar");
     igItemSize_Rect(header_rect, 0.0f);
-    if (igItemAdd(scrollbar_rect, id, nullptr, 0)) {
-        igSetItemKeyOwner(ImGuiKey_MouseWheelY, ImGuiInputFlags_CondHovered);
+    igItemAdd(scrollbar_rect, scrollbar_id, nullptr, 0);
+
+    const auto header_hovered = header_rect.Contains(io.MousePos);
+    const auto scrollbar_hovered = igIsItemHovered(0);
+    const auto scrollbar_active = igIsItemActive();
+    const auto scrollbar_clicked = scrollbar_hovered && igIsMouseClicked_Bool(0, false);
+
+    if (header_hovered) {
+        igSetHoveredID(scrollbar_id);
     }
+
+    igSetItemKeyOwner(ImGuiKey_MouseWheelY, ImGuiInputFlags_CondHovered | ImGuiInputFlags_LockThisFrame);
+
     /*if (!igItemAdd(scrollbar_rect, id, nullptr, 0)) {
         ctx.IsOpen = false;
         EndTimeline();
         return false;
     }*/
 
-    const auto scrollbar_hovered = igIsItemHovered(0);
-    const auto scrollbar_active = igIsItemActive();
-    const auto scrollbar_clicked = scrollbar_hovered && igIsMouseClicked_Bool(0, false);
-
     if (scrollbar_clicked) {
-        igSetActiveID(id, window);
+        igSetActiveID(scrollbar_id, window);
         igFocusWindow(window, 0);
     } else if (igIsMouseReleased_Nil(0) && scrollbar_active) {
         igClearActiveID();
@@ -235,12 +242,10 @@ bool ImGui::BeginTimeline(std::string_view label, float start_frame, float end_f
     //);
 
     // Handle Zoom
-    const auto mouse_pos = io.MousePos;
-    if (header_rect.Contains(mouse_pos)) {
-        if (io.MouseWheel != 0.0f) {
-            ctx.Zoom += io.MouseWheel * 0.1f;
-            ctx.Zoom = ImClamp(ctx.Zoom, 0.1f, 1.0f);
-        }
+    //const auto mouse_pos = io.MousePos;
+    if (header_hovered && io.MouseWheel != 0.0f) {
+        ctx.Zoom += io.MouseWheel * 0.1f;
+        ctx.Zoom = ImClamp(ctx.Zoom, 0.1f, 1.0f);
     }
 
     // Handle Scroll

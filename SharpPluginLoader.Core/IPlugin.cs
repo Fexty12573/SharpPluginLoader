@@ -248,8 +248,9 @@ namespace SharpPluginLoader.Core
         /// <param name="entity">The entity doing the animation</param>
         /// <param name="animationId">The id of the animation to be executed</param>
         /// <param name="startFrame">The starting frame of the animation</param>
+        /// <param name="interFrame">The number of frames to use for interpolation between animations</param>
         /// <remarks>Both the animationId and the startFrame parameters can be modified to change the executed animation.</remarks>
-        public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame) => throw new MissingEventException();
+        public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame, ref float interFrame) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when an entity's animation component is updated.

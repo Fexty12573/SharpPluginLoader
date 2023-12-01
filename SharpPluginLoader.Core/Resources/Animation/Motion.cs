@@ -17,7 +17,7 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x00)] public uint Magic;
         [FieldOffset(0x04)] public ushort Version;
         [FieldOffset(0x06)] public ushort MotionCount;
-
+        [FieldOffset(0x08)] public uint Unknown1;
         [FieldOffset(0x10)] private nint _motions;
 
         public bool HasMotion(int id) => id < MotionCount && id >= 0 && Motions[id] != null;

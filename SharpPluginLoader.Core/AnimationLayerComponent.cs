@@ -162,7 +162,7 @@ namespace SharpPluginLoader.Core
             AnimationId animIdObj = animId;
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimation))
-                plugin.OnEntityAnimation(entity, ref animIdObj, ref startFrame);
+                plugin.OnEntityAnimation(entity, ref animIdObj, ref startFrame, ref interFrame);
 
             _doLmtHook.Original(instance, animIdObj, startFrame, flags, overrideId, interFrame, e);
         }

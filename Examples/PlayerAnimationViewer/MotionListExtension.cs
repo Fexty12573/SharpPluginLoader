@@ -147,6 +147,7 @@ namespace PlayerAnimationViewer
             }
 
             w.AlignTo(16);
+            var endOffset = w.BaseStream.Position;
 
             if (!Unsafe.IsNullRef(ref motion.Metadata))
             {
@@ -206,10 +207,17 @@ namespace PlayerAnimationViewer
                         foreach (ref var keyframe in member.Keyframes)
                         {
                             w.Write(keyframe.UIntValue);
+                            w.Write(keyframe.BounceForwardLimit);
+                            w.Write(keyframe.BounceBackLimit);
                             w.Write(keyframe.Frame);
+                            w.Write((ushort)keyframe.ApplyType);
+                            w.Write((ushort)keyframe.InterpolationType);
                         }
                     }
                 }
+
+                w.AlignTo(16);
+                endOffset = w.BaseStream.Position;
 
                 // Metadata offset
                 w.DoAt(startOffset + 0x58, _ => w.Write(metadataOffset));
@@ -241,6 +249,8 @@ namespace PlayerAnimationViewer
                 w.BaseStream.Position = paramOffsets[i] + 0x28;
                 w.Write(boundsOffsets[i]);
             }
+
+            w.BaseStream.Position = endOffset; // Go back to end of motion to continue writing
         }
 
         private static void SerializeMotionParam(ref MotionParam param, BinaryWriter w)

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Resources.Animation;
 
 namespace PlayerAnimationViewer
 {
@@ -36,7 +37,7 @@ namespace PlayerAnimationViewer
         public string Name => _name != null ? new string(_name) : "";
         public string Comment => _comment != null ? new string(_comment) : "";
         public PropType Type => (PropType)(Attr & 0xFFF);
-        public MtObject Object => new(_object);
+        public TimelineObject Object => new(_object);
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x18)]
@@ -46,5 +47,14 @@ namespace PlayerAnimationViewer
         [FieldOffset(0x08)] public uint PoolSize;
         [FieldOffset(0x0C)] public uint UsedSize;
         [FieldOffset(0x10)] public int AllocatorIndex;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 0x20)]
+    public unsafe struct LmtParamMember
+    {
+        [FieldOffset(0x08)] public MetadataParamMember* Param;
+        [FieldOffset(0x10)] public nint Object;
+        [FieldOffset(0x18)] public LmtParamMemberDef* Def;
+        [FieldOffset(0x20)] public uint CurrentKeyframeIndex;
     }
 }

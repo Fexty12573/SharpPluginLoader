@@ -53,17 +53,28 @@ namespace SharpPluginLoader.Core
         #endregion
 
         #region Monster
+        /// <inheritdoc cref="IPlugin.OnMonsterCreate"/>
         public bool OnMonsterCreate;
+
+        /// <inheritdoc cref="IPlugin.OnMonsterInitialized"/>
         public bool OnMonsterInitialized;
 
         /// <inheritdoc cref="IPlugin.OnMonsterAction"/>
         public bool OnMonsterAction;
 
+        /// <inheritdoc cref="IPlugin.OnMonsterFlinch"/>
         public bool OnMonsterFlinch;
-        public bool OnMonsterAnimation;
+
+        /// <inheritdoc cref="IPlugin.OnMonsterEnrage"/>
         public bool OnMonsterEnrage;
+
+        /// <inheritdoc cref="IPlugin.OnMonsterUnenrage"/>
         public bool OnMonsterUnenrage;
+
+        /// <inheritdoc cref="IPlugin.OnMonsterDeath"/>
         public bool OnMonsterDeath;
+
+        /// <inheritdoc cref="IPlugin.OnMonsterDestroy"/>
         public bool OnMonsterDestroy;
         #endregion
 
@@ -206,12 +217,60 @@ namespace SharpPluginLoader.Core
 
         #region Monster
         /// <summary>
+        /// Gets called when a monster is created.
+        /// </summary>
+        /// <param name="monster">The monster being created</param>
+        /// <remarks>
+        /// This function is called immediately after the monsters constructor is run,
+        /// most of its data is not yet initialized by this point.
+        /// </remarks>
+        public void OnMonsterCreate(Monster monster) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called after a monster is initialized.
+        /// </summary>
+        /// <param name="monster">The monster that was initialized</param>
+        /// <remarks>Most data in the monster is ready to be used by this point.</remarks>
+        public void OnMonsterInitialized(Monster monster) => throw new MissingEventException();
+
+        /// <summary>
         /// Gets called when a monster does an action.
         /// </summary>
         /// <param name="monster">The monster doing the action</param>
         /// <param name="actionId">The id of the action to be executed</param>
         /// <remarks>The actionId parameter can be modified to change the executed action</remarks>
         public void OnMonsterAction(Monster monster, ref int actionId) => throw new MissingEventException();
+        
+        /// <summary>
+        /// Gets called when a monster gets flinched.
+        /// </summary>
+        /// <param name="monster">The monster getting flinched</param>
+        /// <param name="actionId">The flinch action it will perform</param>
+        public void OnMonsterFlinch(Monster monster, ref int actionId) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when a monster gets enraged.
+        /// </summary>
+        /// <param name="monster">The monster getting enraged</param>
+        public void OnMonsterEnrage(Monster monster) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when a monster leaves its enraged state.
+        /// </summary>
+        /// <param name="monster">The monster leaving its enraged state</param>
+        public void OnMonsterUnenrage(Monster monster) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when a monster dies.
+        /// </summary>
+        /// <param name="monster">The monster that died</param>
+        public void OnMonsterDeath(Monster monster) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when a monster is destroyed (its destructor is called).
+        /// </summary>
+        /// <param name="monster">The monster that is about to be destroyed</param>
+        public void OnMonsterDestroy(Monster monster) => throw new MissingEventException();
         #endregion
 
         #region Player

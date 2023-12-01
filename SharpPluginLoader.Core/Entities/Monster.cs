@@ -176,18 +176,104 @@ namespace SharpPluginLoader.Core.Entities
             return _launchActionHook.Original(instance, actionId);
         }
 
+        private static nint MonsterCtorHook(nint instance, MonsterType type, uint variant)
+        {
+            var monster = new Monster(_monsterCtorHook.Original(instance, type, variant));
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterCreate))
+                plugin.OnMonsterCreate(monster);
+
+            return monster.Instance;
+        }
+
+        private static void EntityInitializeHook(nint instance)
+        {
+            _entityInitializeHook.Original(instance);
+            var monster = new Monster(instance);
+            if (monster.Is("uEnemy"))
+            {
+                foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterCreate))
+                    plugin.OnMonsterInitialized(monster);
+            }
+        }
+
+        private static void MonsterFlinchHook(nint instance, nint ai)
+        {
+            var monster = new Monster(ai.Read<nint>(0x138));
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterFlinch))
+                plugin.OnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938));
+
+            _monsterFlinchHook.Original(instance, ai);
+        }
+
+        private static bool EnrageHook(nint instance)
+        {
+            var monster = new Monster(instance.Read<nint>(0x128));
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterEnrage))
+                plugin.OnMonsterEnrage(monster);
+
+            return _enrageHook.Original(instance);
+        }
+
+        private static void UnenrageHook(nint instance)
+        {
+            var monster = new Monster(instance.Read<nint>(0x128));
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterUnenrage))
+                plugin.OnMonsterUnenrage(monster);
+
+            _unenrageHook.Original(instance);
+        }
+
+        private static void MonsterDieHook(nint instance, nint ai)
+        {
+            var monster = new Monster(ai.Read<nint>(0x138));
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDeath))
+                plugin.OnMonsterDeath(monster);
+
+            _monsterDieHook.Original(instance, ai);
+        }
+
+        private static void MonsterDtorHook(nint instance)
+        {
+            var monster = new Monster(instance);
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDestroy))
+                plugin.OnMonsterDestroy(monster);
+
+            _monsterDtorHook.Original(instance);
+        }
+
         internal static void Initialize()
         {
             _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, AddressRepository.Get("Monster:LaunchAction"));
+            _monsterCtorHook = Hook.Create<MonsterCtorDelegate>(MonsterCtorHook, AddressRepository.Get("Monster:Ctor"));
+            _entityInitializeHook = Hook.Create<EntityInitializeDelegate>(EntityInitializeHook, AddressRepository.Get("Entity:Initialize"));
+            _monsterFlinchHook = Hook.Create<MonsterFlinchDelegate>(MonsterFlinchHook, AddressRepository.Get("Monster:Flinch"));
+            _enrageHook = Hook.Create<EnrageDelegate>(EnrageHook, AddressRepository.Get("Monster:Enrage"));
+            _unenrageHook = Hook.Create<UnenrageDelegate>(UnenrageHook, AddressRepository.Get("Monster:Unenrage"));
+            _monsterDieHook = Hook.Create<MonsterDieDelegate>(MonsterDieHook, AddressRepository.Get("Monster:Die"));
+            _monsterDtorHook = Hook.Create<MonsterDtorDelegate>(MonsterDtorHook, AddressRepository.Get("Monster:Dtor"));
         }
 
         private delegate bool LaunchActionDelegate(nint monster, int actionId);
+        private delegate nint MonsterCtorDelegate(nint instance, MonsterType type, uint variant);
+        private delegate void EntityInitializeDelegate(nint instance);
+        private delegate void MonsterFlinchDelegate(nint instnace, nint ai);
+        private delegate bool EnrageDelegate(nint instance);
+        private delegate void UnenrageDelegate(nint instance);
+        private delegate void MonsterDieDelegate(nint instance, nint ai);
+        private delegate void MonsterDtorDelegate(nint instance);
         private static readonly NativeAction<nint, nint> ForceActionFunc = new(AddressRepository.Get("Monster:ForceAction"));
         private static readonly NativeFunction<nint, bool> EnrageFunc = new(AddressRepository.Get("Monster:Enrage"));
         private static readonly NativeAction<nint> UnenrageFunc = new(AddressRepository.Get("Monster:Unenrage"));
         private static readonly Patch SpeedResetPatch1 = new(AddressRepository.Get("Monster:SpeedResetPatch1"), Enumerable.Repeat((byte)0x90, 10).ToArray());
         private static readonly Patch SpeedResetPatch2 = new(AddressRepository.Get("Monster:SpeedResetPatch2"), Enumerable.Repeat((byte)0x90, 6).ToArray());
         private static Hook<LaunchActionDelegate> _launchActionHook = null!;
+        private static Hook<MonsterCtorDelegate> _monsterCtorHook = null!;
+        private static Hook<EntityInitializeDelegate> _entityInitializeHook = null!;
+        private static Hook<MonsterFlinchDelegate> _monsterFlinchHook = null!;
+        private static Hook<EnrageDelegate> _enrageHook = null!;
+        private static Hook<UnenrageDelegate> _unenrageHook = null!;
+        private static Hook<MonsterDieDelegate> _monsterDieHook = null!;
+        private static Hook<MonsterDtorDelegate> _monsterDtorHook = null!;
     }
 
     /// <summary>

@@ -208,5 +208,45 @@
         "Name": "Monster:GetNameFromId",
         "Pattern": "F7 80 68 4E 0F 00 00 04 00 00 75 14",
         "Offset": -134
+    },
+    {
+        "Name": "Monster:Ctor",
+        "Pattern": "4C 89 B3 10 76 00 00",
+        "Offset": -60
+    },
+    {
+        "Name": "Entity:Initialize",
+        "Pattern": "48 8D 8F 40 05 00 00 48 8B D7",
+        "Offset": -18
+    },
+    {
+        "Name": "Monster:Flinch",
+        "Pattern": "8B A8 40 89 01 00",
+        "Offset": -98
+    },
+    {
+        "Name": "Monster:Die",
+        "Pattern": "48 8B E9 8B 82 80 47 01 00",
+        "Offset": -26
+    },
+    {
+        "Name": "Monster:Dtor",
+        "Pattern": "48 83 EC 20 48 8B B9 A0 09 00 00",
+        "Offset": -20
+    },
+    {
+        "Name": "",
+        "Pattern": "",
+        "Offset": 0
+    },
+    {
+        "Name": "",
+        "Pattern": "",
+        "Offset": 0
+    },
+    {
+        "Name": "",
+        "Pattern": "",
+        "Offset": 0
     }
 ]

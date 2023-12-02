@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
-using SharpPluginLoader.Core.Rendering;
+using SharpPluginLoader.Core.Networking;
 
 namespace SharpPluginLoader.Core
 {
@@ -15,21 +15,12 @@ namespace SharpPluginLoader.Core
         private delegate nint FindCoreMethodDelegate(string typeName, string methodName);
         private delegate void InitializeDelegate();
 
-        private readonly struct RetrievedMethod
+        private readonly struct RetrievedMethod(string typeName, string methodName, nint functionPointer)
         {
-            private readonly string _typeName;
-            private readonly string _methodName;
-            public readonly nint FunctionPointer;
+            public readonly nint FunctionPointer = functionPointer;
 
-            private string FullName => $"{_typeName}.{_methodName}";
+            private string FullName => $"{typeName}.{methodName}";
             public int Hash => FullName.GetHashCode();
-
-            public RetrievedMethod(string typeName, string methodName, nint functionPointer)
-            {
-                _typeName = typeName;
-                _methodName = methodName;
-                FunctionPointer = functionPointer;
-            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -58,6 +49,7 @@ namespace SharpPluginLoader.Core
             Gui.Initialize();
             Quest.Initialize();
             ResourceManager.Initialize();
+            Network.Initialize();
             Player.Initialize();
             Monster.Initialize();
             ActionController.Initialize();
@@ -68,7 +60,7 @@ namespace SharpPluginLoader.Core
         {
             pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(new ShutdownDelegate(Shutdown));
             pointers->LoadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(LoadPlugins));
-            pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins)); ;
+            pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins));
             pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
             pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls));
             pointers->FindCoreMethodPtr = Marshal.GetFunctionPointerForDelegate(new FindCoreMethodDelegate(FindCoreMethod));

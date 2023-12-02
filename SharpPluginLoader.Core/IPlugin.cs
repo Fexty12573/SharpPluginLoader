@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Networking;
 using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
@@ -318,6 +319,25 @@ namespace SharpPluginLoader.Core
         /// <param name="currentAnimation">The current active animation</param>
         /// <param name="deltaTime">The time since the last time this entity's animation component was updated</param>
         public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
+        #endregion
+
+        #region Network
+        /// <summary>
+        /// Gets called when a packet is sent.
+        /// </summary>
+        /// <param name="packet">The packet being sent</param>
+        /// <param name="isBroadcast">Whether the packet is broadcasted to all players in the session or not</param>
+        /// <param name="session">The session the packet is sent to</param>
+        public void OnSendPacket(Packet packet, bool isBroadcast, SessionIndex session) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when a packet is received.
+        /// </summary>
+        /// <param name="id">The id of the packet</param>
+        /// <param name="type">The type of the packet</param>
+        /// <param name="sourceSession">The session the packet was sent from</param>
+        /// <param name="data">The data of the packet</param>
+        public void OnReceivePacket(uint id, PacketType type, SessionIndex sourceSession, NetBuffer data) => throw new MissingEventException();
         #endregion
 
         #region Rendering

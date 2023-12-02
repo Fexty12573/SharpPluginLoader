@@ -235,18 +235,23 @@
         "Offset": -20
     },
     {
-        "Name": "",
-        "Pattern": "",
+        "Name": "Network:SendPacket",
+        "Pattern": "40 57 41 54 41 55 41 56 41 57",
         "Offset": 0
     },
     {
-        "Name": "",
-        "Pattern": "",
+        "Name": "Network:ReceivePacket",
+        "Pattern": "41 8B F9 48 81 C1 E0 07 00 00",
+        "Offset": -30
+    },
+    {
+        "Name": "NetBuffer:Create",
+        "Pattern": "48 8B C2 48 89 51 48 44 89 41 50 33 D2 C7 41 54 00 00 00 00 48 8B C8 45 8B C0",
         "Offset": 0
     },
     {
-        "Name": "",
-        "Pattern": "",
-        "Offset": 0
+        "Name": "NetBuffer:Ctor",
+        "Pattern": "33 C0 48 89 43 48 48 89 43 50 48 8B C3 48 83 C4 20",
+        "Offset": -24
     }
 ]

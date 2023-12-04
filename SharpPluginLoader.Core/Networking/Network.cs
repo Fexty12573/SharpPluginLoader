@@ -51,11 +51,21 @@ namespace SharpPluginLoader.Core.Networking
 
         private static unsafe void ReceivePacketHook(nint instance, int src, nint data, int dataSize)
         {
-            var offsettedData = new ReadOnlySpan<byte>((byte*)data + 6, dataSize - 6);
+            var dataOffset = 6;
             var buffer = new NetBuffer(new ReadOnlySpan<byte>((void*)data, dataSize));
             var id = buffer.ReadUInt32();
             var session = buffer.ReadByte();
             var type = buffer.ReadByte();
+            
+            if (id == Utility.MakeDtiId("cPacketBase")) // Decoy Header
+            {
+                id = buffer.ReadUInt32();
+                session = buffer.ReadByte();
+                type = buffer.ReadByte();
+                dataOffset += 6;
+            }
+
+            var offsettedData = new ReadOnlySpan<byte>((void*)(data + dataOffset), dataSize - dataOffset);
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnReceivePacket))
                 plugin.OnReceivePacket(id, (PacketType)type, (SessionIndex)session, new NetBuffer(offsettedData));

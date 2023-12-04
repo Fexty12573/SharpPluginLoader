@@ -39,21 +39,36 @@ namespace SharpPluginLoader.Core
 
         public static void PreInitialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
+            AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            {
+                var e = (Exception)args.ExceptionObject;
+                Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
+            };
+
             Log.Initialize(logFunc);
             GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);
         }
 
         public static void Initialize()
         {
-            AddressRepository.Initialize();
-            Gui.Initialize();
-            Quest.Initialize();
-            ResourceManager.Initialize();
-            Network.Initialize();
-            Player.Initialize();
-            Monster.Initialize();
-            ActionController.Initialize();
-            AnimationLayerComponent.Initialize();
+            try
+            {
+                AddressRepository.Initialize();
+                Gui.Initialize();
+                Quest.Initialize();
+                ResourceManager.Initialize();
+                Network.Initialize();
+                Player.Initialize();
+                Monster.Initialize();
+                ActionController.Initialize();
+                AnimationLayerComponent.Initialize();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Core] Failed to initialize: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
+                if (e.InnerException != null)
+                    Log.Error($"[Core] Inner exception: {e.InnerException.GetType().Name}: {e.InnerException.Message}, Stacktrace:\n{e.InnerException.StackTrace}");
+            }
         }
 
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)

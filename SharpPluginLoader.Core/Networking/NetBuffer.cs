@@ -429,6 +429,24 @@ namespace SharpPluginLoader.Core.Networking
 
         #region Internal
 
+        internal void WriteInt32NoBSwap(int value)
+        {
+            if (_position + 4 > Size)
+                throw new IndexOutOfRangeException();
+
+            *Ptr<int>() = value;
+            _position += 4;
+        }
+
+        internal void WriteInt64NoBSwap(long value)
+        {
+            if (_position + 8 > Size)
+                throw new IndexOutOfRangeException();
+
+            *Ptr<long>() = value;
+            _position += 8;
+        }
+
         internal NetBuffer(NativeWrapper nativeInstance) 
             : this(new ReadOnlySpan<byte>(nativeInstance.GetPtr<byte>(0x48), nativeInstance.Get<int>(0x50)))
         {

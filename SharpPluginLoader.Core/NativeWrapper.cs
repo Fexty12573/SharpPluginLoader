@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.MtTypes;
+﻿using System.Runtime.CompilerServices;
+using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core
 {
@@ -10,7 +11,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The native pointer.
         /// </summary>
-        public nint Instance { get; internal init; }
+        public nint Instance { get; init; }
 
         public NativeWrapper(nint instance)
         {
@@ -61,36 +62,6 @@ namespace SharpPluginLoader.Core
         {
             return ref *(T*)(Instance + offset);
         }
-
-#pragma warning disable CS8500
-        /// <summary>
-        /// Gets an <see cref="IMtType"/> at the specified offset.
-        /// </summary>
-        /// <typeparam name="T">The type of the object, must implement IMtType.</typeparam>
-        /// <param name="offset">The offset at which to retrieve the object</param>
-        /// <returns>The object at the offset</returns>
-        public unsafe T GetMtType<T>(nint offset) where T : IMtType
-        {
-            return *(T*)(Instance + offset);
-        }
-
-        /// <summary>
-        /// Sets an <see cref="IMtType"/> at the specified offset.
-        /// </summary>
-        /// <typeparam name="T">The type of the object, must implement IMtType.</typeparam>
-        /// <param name="offset">The offset at which to set the object</param>
-        /// <param name="value">The object</param>
-        public unsafe void SetMtType<T>(nint offset, T value) where T : IMtType
-        {
-            *(T*)(Instance + offset) = value;
-        }
-
-        /// <inheritdoc cref="GetMtType{T}(nint)"/>
-        public unsafe ref T GetMtTypeRef<T>(nint offset) where T : IMtType
-        {
-            return ref *(T*)(Instance + offset);
-        }
-#pragma warning restore CS8500
 
         /// <summary>
         /// Gets an object at the specified offset.

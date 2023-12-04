@@ -19,22 +19,22 @@ namespace SharpPluginLoader.Core.Models
         /// <summary>
         /// The position of the model
         /// </summary>
-        public ref MtVector3 Position => ref GetMtTypeRef<MtVector3>(0x160);
+        public ref MtVector3 Position => ref GetRef<MtVector3>(0x160);
 
         /// <summary>
         /// The size of the model
         /// </summary>
-        public ref MtVector3 Size => ref GetMtTypeRef<MtVector3>(0x180);
+        public ref MtVector3 Size => ref GetRef<MtVector3>(0x180);
 
         /// <summary>
         /// The position of the model's collision box
         /// </summary>
-        public ref MtVector3 CollisionPosition => ref GetMtTypeRef<MtVector3>(0xA50);
+        public ref MtVector3 CollisionPosition => ref GetRef<MtVector3>(0xA50);
 
         /// <summary>
         /// The rotation of the model
         /// </summary>
-        public ref MtQuaternion Rotation => ref GetMtTypeRef<MtQuaternion>(0x170);
+        public ref MtQuaternion Rotation => ref GetRef<MtQuaternion>(0x170);
 
         /// <summary>
         /// The model's forward vector

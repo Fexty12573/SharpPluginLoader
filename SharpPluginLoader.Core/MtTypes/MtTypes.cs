@@ -3,15 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.MtTypes
 {
-    /// <summary>
-    /// Represents an MtFramework struct type.
-    /// </summary>
-    /// <remarks>All structs that implement this interface must have an explicit struct layout, 
-    /// and match their native counterparts exactly.</remarks>
-    public interface IMtType { }
-
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float2 : IMtType
+    public struct Float2
     {
         [FieldOffset(0x0)] public float X;
         [FieldOffset(0x4)] public float Y;
@@ -26,7 +19,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float3 : IMtType
+    public struct Float3
     {
         [FieldOffset(0x0)] public float X;
         [FieldOffset(0x4)] public float Y;
@@ -42,7 +35,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float4 : IMtType
+    public struct Float4
     {
         [FieldOffset(0x0)] public float X;
         [FieldOffset(0x4)] public float Y;
@@ -59,7 +52,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float3X3 : IMtType
+    public struct Float3X3
     {
         [FieldOffset(0x0)] private unsafe fixed float _data[9];
 
@@ -71,7 +64,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float4X3 : IMtType
+    public struct Float4X3
     {
         [FieldOffset(0x0)] private unsafe fixed float _data[12];
 
@@ -83,7 +76,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float3X4 : IMtType
+    public struct Float3X4
     {
         [FieldOffset(0x0)] private unsafe fixed float _data[12];
 
@@ -95,7 +88,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Float4X4 : IMtType
+    public struct Float4X4
     {
         [FieldOffset(0x0)] private unsafe fixed float _data[16];
 
@@ -107,35 +100,35 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtPoint : IMtType
+    public struct MtPoint
     {
         public uint X;
         public uint Y;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtPointF : IMtType
+    public struct MtPointF
     {
         public float X;
         public float Y;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtSize : IMtType
+    public struct MtSize
     {
         public uint Width;
         public uint Height;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtSizeF : IMtType
+    public struct MtSizeF
     {
         public float Width;
         public float Height;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtRect : IMtType
+    public struct MtRect
     {
         public uint X;
         public uint Y;
@@ -144,7 +137,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtRectF : IMtType
+    public struct MtRectF
     {
         public float X;
         public float Y;
@@ -153,47 +146,47 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtTime : IMtType
+    public struct MtTime
     {
         public ulong Time;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtEaseCurve : IMtType
+    public struct MtEaseCurve
     {
         public float P1;
         public float P2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtLine : IMtType
+    public struct MtLine
     {
         public MtVector3 Point;
         public MtVector3 Direction;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtLineSegment : IMtType
+    public struct MtLineSegment
     {
         public MtVector3 Point1;
         public MtVector3 Point2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtPlane : IMtType
+    public struct MtPlane
     {
         public MtVector3 Normal;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtSphere : IMtType
+    public struct MtSphere
     {
         public MtVector3 Center;
         public float Radius;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtCapsule : IMtType
+    public struct MtCapsule
     {
         public MtVector3 Point1;
         public MtVector3 Point2;
@@ -201,21 +194,21 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtAABB : IMtType
+    public struct MtAabb
     {
         public MtVector3 Min;
         public MtVector3 Max;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtOBB : IMtType
+    public struct MtObb
     {
         public Float4X4 Transform;
         public MtVector3 Extents;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtCylinder : IMtType
+    public struct MtCylinder
     {
         public MtVector3 Point1;
         public MtVector3 Point2;
@@ -223,7 +216,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtTriangle : IMtType
+    public struct MtTriangle
     {
         public MtVector3 Point1;
         public MtVector3 Point2;
@@ -231,33 +224,33 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtRange : IMtType
+    public struct MtRange
     {
         public int Min;
         public int Max;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtRangeF : IMtType
+    public struct MtRangeF
     {
         public float Min;
         public float Max;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtRangeU16 : IMtType
+    public struct MtRangeU16
     {
         public ushort Min;
         public ushort Max;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtHermiteCurve : IMtType
+    public struct MtHermiteCurve
     {
         public unsafe fixed float X[8];
         public unsafe fixed float Y[8];
 
-        public int PointCount => 8;
+        public static int PointCount => 8;
 
         /// <summary>
         /// Creates a new Hermite curve from a list of points.
@@ -357,13 +350,13 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtPlaneXZ : IMtType 
+    public struct MtPlaneXz
     {
         public MtVector3 Normal;
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct MtColor : IMtType
+    public struct MtColor
     {
         [FieldOffset(0x0)] public uint Rgba;
 
@@ -387,7 +380,7 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtString : IMtType
+    public struct MtString
     {
         public int RefCount;
         public uint Length;

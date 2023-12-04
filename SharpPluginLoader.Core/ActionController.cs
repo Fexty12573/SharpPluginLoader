@@ -16,17 +16,17 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The action that is currently being performed.
         /// </summary>
-        public ref ActionInfo CurrentAction => ref GetMtTypeRef<ActionInfo>(0xAC);
+        public ref ActionInfo CurrentAction => ref GetRef<ActionInfo>(0xAC);
 
         /// <summary>
         /// The action that will be performed next.
         /// </summary>
-        public ref ActionInfo NextAction => ref GetMtTypeRef<ActionInfo>(0xBC);
+        public ref ActionInfo NextAction => ref GetRef<ActionInfo>(0xBC);
 
         /// <summary>
         /// The action that was performed before the current one.
         /// </summary>
-        public ref ActionInfo PreviousAction => ref GetMtTypeRef<ActionInfo>(0xC4);
+        public ref ActionInfo PreviousAction => ref GetRef<ActionInfo>(0xC4);
 
         /// <summary>
         /// The owner of this action controller.
@@ -44,7 +44,7 @@ namespace SharpPluginLoader.Core
             if (actionSet is < 0 or > 3)
                 throw new ArgumentOutOfRangeException(nameof(actionSet));
 
-            return GetMtType<ActionList>(0x68 + (actionSet * 0x10));
+            return Get<ActionList>(0x68 + (actionSet * 0x10));
         }
 
         /// <summary>

@@ -5,6 +5,8 @@ namespace SharpPluginLoader.Core.Memory
 {
     public static unsafe class MemoryUtil
     {
+        #region Memory Reading/Writing
+
         public static T Read<T>(this nint address, long offset = 0) where T : unmanaged
         {
             return *(T*)(address + offset);
@@ -87,6 +89,32 @@ namespace SharpPluginLoader.Core.Memory
             using var protection = new MemoryProtection(address, bytes.Length);
             Marshal.Copy(bytes, 0, address, bytes.Length);
         }
+
+        #endregion
+
+        #region Memory Allocation
+
+        public static nint Alloc(long size)
+        {
+            return (nint)NativeMemory.Alloc((nuint)size);
+        }
+
+        public static T* Alloc<T>(long count = 1) where T : unmanaged
+        {
+            return (T*)NativeMemory.Alloc((nuint)(count * sizeof(T)));
+        }
+
+        public static void Free(nint address)
+        {
+            NativeMemory.Free((void*)address);
+        }
+
+        public static void Free(void* address)
+        {
+            NativeMemory.Free(address);
+        }
+
+        #endregion
 
         /// <summary>
         /// Creates a span around a native array from a given address and count.

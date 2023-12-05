@@ -464,8 +464,8 @@ namespace SharpPluginLoader.Core.Networking
 
         internal static MtObject CreateNative(int size)
         {
-            var instance = (nint)NativeMemory.Alloc(0x60);
-            var buffer = (nint)NativeMemory.Alloc((nuint)size);
+            var instance = MemoryUtil.Alloc(0x60);
+            var buffer = MemoryUtil.Alloc(size);
             Ctor.Invoke(instance);
             Create.Invoke(instance, buffer, size);
             return new MtObject(instance);
@@ -473,8 +473,8 @@ namespace SharpPluginLoader.Core.Networking
 
         internal static MtObject CreateNative(ReadOnlySpan<byte> buffer)
         {
-            var instance = (nint)NativeMemory.Alloc(0x60);
-            var nativeBuffer = (nint)NativeMemory.Alloc((nuint)buffer.Length);
+            var instance = MemoryUtil.Alloc(0x60);
+            var nativeBuffer = MemoryUtil.Alloc(buffer.Length);
             Ctor.Invoke(instance);
             Create.Invoke(instance, nativeBuffer, buffer.Length);
             Marshal.Copy(buffer.ToArray(), 0, nativeBuffer, buffer.Length);
@@ -483,8 +483,8 @@ namespace SharpPluginLoader.Core.Networking
 
         internal static void FreeNative(MtObject instance)
         {
-            NativeMemory.Free(instance.GetPtr<byte>(0x48));
-            NativeMemory.Free((void*)instance.Instance);
+            MemoryUtil.Free(instance.GetPtr<byte>(0x48));
+            MemoryUtil.Free(instance.Instance);
         }
 
         private static readonly NativeFunction<nint, nint> Ctor = new(AddressRepository.Get("NetBuffer:Ctor"));

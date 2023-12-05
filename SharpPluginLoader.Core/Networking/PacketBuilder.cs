@@ -94,7 +94,7 @@ namespace SharpPluginLoader.Core.Networking
         static PacketBuilder()
         {
             var vtable = new PacketVTable(&NativeGetSize, &NativeSerializer);
-            VtablePtr = (nint)NativeMemory.Alloc((nuint)sizeof(PacketVTable));
+            VtablePtr = MemoryUtil.Alloc(sizeof(PacketVTable));
             Marshal.StructureToPtr(vtable, VtablePtr, false);
         }
 

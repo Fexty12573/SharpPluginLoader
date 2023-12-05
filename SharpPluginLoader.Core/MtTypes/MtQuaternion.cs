@@ -3,7 +3,7 @@
 namespace SharpPluginLoader.Core.MtTypes
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtQuaternion : IMtType
+    public struct MtQuaternion
     {
         public float X;
         public float Y;

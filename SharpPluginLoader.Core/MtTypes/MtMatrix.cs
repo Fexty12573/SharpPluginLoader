@@ -1,6 +1,6 @@
 ﻿namespace SharpPluginLoader.Core.MtTypes
 {
-    public struct MtMatrix3X3 : IMtType // TODO: Finish this
+    public struct MtMatrix3X3 // TODO: Finish this
     {
         public unsafe fixed float Data[9];
 

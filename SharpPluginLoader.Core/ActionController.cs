@@ -106,7 +106,7 @@ namespace SharpPluginLoader.Core
     /// This is a combination of an action set and an action id.
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 0x8)]
-    public struct ActionInfo : IMtType
+    public struct ActionInfo
     {
         /// <summary>
         /// The action set that this action belongs to.
@@ -151,7 +151,7 @@ namespace SharpPluginLoader.Core
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x10)]
-    public struct ActionList : IMtType
+    public struct ActionList
     {
         [FieldOffset(0x8)] public nint Actions;
         [FieldOffset(0x0)] public int Count;

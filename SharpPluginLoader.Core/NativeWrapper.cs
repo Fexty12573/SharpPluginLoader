@@ -51,6 +51,12 @@ namespace SharpPluginLoader.Core
             return *(T**)(Instance + offset);
         }
 
+        /// <inheritdoc cref="GetPtr{T}(nint)"/>
+        public unsafe void* GetPtr(nint offset)
+        {
+            return *(void**)(Instance + offset);
+        }
+
         /// <inheritdoc cref="Set{T}(nint,T)"/>
         public unsafe void SetPtr<T>(nint offset, T* value) where T : unmanaged
         {
@@ -126,6 +132,12 @@ namespace SharpPluginLoader.Core
         public unsafe T* GetPtrInline<T>(nint offset) where T : unmanaged
         {
             return (T*)(Instance + offset);
+        }
+
+        /// <inheritdoc cref="GetRefInline{T}(nint)"/>
+        public unsafe void* GetPtrInline(nint offset)
+        {
+            return (void*)(Instance + offset);
         }
 
         public static bool operator ==(NativeWrapper? left, NativeWrapper? right)

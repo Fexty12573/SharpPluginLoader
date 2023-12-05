@@ -3,7 +3,7 @@
 namespace SharpPluginLoader.Core.MtTypes
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtVector3 : IMtType
+    public struct MtVector3
     {
         public float X;
         public float Y;

@@ -13,6 +13,7 @@ namespace ChunkBuilder
                 var root = new FileSystemFolder("/");
                 var assemblies = new FileSystemFolder("Assemblies");
                 var resources = new FileSystemFolder("Resources");
+                var nativeLibs = new FileSystemFolder("NativeLibraries");
 
                 var exeDir = Assembly.GetExecutingAssembly().Location[..^"ChunkBuilder.exe".Length];
                 var assetList = args.Length > 0 ? args[0] : exeDir + "/AssetList.txt";
@@ -21,15 +22,24 @@ namespace ChunkBuilder
 
                 foreach (var asset in assets[1..])
                 {
-                    var file = CreateFile(exeDir + "/" + asset);
+                    var native = asset.StartsWith("n:");
+                    var file = CreateFile(exeDir + "/" + (native ? asset[2..] : asset));
                     if (asset.EndsWith(".dll"))
-                        assemblies.Add(file);
+                    {
+                        if (native)
+                            nativeLibs.Add(file);
+                        else
+                            assemblies.Add(file);
+                    }
                     else
+                    {
                         resources.Add(file);
+                    }
                 }
 
                 root.Add(assemblies);
                 root.Add(resources);
+                root.Add(nativeLibs);
                 var chunk = new Chunk(root);
 
                 chunk.WriteToFile(exeDir + "/" + outputFile);

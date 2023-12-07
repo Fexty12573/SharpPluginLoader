@@ -10,3 +10,5 @@ Data/Roboto-Bold.ttf
 Data/Roboto-Medium.ttf
 Data/NotoSansJP-Regular.ttf
 Data/AddressRecords.json
+n:Data/FASMX64.dll
+n:Data/cimgui.dll

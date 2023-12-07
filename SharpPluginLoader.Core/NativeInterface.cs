@@ -53,6 +53,7 @@ namespace SharpPluginLoader.Core
         {
             try
             {
+                PlaceNativeDlls();
                 AddressRepository.Initialize();
                 Gui.Initialize();
                 Quest.Initialize();
@@ -87,7 +88,7 @@ namespace SharpPluginLoader.Core
         {
             PluginManager.Instance.UnloadAllPlugins();
         }
-        
+
         public static void LoadPlugins()
         {
             PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
@@ -155,6 +156,30 @@ namespace SharpPluginLoader.Core
         public static void OnUpdate(float deltaTime)
         {
             PluginManager.Instance.InvokeOnUpdate(deltaTime);
+        }
+
+        private static void PlaceNativeDlls()
+        {
+            var defaultChunk = InternalCalls.GetDefaultChunk();
+            var fasm = InternalCalls.ChunkGetFile(defaultChunk, "/NativeLibraries/FASMX64.dll");
+            var fasmBytes = new NativeArray<byte>(
+                InternalCalls.FileGetContents(fasm),
+                (int)InternalCalls.FileGetSize(fasm)
+            );
+
+#if DEBUG
+            const string cimguiName = "cimgui.debug";
+#else
+            const string cimguiName = "cimgui";
+#endif
+            var cimgui = InternalCalls.ChunkGetFile(defaultChunk, $"/NativeLibraries/{cimguiName}.dll");
+            var cimguiBytes = new NativeArray<byte>(
+                InternalCalls.FileGetContents(cimgui),
+                (int)InternalCalls.FileGetSize(cimgui)
+            );
+
+            File.WriteAllBytes("FASMX64.dll", [.. fasmBytes]);
+            File.WriteAllBytes($"nativePC/plugins/CSharp/Loader/{cimguiName}.dll", [.. cimguiBytes]);
         }
     }
 }

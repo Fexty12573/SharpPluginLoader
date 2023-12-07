@@ -39,8 +39,9 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x40)] public uint Flags;
         [FieldOffset(0x58)] private readonly Metadata* _metadata;
 
-        
         public readonly ref Metadata Metadata => ref *_metadata;
+
+        public readonly bool HasMetadata => _metadata != null;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x30)]
@@ -128,6 +129,13 @@ namespace SharpPluginLoader.Core.Resources.Animation
         }
 
         public readonly Span<MetadataKeyframe> Keyframes => new(KeyframePtr, KeyframeNum);
+
+        public readonly void SortKeyframes() => Keyframes.Sort((a, b) =>
+        {
+            if (a.Frame < b.Frame)
+                return -1;
+            return a.Frame > b.Frame ? 1 : 0;
+        });
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x14)]
@@ -158,7 +166,8 @@ namespace SharpPluginLoader.Core.Resources.Animation
         Eased = 3,
         Interpolated2 = 4,
         Flags = 5,
-        Count = 6,
+        Trigger = 6,
+        Count,
     }
 
     public enum InterpType : short

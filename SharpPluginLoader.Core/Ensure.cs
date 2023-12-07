@@ -8,16 +8,32 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public static class Ensure
     {
-        public static void NotNull<T>(T? value, [CallerArgumentExpression(nameof(value))] string name = "") where T : class
+        public static void NotNull<T>(
+            [NotNull] T? value, 
+            [CallerArgumentExpression(nameof(value))] string name = "") where T : class
         {
-            if (value == null)
+            if (value is null)
             {
                 Log.Error($"'{name}' cannot be null");
                 throw new ArgumentNullException(name);
             }
         }
 
-        public static void NotNullOrEmpty(string value, [CallerArgumentExpression(nameof(value))] string name = "")
+        public static unsafe void NotNull<T>(
+            [NotNull] T* value,
+            [CallerArgumentExpression(nameof(value))]
+            string name = "") where T : unmanaged
+        {
+            if (value is null)
+            {
+                Log.Error($"'{name}' cannot be null");
+                throw new ArgumentNullException(name);
+            }
+        }
+
+        public static void NotNullOrEmpty(
+            [NotNull] string? value, 
+            [CallerArgumentExpression(nameof(value))] string name = "")
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -26,17 +42,20 @@ namespace SharpPluginLoader.Core
             }
         }
 
-        public static void NotNullOrDefault<T>([DisallowNull] T? value,
+        public static void NotNullOrDefault<T>(
+            [NotNull] T? value,
             [CallerArgumentExpression(nameof(value))] string name = "") where T : struct
         {
-            if (value == null || value.Equals(default(T)))
+            if (value is null || value.Equals(default(T)))
             {
                 Log.Error($"'{name}' cannot be null or default");
                 throw new ArgumentNullException(name);
             }
         }
 
-        public static void IsTrue(bool value, [CallerArgumentExpression(nameof(value))] string name = "")
+        public static void IsTrue(
+            [DoesNotReturnIf(false)] bool value, 
+            [CallerArgumentExpression(nameof(value))] string name = "")
         {
             if (!value)
             {

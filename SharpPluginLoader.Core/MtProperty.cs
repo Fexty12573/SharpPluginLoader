@@ -35,6 +35,11 @@
         }
 
         /// <summary>
+        /// The hash of the property's name.
+        /// </summary>
+        public uint Hash => Utility.Crc32(HashName);
+
+        /// <summary>
         /// The type of the property.
         /// </summary>
         public PropType Type => (PropType)(Get<uint>(0x10) & 0xFFF);

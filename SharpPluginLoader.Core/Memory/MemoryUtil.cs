@@ -99,9 +99,19 @@ namespace SharpPluginLoader.Core.Memory
             return (nint)NativeMemory.Alloc((nuint)size);
         }
 
+        public static nint Realloc(nint address, long newSize)
+        {
+            return (nint)NativeMemory.Realloc((void*)address, (nuint)newSize);
+        }
+
         public static T* Alloc<T>(long count = 1) where T : unmanaged
         {
             return (T*)NativeMemory.Alloc((nuint)(count * sizeof(T)));
+        }
+
+        public static T* Realloc<T>(T* address, long count) where T : unmanaged
+        {
+            return (T*)NativeMemory.Realloc(address, (nuint)(count * sizeof(T)));
         }
 
         public static void Free(nint address)

@@ -129,6 +129,8 @@ namespace SharpPluginLoader.Core
         private static readonly NativeFunction<nint, uint, nint> FindPropertyByHashFunc = new(AddressRepository.Get("MtPropertyList:FindByHash"));
         private static readonly NativeFunction<nint, int, nint> GetPropertyAtFunc = new(AddressRepository.Get("MtPropertyList:operator[]"));
 
+        internal static readonly MtDti Dti = MtDti.Find("MtPropertyList")!;
+
         internal Action<MtPropertyList>? Deleter = null;
     }
 }

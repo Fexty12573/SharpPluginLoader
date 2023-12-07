@@ -25,13 +25,9 @@
         /// Gets the properties of this object.
         /// </summary>
         /// <returns>The property list containing all properties</returns>
-        public MtPropertyList? GetProperties()
+        public MtPropertyList GetProperties()
         {
-            var dti = MtDti.Find("MtPropertyList");
-            if (dti == null)
-                return null;
-
-            var propList = dti.CreateInstance<MtPropertyList>();
+            var propList = MtPropertyList.Dti.CreateInstance<MtPropertyList>();
 
             PopulatePropertyList(propList);
             propList.Deleter = obj => obj.Destroy(true);
@@ -61,7 +57,7 @@
         /// Calls the destructor of this object.
         /// </summary>
         /// <param name="free">Whether the destructor should deallocate the object or not</param>
-        internal unsafe void Destroy(bool free)
+        public unsafe void Destroy(bool free)
         {
             ((delegate* unmanaged<nint, bool, void>)GetVirtualFunction(0))(Instance, free);
         }

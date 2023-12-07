@@ -316,24 +316,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     const auto context = m_core_initialize_imgui();
     igSetCurrentContext(context);
 
-    const auto& io = *igGetIO();
-    ImFontAtlas_Clear(io.Fonts);
-
-    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
-    const auto& default_chunk = chunk_module->request_chunk("Default");
-    const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
-    const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
-
-    ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
-    font_cfg->FontDataOwnedByAtlas = false;
-    font_cfg->MergeMode = false;
-
-    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
-    font_cfg->MergeMode = true;
-    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
-    ImFontAtlas_Build(io.Fonts);
-
-    ImFontConfig_destroy(font_cfg);
+    imgui_load_fonts();
 
     CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
@@ -437,7 +420,32 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 }
 
 void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
-    throw std::exception("Not implemented");
+    if (FAILED(swap_chain->GetDevice(IID_PPV_ARGS(&m_d3d11_device)))) {
+        dlog::error("Failed to get D3D11 device in present hook");
+        return;
+    }
+
+    m_d3d11_device->GetImmediateContext(&m_d3d11_device_context);
+
+    const auto context = m_core_initialize_imgui();
+    igSetCurrentContext(context);
+
+    imgui_load_fonts();
+
+    if (!ImGui_ImplWin32_Init(m_game_window)) {
+        dlog::error("Failed to initialize ImGui Win32");
+        return;
+    }
+
+    if (!ImGui_ImplDX11_Init(m_d3d11_device, m_d3d11_device_context)) {
+        dlog::error("Failed to initialize ImGui D3D11");
+        return;
+    }
+
+    m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    m_is_initialized = true;
+
+    dlog::debug("Initialized D3D11");
 }
 
 void D3DModule::d3d12_deinitialize_imgui() {
@@ -454,7 +462,31 @@ void D3DModule::d3d12_deinitialize_imgui() {
 }
 
 void D3DModule::d3d11_deinitialize_imgui() {
-    throw std::exception("Not implemented");
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    m_d3d11_device_context = nullptr;
+    m_d3d11_device = nullptr;
+}
+
+void D3DModule::imgui_load_fonts() {
+    const auto& io = *igGetIO();
+    ImFontAtlas_Clear(io.Fonts);
+
+    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
+    const auto& default_chunk = chunk_module->request_chunk("Default");
+    const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
+    const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
+
+    ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
+    font_cfg->FontDataOwnedByAtlas = false;
+    font_cfg->MergeMode = false;
+
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
+    font_cfg->MergeMode = true;
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
+    ImFontAtlas_Build(io.Fonts);
+
+    ImFontConfig_destroy(font_cfg);
 }
 
 bool D3DModule::is_d3d12() {
@@ -573,7 +605,34 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
 
 HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
-    return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+
+    if (self->m_is_inside_present) {
+        return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    }
+
+    self->m_is_inside_present = true;
+
+    if (!self->m_is_initialized) {
+        self->d3d11_initialize_imgui(swap_chain);
+    }
+
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+
+    const auto draw_data = self->m_core_render();
+
+    ImGui_ImplDX11_RenderDrawData(draw_data);
+
+    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        igUpdatePlatformWindows();
+        igRenderPlatformWindowsDefault(nullptr, nullptr);
+    }
+
+    const auto result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    self->m_is_inside_present = false;
+
+    return result;
 }
 
 

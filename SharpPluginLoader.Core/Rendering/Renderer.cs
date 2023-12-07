@@ -12,12 +12,15 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         public static nint Initialize()
         {
+            if (ImGui.GetCurrentContext() != 0)
+                return ImGui.GetCurrentContext();
+
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             // Currently causes a freeze when dragging a window outside of the main window.
             // Most likely the WndProc doesn't process events anymore which causes windows to think it's frozen.
-            //io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+            // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
             SetupImGuiStyle();
 

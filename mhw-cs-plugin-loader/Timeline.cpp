@@ -455,7 +455,7 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
 
     IM_ASSERT(is_group || keyframes != nullptr);
     IM_ASSERT(is_group || keyframe_count > 0);
-
+    
     bool modified = false;
     const ImGuiID track_id = igGetID_Str(label.data());
     const auto window = igGetCurrentWindow();

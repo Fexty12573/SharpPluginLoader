@@ -28,6 +28,7 @@ private:
 
     void d3d12_deinitialize_imgui();
     void d3d11_deinitialize_imgui();
+    void imgui_load_fonts();
 
     static bool is_d3d12();
 

@@ -36,6 +36,7 @@ namespace PlayerAnimationViewer
 
         public string Name => _name != null ? new string(_name) : "";
         public string Comment => _comment != null ? new string(_comment) : "";
+        public string HashName => _comment != null ? new string(_comment) : new string(_name);
         public PropType Type => (PropType)(Attr & 0xFFF);
         public TimelineObject Object => new(_object);
     }
@@ -44,7 +45,7 @@ namespace PlayerAnimationViewer
     public unsafe struct LmtParamMemberDefPool
     {
         [FieldOffset(0x00)] public LmtParamMemberDef* Pool;
-        [FieldOffset(0x08)] public uint PoolSize;
+        [FieldOffset(0x08)] public int PoolSize;
         [FieldOffset(0x0C)] public uint UsedSize;
         [FieldOffset(0x10)] public int AllocatorIndex;
     }

@@ -72,6 +72,28 @@ namespace PlayerAnimationViewer
                 w.Write(offset);
         }
 
+        public static void SortKeyframes(this MotionList lmt)
+        {
+            for (var i = 0; i < lmt.Header.MotionCount; ++i)
+            {
+                if (!lmt.Header.HasMotion(i))
+                    continue;
+
+                ref var motion = ref lmt.Header.GetMotion(i);
+                if (!motion.HasMetadata)
+                    continue;
+
+                foreach (ref var param in motion.Metadata.Params)
+                {
+                    if (param.MemberNum == 0)
+                        continue;
+
+                    foreach (ref var member in param.Members)
+                        member.SortKeyframes();
+                }
+            }
+        }
+
         private static void SerializeMotion(ref Motion motion, BinaryWriter w)
         {
             var startOffset = w.BaseStream.Position;

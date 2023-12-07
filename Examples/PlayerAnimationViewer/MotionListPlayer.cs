@@ -47,6 +47,22 @@ namespace PlayerAnimationViewer
         public Span<nint> Objects => new(GetPtr<nint>(0x8), Get<int>(0x20));
 
         public ref LmtParamMemberDefPool MemberDefPool => ref GetRefInline<LmtParamMemberDefPool>(0x28);
+
+        public TimelineObject? FindObject(MtDti dti)
+        {
+            var objects = Objects;
+            foreach (var obj in objects)
+            {
+                if (obj == 0)
+                    continue;
+
+                var timlObj = new TimelineObject(obj);
+                if (timlObj.GetDti() == dti)
+                    return timlObj;
+            }
+
+            return null;
+        }
     }
 
     public unsafe class TimelineObject : MtObject

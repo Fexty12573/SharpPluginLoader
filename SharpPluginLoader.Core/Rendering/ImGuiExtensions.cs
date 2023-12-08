@@ -40,6 +40,31 @@ namespace SharpPluginLoader.Core.Rendering
             return InternalCalls.TimelineTrack(label, keyframes, out _, explicitCount);
         }
 
+        public static void NotificationSuccess(string message, int duration = 3000)
+        {
+            InternalCalls.NotificationSuccess(message, duration);
+        }
+
+        public static void NotificationError(string message, int duration = 3000)
+        {
+            InternalCalls.NotificationError(message, duration);
+        }
+
+        public static void NotificationWarning(string message, int duration = 3000)
+        {
+            InternalCalls.NotificationWarning(message, duration);
+        }
+
+        public static void NotificationInfo(string message, int duration = 3000)
+        {
+            InternalCalls.NotificationInfo(message, duration);
+        }
+
+        public static void Notification(ImGuiToastType type, string title, string message, int duration = 3000)
+        {
+            InternalCalls.Notification((int)type, duration, title, message);
+        }
+
         public static unsafe bool InputScalar(string label, ref sbyte value, sbyte step = 1, sbyte stepFast = 10,
             string format = "%d", ImGuiInputTextFlags flags = 0)
         {
@@ -151,5 +176,13 @@ namespace SharpPluginLoader.Core.Rendering
 
             EnableSnapping = EnableFramePointerSnapping | EnableKeyframeSnapping,
             ExtendMarkers = ExtendFramePointer | ExtendFrameMarkers | ShowSelectedKeyframeMarkers
+        }
+
+        public enum ImGuiToastType
+        {
+            Success,
+            Warning,
+            Error,
+            Info
         }
     }

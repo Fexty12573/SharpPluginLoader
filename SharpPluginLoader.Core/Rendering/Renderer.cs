@@ -71,6 +71,10 @@ namespace SharpPluginLoader.Core.Rendering
                 ImGui.ShowDemoWindow(ref _showDemo);
 #endif
 
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 5f);
+            InternalCalls.RenderNotifications();
+            ImGui.PopStyleVar();
+
             ImGui.EndFrame();
             ImGui.Render();
 

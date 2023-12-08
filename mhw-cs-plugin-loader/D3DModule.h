@@ -4,6 +4,7 @@
 #include <d3d11.h>
 #include <d3d12.h>
 #include <dxgi.h>
+#include <IconsFontAwesome6.h>
 #include <wrl.h>
 
 #include <imgui_impl.h>
@@ -94,5 +95,6 @@ private:
         0xFF00, 0xFFEF, // Half-width characters
         0,
     };
+    static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 };
 

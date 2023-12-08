@@ -23,6 +23,13 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<string, ref bool, bool> BeginTimelineGroupPtr;
         public static delegate* unmanaged<void> EndTimelineGroupPtr;
         public static delegate* unmanaged<string, float*, int, out int, bool> TimelineTrackPtr;
+
+        public static delegate* unmanaged<string, int, void> NotificationSuccessPtr;
+        public static delegate* unmanaged<string, int, void> NotificationErrorPtr;
+        public static delegate* unmanaged<string, int, void> NotificationWarningPtr;
+        public static delegate* unmanaged<string, int, void> NotificationInfoPtr;
+        public static delegate* unmanaged<int, int, string, string, void> NotificationPtr;
+        public static delegate* unmanaged<void> RenderNotificationsPtr;
 #pragma warning restore CS0649
 
         public static void TestInternalCall() => TestInternalCallPtr();
@@ -70,5 +77,17 @@ namespace SharpPluginLoader.Core
                 return TimelineTrack(label, ptr, explicitCount == -1 ? keyFrames.Length : explicitCount, out selectedKeyframe);
             }
         }
+
+        public static void NotificationSuccess(string message, int duration) => NotificationSuccessPtr(message, duration);
+
+        public static void NotificationError(string message, int duration) => NotificationErrorPtr(message, duration);
+
+        public static void NotificationWarning(string message, int duration) => NotificationWarningPtr(message, duration);
+
+        public static void NotificationInfo(string message, int duration) => NotificationInfoPtr(message, duration);
+
+        public static void Notification(int type, int duration, string title, string message) => NotificationPtr(type, duration, title, message);
+
+        public static void RenderNotifications() => RenderNotificationsPtr();
     }
 }

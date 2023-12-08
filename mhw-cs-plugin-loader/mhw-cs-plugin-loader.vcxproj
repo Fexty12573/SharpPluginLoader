@@ -117,7 +117,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MEMLIB);$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dependencies\cimgui\imgui\imgui.h" />
+    <ClInclude Include="..\dependencies\imgui-notify\imgui_notify.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx12.h" />

@@ -9,6 +9,7 @@ Data.Debug/ImGui.NET.dll
 Data.Debug/Roboto-Bold.ttf
 Data.Debug/Roboto-Medium.ttf
 Data.Debug/NotoSansJP-Regular.ttf
+Data.Debug/fa-solid-900.ttf
 Data.Debug/AddressRecords.json
 n:Data.Debug/FASMX64.dll
 n:Data.Debug/cimgui.debug.dll

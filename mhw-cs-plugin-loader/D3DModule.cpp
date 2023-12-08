@@ -476,6 +476,7 @@ void D3DModule::imgui_load_fonts() {
     const auto& default_chunk = chunk_module->request_chunk("Default");
     const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
     const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
+    const auto& fa6 = default_chunk->get_file("/Resources/fa-solid-900.ttf");
 
     ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
     font_cfg->FontDataOwnedByAtlas = false;
@@ -484,6 +485,7 @@ void D3DModule::imgui_load_fonts() {
     ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
     font_cfg->MergeMode = true;
     ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, fa6->Contents.data(), (i32)fa6->size(), 16.0f, font_cfg, icons_ranges);
     ImFontAtlas_Build(io.Fonts);
 
     ImFontConfig_destroy(font_cfg);

@@ -9,6 +9,7 @@ Data/ImGui.NET.dll
 Data/Roboto-Bold.ttf
 Data/Roboto-Medium.ttf
 Data/NotoSansJP-Regular.ttf
+Data/fa-solid-900.ttf
 Data/AddressRecords.json
 n:Data/FASMX64.dll
 n:Data/cimgui.dll

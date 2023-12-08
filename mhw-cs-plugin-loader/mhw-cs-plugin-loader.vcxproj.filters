@@ -143,6 +143,9 @@
     <ClInclude Include="..\dependencies\cimgui\imgui\imgui.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="..\dependencies\imgui-notify\imgui_notify.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">

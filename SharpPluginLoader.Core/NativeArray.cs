@@ -13,6 +13,7 @@ namespace SharpPluginLoader.Core
     /// <typeparam name="T">The type of the underlying elements</typeparam>
     /// <param name="address">The address of the first element</param>
     /// <param name="length">The number of elements in the array</param>
+    /// <param name="ownsPointer">Whether or not the array owns the pointer</param>
     /// <remarks>
     /// <b>Note:</b> If you don't need to use the array in an iterator, use a <see cref="Span{T}"/> instead.
     /// </remarks>

@@ -97,6 +97,8 @@ namespace PlayerAnimationViewer
             _paramMemberDefPool->UsedSize = 0;
             _paramMemberDefPool->AllocatorIndex = 0;
 
+            KeyBindings.AddKeybind("PAV:DumpDti", new Keybind<Key>(Key.I, [Key.LeftControl]));
+
             return new PluginData
             {
                 OnUpdate = true,
@@ -108,7 +110,7 @@ namespace PlayerAnimationViewer
 
         public void OnUpdate(float deltaTime)
         {
-            if (Input.IsDown(Key.LeftControl) && Input.IsPressed(Key.I))
+            if (KeyBindings.IsPressed("PAV:DumpDti"))
                 DumpDtiHashMap("./dtimap.txt");
 
             if (Monster.SingletonInstance == 0)
@@ -461,7 +463,6 @@ namespace PlayerAnimationViewer
                             ImGui.EndTooltip();
                         }
 
-                        var fp = _framePointer;
                         if (ImGuiExtensions.BeginTimeline(name, 0f, motion.FrameNum,
                                 ref _selectedModel.CurrentAnimation.Id == (uint)i ? ref _selectedAnimLayer.CurrentFrame : ref _framePointer, 
                                 (ImGuiTimelineFlags)_timelineFlags))
@@ -527,11 +528,24 @@ namespace PlayerAnimationViewer
                         {
                             if (ImGui.Button("Duplicate Keyframe") ||
                                 ImGui.IsKeyDown(ImGuiKey.LeftCtrl) && ImGui.IsKeyPressed(ImGuiKey.D))
+                            {
                                 DuplicateSelectedKeyframe();
+                                ImGuiExtensions.NotificationInfo("Duplicated Keyframe");
+                            }
 
                             ImGui.SameLine();
                             if (ImGui.Button("Delete Keyframe") || ImGui.IsKeyPressed(ImGuiKey.Delete))
-                                DeleteSelectedKeyframe();
+                            {
+                                if (_selectedParamMember->KeyframeNum > 1)
+                                {
+                                    DeleteSelectedKeyframe();
+                                    ImGuiExtensions.NotificationInfo("Deleted Keyframe");
+                                }
+                                else
+                                {
+                                    ImGuiExtensions.NotificationError("Cannot delete last Keyframe");
+                                }
+                            }
 
                             switch (_selectedKeyframeType)
                             {
@@ -813,9 +827,6 @@ namespace PlayerAnimationViewer
                 return;
 
             var props = obj.GetProperties();
-            if (props is null)
-                return;
-
             var dti = obj.GetDti();
             if (dti is null)
                 return;

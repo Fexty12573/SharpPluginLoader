@@ -22,11 +22,11 @@ namespace SharpPluginLoader.Core.Entities
         public void CreateEffect(uint groupId, uint effectId)
         {
             var effectComponent = GetObject<MtObject>(0xA10);
-            if (effectComponent == null)
+            if (effectComponent is null)
                 throw new InvalidOperationException("Entity does not have an effect component");
 
             var effect = effectComponent.GetObject<EffectProvider>(0x60)?.GetEffect(groupId, effectId);
-            if (effect == null)
+            if (effect is null)
                 throw new InvalidOperationException("Requested EFX does not exist in default EPV");
 
             CreateEffect(effect);
@@ -43,11 +43,11 @@ namespace SharpPluginLoader.Core.Entities
         public void CreateEffect(EffectProvider epv, uint groupId, uint effectId)
         {
             var effectComponent = GetObject<MtObject>(0xA10);
-            if (effectComponent == null)
+            if (effectComponent is null)
                 throw new InvalidOperationException("Entity does not have an effect component");
 
             var effect = epv.GetEffect(groupId, effectId);
-            if (effect == null)
+            if (effect is null)
                 throw new InvalidOperationException("Requested EFX does not exist in given EPV");
 
             CreateEffect(effect);
@@ -61,7 +61,7 @@ namespace SharpPluginLoader.Core.Entities
         public unsafe void CreateEffect(MtObject effect)
         {
             var effectComponent = GetObject<MtObject>(0xA10);
-            if (effectComponent == null)
+            if (effectComponent is null)
                 throw new InvalidOperationException("Entity does not have an effect component");
 
             CreateEffectFunc.Invoke(effectComponent.Instance, 0, effect.Instance, false);
@@ -103,11 +103,94 @@ namespace SharpPluginLoader.Core.Entities
         }
 
         /// <summary>
+        /// Registers a shll file on the entity
+        /// </summary>
+        /// <param name="shll">The shll to register</param>
+        /// <param name="index">
+        /// The index at which to register, must be less than 8. Passing -1 for this parameter will register the shll at the first free index.
+        /// </param>
+        /// <param name="force">Whether to force the registration or not (only works when an index is specified)</param>
+        /// <returns>True if the shll was successfully registered</returns>
+        public bool RegisterShll(ShellParamList shll, int index = -1, bool force = false)
+        {
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, 8);
+
+            var shllArray = ShllArray;
+            if (index == -1)
+            {
+                for (var i = 0; i < shllArray.Length; ++i)
+                {
+                    if (shllArray[i] == 0)
+                    {
+                        shll.AddRef();
+                        shllArray[i] = shll.Instance;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            if (shllArray[index] != 0)
+            {
+                if (force)
+                {
+                    var oldShll = new ShellParamList(shllArray[index]);
+                    oldShll.Release();
+
+                    shll.AddRef();
+                    shllArray[index] = shll.Instance;
+                    return true;
+                }
+
+                return false;
+            }
+
+            shll.AddRef();
+            shllArray[index] = shll.Instance;
+            return true;
+        }
+
+        /// <summary>
+        /// Registers a shll file on the entity
+        /// </summary>
+        /// <param name="path">The path to the shll file</param>
+        /// <param name="index">
+        /// The index at which to register, must be less than 8. Passing -1 for this parameter will register the shll at the first free index.
+        /// </param>
+        /// <returns>True if the shll was successfully registered</returns>
+        public unsafe bool RegisterShll(string path, int index = -1)
+        {
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, 8);
+
+            var shllArray = ShllArray;
+            if (index == -1)
+            {
+                for (var i = 0; i < shllArray.Length; ++i)
+                {
+                    if (shllArray[i] == 0)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+
+            if (index == -1)
+                return false;
+
+            RegisterShllFunc.Invoke(index, shllArray.Address, path, 0x801);
+            return true;
+        }
+
+        /// <summary>
         /// The entity's action controller
         /// </summary>
         public ActionController ActionController => GetInlineObject<ActionController>(0x61C8);
 
 
+        private NativeArray<nint> ShllArray => new(Instance + 0x56E8, 8);
         private static readonly NativeFunction<nint, byte, nint, bool, nint> CreateEffectFunc = new(AddressRepository.Get("Entity:CreateShell"));
+        private static readonly NativeAction<int, nint, string, uint> RegisterShllFunc = new(AddressRepository.Get("Entity:RegisterShll"));
     }
 }

@@ -253,5 +253,10 @@
         "Name": "NetBuffer:Ctor",
         "Pattern": "33 C0 48 89 43 48 48 89 43 50 48 8B C3 48 83 C4 20",
         "Offset": -24
+    },
+    {
+        "Name": "Entity:RegisterShll",
+        "Pattern": "48 8B D8 48 85 C0 74 2A 48 8B 0C F7",
+        "Offset": -40
     }
 ]

@@ -392,7 +392,7 @@ namespace PlayerAnimationViewer
                     ImGui.TreePop();
                     return;
                 }
-
+                
                 ImGui.Separator();
                 if (ImGui.Button("Save to File"))
                 {

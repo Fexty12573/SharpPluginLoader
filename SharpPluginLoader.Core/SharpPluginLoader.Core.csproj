@@ -128,5 +128,8 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Ensure.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="CameraSystem.cs" />
+	</ItemGroup>
 
 </Project>

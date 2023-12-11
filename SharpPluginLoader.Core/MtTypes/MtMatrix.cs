@@ -1,4 +1,7 @@
-﻿namespace SharpPluginLoader.Core.MtTypes
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+
+namespace SharpPluginLoader.Core.MtTypes
 {
     public struct MtMatrix3X3 // TODO: Finish this
     {
@@ -40,7 +43,10 @@
             set => Data[row * 4 + col] = value;
         }
 
-        public static MtMatrix4X4 Identity => new MtMatrix4X4
+        public static implicit operator Matrix4x4(MtMatrix4X4 m) => Unsafe.As<MtMatrix4X4, Matrix4x4>(ref m);
+        public static implicit operator MtMatrix4X4(Matrix4x4 m) => Unsafe.As<Matrix4x4, MtMatrix4X4>(ref m);
+
+        public static MtMatrix4X4 Identity => new()
         {
             [0, 0] = 1,
             [1, 1] = 1,

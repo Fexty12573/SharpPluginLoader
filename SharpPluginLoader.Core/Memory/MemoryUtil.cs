@@ -154,5 +154,16 @@ namespace SharpPluginLoader.Core.Memory
         {
             return (T*)Unsafe.AsPointer(ref value);
         }
+
+        /// <summary>
+        /// Gets the address of a given reference.
+        /// </summary>
+        /// <typeparam name="T">The type of the value</typeparam>
+        /// <param name="value">The reference to convert</param>
+        /// <returns>An address that points to <paramref name="value"/></returns>
+        public static nint AddressOf<T>(ref T value) where T : unmanaged
+        {
+            return (nint)Unsafe.AsPointer(ref value);
+        }
     }
 }

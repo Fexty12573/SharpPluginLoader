@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
 

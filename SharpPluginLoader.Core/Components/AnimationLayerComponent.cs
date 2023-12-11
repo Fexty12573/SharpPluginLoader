@@ -3,12 +3,12 @@ using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Components
 {
     /// <summary>
     /// Represents an instance of the cpAnimationLayer class.
     /// </summary>
-    public class AnimationLayerComponent : MtObject
+    public class AnimationLayerComponent : Component
     {
         public AnimationLayerComponent(nint instance) : base(instance) { }
         public AnimationLayerComponent() { }
@@ -56,7 +56,7 @@ namespace SharpPluginLoader.Core
         /// Unlocks the speed of this animation layer.
         /// </summary>
         public void UnlockSpeed() => SpeedLocks.Remove(Instance);
-        
+
         /// <summary>
         /// Pauses the animation layer.
         /// </summary>
@@ -196,7 +196,7 @@ namespace SharpPluginLoader.Core
         public uint Id => FullId & 0xFFF;
 
         public AnimationId(uint fullId) => FullId = fullId;
-        public AnimationId(uint lmt, uint id) => FullId = (lmt << 12) | (id & 0xFFF);
+        public AnimationId(uint lmt, uint id) => FullId = lmt << 12 | id & 0xFFF;
 
         public static implicit operator uint(AnimationId id) => id.FullId;
         public static implicit operator AnimationId(uint id) => new(id);

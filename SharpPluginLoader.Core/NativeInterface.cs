@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Networking;

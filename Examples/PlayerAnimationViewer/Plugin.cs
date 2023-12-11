@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
 using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.IO;

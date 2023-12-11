@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Loader;
 
 namespace SharpPluginLoader.Core
@@ -8,12 +9,12 @@ namespace SharpPluginLoader.Core
         public static PluginManager Instance { get; } = new();
         public static string DefaultPluginDirectory => "nativePC/plugins/CSharp";
 
-        private struct PluginContext
+        private readonly struct PluginContext
         {
-            public PluginLoadContext Context { get; init; }
-            public Assembly Assembly { get; init; }
-            public IPlugin Plugin { get; init; }
-            public PluginData Data { get; init; }
+            public required PluginLoadContext Context { get; init; }
+            public required Assembly Assembly { get; init; }
+            public required IPlugin Plugin { get; init; }
+            public required PluginData Data { get; init; }
         }
 
         private static readonly TimeSpan EventCooldown = TimeSpan.FromMilliseconds(500);
@@ -119,10 +120,11 @@ namespace SharpPluginLoader.Core
             Log.Debug($"assembly context: {AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!.Name}");
 
             var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
+            var relPath = Path.GetRelativePath(".", pluginPath);
 
             lock (_contexts)
             {
-                if (_contexts.ContainsKey(pluginName))
+                if (_contexts.ContainsKey(relPath))
                     return;
             }
             
@@ -131,9 +133,9 @@ namespace SharpPluginLoader.Core
             var assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
             var pluginType = assembly.GetTypes().FirstOrDefault(type => typeof(IPlugin).IsAssignableFrom(type));
 
-            if (pluginType == null)
+            if (pluginType is null)
             {
-                Log.Warn($"Plugin {pluginPath} does not implement IPlugin");
+                Log.Warn($"Plugin {pluginPath} does not have an entry point");
                 return;
             }
 
@@ -143,11 +145,19 @@ namespace SharpPluginLoader.Core
                 return;
             }
 
+            lock (_contexts)
+            {
+                if (_contexts.ContainsKey(relPath))
+                {
+                    Log.Warn($"Plugin {pluginPath} has the same name as another plugin! The plugin will be loaded but there is a");
+                }
+            }
+
             var pluginData = plugin.OnLoad();
 
             lock (_contexts)
             {
-                _contexts.Add(pluginName, new PluginContext
+                _contexts.Add(relPath, new PluginContext
                 {
                     Context = context,
                     Assembly = assembly,
@@ -214,17 +224,31 @@ namespace SharpPluginLoader.Core
             }
         }
 
-        private void UnloadPlugin(string pluginPath)
+        public string? GetPluginConfigPath(IPlugin plugin)
         {
-            var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
             lock (_contexts)
             {
-                if (!_contexts.TryGetValue(pluginName, out var context))
+                foreach (var (path, context) in _contexts)
+                {
+                    if (ReferenceEquals(plugin, context.Plugin))
+                        return Path.ChangeExtension(Path.GetRelativePath(".", path), ".json");
+                }
+
+                return null;
+            }
+        }
+
+        private void UnloadPlugin(string pluginPath)
+        {
+            lock (_contexts)
+            {
+                var relPath = Path.GetRelativePath(".", pluginPath);
+                if (!_contexts.TryGetValue(relPath, out var context))
                     return;
 
                 context.Plugin.Dispose();
                 context.Context.Unload();
-                _contexts.Remove(pluginName);
+                _contexts.Remove(relPath);
             }
         }
     }

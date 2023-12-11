@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
 using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
@@ -18,6 +19,9 @@ namespace PlayerAnimationViewer
     public unsafe class Plugin : IPlugin
     {
         public string Name => "Player Animation Viewer";
+        public string Author => "Fexty";
+
+        private Config _config = null!;
 
         #region Entity Picker
         private Model? _selectedModel;
@@ -87,6 +91,8 @@ namespace PlayerAnimationViewer
 
         public PluginData OnLoad()
         {
+            _config = ConfigManager.GetConfig<Config>(this);
+
             var timlObjDti = MtDti.Find("nTimeline::Object");
             Ensure.NotNull(timlObjDti);
 
@@ -98,6 +104,7 @@ namespace PlayerAnimationViewer
             _paramMemberDefPool->AllocatorIndex = 0;
 
             KeyBindings.AddKeybind("PAV:DumpDti", new Keybind<Key>(Key.I, [Key.LeftControl]));
+            KeyBindings.AddKeybind("PAV:Save", new Keybind<Key>(Key.S, [Key.LeftControl]));
 
             return new PluginData
             {
@@ -112,6 +119,9 @@ namespace PlayerAnimationViewer
         {
             if (KeyBindings.IsPressed("PAV:DumpDti"))
                 DumpDtiHashMap("./dtimap.txt");
+
+            if (KeyBindings.IsPressed("PAV:Save"))
+                ConfigManager.SaveConfig<Config>(this);
 
             if (Monster.SingletonInstance == 0)
                 return;

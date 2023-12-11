@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Networking;
 using SharpPluginLoader.Core.Resources;
@@ -118,6 +119,11 @@ namespace SharpPluginLoader.Core
         /// The name of the plugin.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// The author of the plugin.
+        /// </summary>
+        public string Author => "Unknown";
 
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you should initialize your plugin.
@@ -358,6 +364,9 @@ namespace SharpPluginLoader.Core
                     disposable.Dispose();
             }
         }
+
+        internal string Key => $"{Author}:{Name}";
+        internal string? ConfigPath => PluginManager.Instance.GetPluginConfigPath(this);
         #endregion
     }
 

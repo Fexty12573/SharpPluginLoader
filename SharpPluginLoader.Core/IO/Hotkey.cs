@@ -4,7 +4,8 @@
     /// A hotkey, for either a keyboard or a controller.
     /// </summary>
     /// <typeparam name="T">The enum type</typeparam>
-    /// <param name="key"></param>
+    /// <param name="key">The key</param>
+    /// <param name="modifiers">The modifiers</param>
     public readonly struct Keybind<T>(T key, params T[] modifiers) where T : Enum
     {
         public readonly T Key = key;

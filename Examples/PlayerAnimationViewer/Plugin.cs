@@ -111,6 +111,7 @@ namespace PlayerAnimationViewer
             {
                 OnUpdate = true,
                 OnImGuiRender = true,
+                OnRender = true,
                 OnEntityAnimation = true,
                 OnMonsterAction = true
             };
@@ -159,11 +160,14 @@ namespace PlayerAnimationViewer
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
         }
 
-        public void OnImGuiRender()
+        public void OnRender()
         {
             if (_selectedModel is not null)
-                Primitives.RenderSphere(_selectedModel.Position, 50f, new MtColor(0xFF, 0, 0xFF, 0x50));
+                Primitives.RenderSphere(_selectedModel.Position, 35f, new MtVector4(0f, 1f, 1f, 0.5f));
+        }
 
+        public void OnImGuiRender()
+        {
             if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
             {
                 var entities = GetEntityList();

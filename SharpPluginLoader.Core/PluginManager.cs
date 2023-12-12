@@ -10,12 +10,20 @@ namespace SharpPluginLoader.Core
         public static PluginManager Instance { get; } = new();
         public static string DefaultPluginDirectory => "nativePC/plugins/CSharp";
 
-        private readonly struct PluginContext
+        private class PluginContext
         {
             public required PluginLoadContext Context { get; init; }
             public required Assembly Assembly { get; init; }
             public required IPlugin Plugin { get; init; }
             public required PluginData Data { get; init; }
+            public required string Path {get; init; }
+
+            public void Dispose()
+            {
+                ConfigManager.SaveAndUnloadConfig(Plugin);
+                Plugin.Dispose();
+                Context.Unload();
+            }
         }
 
         private static readonly TimeSpan EventCooldown = TimeSpan.FromMilliseconds(500);
@@ -122,11 +130,16 @@ namespace SharpPluginLoader.Core
 
             var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
             var relPath = Path.GetRelativePath(".", pluginPath);
+            var resolvedPath = ResolvePluginPath(pluginPath);
+            var absPath = Path.GetFullPath(resolvedPath);
 
             lock (_contexts)
             {
-                if (_contexts.ContainsKey(relPath))
+                if (_contexts.Values.Any(ctx => ctx.Path == absPath))
+                {
+                    Log.Warn($"Plugin {pluginPath} is already loaded");
                     return;
+                }
             }
             
             var context = new PluginLoadContext(pluginPath);
@@ -158,13 +171,35 @@ namespace SharpPluginLoader.Core
 
             lock (_contexts)
             {
-                _contexts.Add(relPath, new PluginContext
+                _contexts.Add(plugin.Key, new PluginContext
                 {
                     Context = context,
                     Assembly = assembly,
                     Plugin = plugin,
-                    Data = pluginData
+                    Data = pluginData,
+                    Path = absPath
                 });
+            }
+
+            return;
+
+            string ResolvePluginPath(string path)
+            {
+                var file = new FileInfo(path);
+                if (file.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
+                    return file.ResolveLinkTarget(true)?.FullName ?? path;
+
+                var pluginDir = Path.GetDirectoryName(pluginPath);
+                var pluginDirInfo = new DirectoryInfo(pluginDir!);
+                if (pluginDirInfo.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
+                {
+                    var resolvedPluginDir = pluginDirInfo.ResolveLinkTarget(true);
+                    return resolvedPluginDir is null 
+                        ? path 
+                        : Path.Combine(resolvedPluginDir.FullName, Path.GetFileName(path));
+                }
+
+                return path;
             }
         }
 
@@ -219,8 +254,7 @@ namespace SharpPluginLoader.Core
             lock (_contexts)
             {
                 foreach (var context in _contexts.Values)
-                    context.Context.Unload();
-
+                    context.Dispose();
                 _contexts.Clear();
             }
         }
@@ -229,13 +263,9 @@ namespace SharpPluginLoader.Core
         {
             lock (_contexts)
             {
-                foreach (var (path, context) in _contexts)
-                {
-                    if (plugin.Key == context.Plugin.Key)
-                        return Path.ChangeExtension(Path.GetRelativePath(".", path), ".json");
-                }
-
-                return null;
+                return _contexts.TryGetValue(plugin.Key, out var context) 
+                    ? Path.ChangeExtension(context.Path, ".json")
+                    : null;
             }
         }
 
@@ -243,14 +273,15 @@ namespace SharpPluginLoader.Core
         {
             lock (_contexts)
             {
-                var relPath = Path.GetRelativePath(".", pluginPath);
-                if (!_contexts.TryGetValue(relPath, out var context))
-                    return;
+                var absPath = Path.GetFullPath(pluginPath);
+                var key = _contexts
+                    .Where(e => e.Value.Path == absPath)
+                    .Select(e => e.Key)
+                    .FirstOrDefault();
 
-                ConfigManager.SaveAndUnloadConfig(context.Plugin);
-                context.Plugin.Dispose();
-                context.Context.Unload();
-                _contexts.Remove(relPath);
+                Ensure.NotNull(key);
+                _contexts[key].Dispose();
+                _contexts.Remove(key);
             }
         }
     }

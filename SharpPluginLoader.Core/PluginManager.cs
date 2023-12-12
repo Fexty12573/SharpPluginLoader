@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Loader;
+using SharpPluginLoader.Core.Configuration;
 
 namespace SharpPluginLoader.Core
 {
@@ -230,7 +231,7 @@ namespace SharpPluginLoader.Core
             {
                 foreach (var (path, context) in _contexts)
                 {
-                    if (ReferenceEquals(plugin, context.Plugin))
+                    if (plugin.Key == context.Plugin.Key)
                         return Path.ChangeExtension(Path.GetRelativePath(".", path), ".json");
                 }
 
@@ -246,6 +247,7 @@ namespace SharpPluginLoader.Core
                 if (!_contexts.TryGetValue(relPath, out var context))
                     return;
 
+                ConfigManager.SaveAndUnloadConfig(context.Plugin);
                 context.Plugin.Dispose();
                 context.Context.Unload();
                 _contexts.Remove(relPath);

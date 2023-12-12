@@ -63,7 +63,7 @@ public static class Primitives
     /// <summary>
     /// Renders an oriented bounding box at the given position with the given size and color.
     /// </summary>
-    /// <param name"obb">The oriented bounding box to render.</param>
+    /// <param name="obb">The oriented bounding box to render.</param>
     /// <param name="color">The color of the oriented bounding box.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderObb(MtObb obb, MtColor color)
@@ -75,7 +75,7 @@ public static class Primitives
     /// <summary>
     /// Renders an oriented bounding box at the given position with the given size and color.
     /// </summary>
-    /// <param name"obb">The oriented bounding box to render.</param>
+    /// <param name="obb">The oriented bounding box to render.</param>
     /// <param name="color">The color of the oriented bounding box.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderObb(MtObb obb, MtVector4 color)

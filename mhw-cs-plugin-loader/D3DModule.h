@@ -85,7 +85,8 @@ private:
     WNDCLASSEX* m_temp_window_class = nullptr;
 
     ImGuiContext*(*m_core_initialize_imgui)() = nullptr;
-    ImDrawData*(*m_core_render)() = nullptr;
+    ImDrawData*(*m_core_imgui_render)() = nullptr;
+    void(*m_core_render)() = nullptr;
 
     friend class PrimitiveRenderingModule;
 

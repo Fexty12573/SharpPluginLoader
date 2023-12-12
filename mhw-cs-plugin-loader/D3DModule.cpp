@@ -22,10 +22,15 @@ void D3DModule::initialize(CoreClr* coreclr) {
     // Directory for delay loaded DLLs
     AddDllDirectory(TEXT("nativePC/plugins/CSharp/Loader"));
 
-    m_core_render = coreclr->get_method<ImDrawData * ()>(
+    m_core_render = coreclr->get_method<void()>(
         ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Render"
+    );
+    m_core_imgui_render = coreclr->get_method<ImDrawData * ()>(
+        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        L"SharpPluginLoader.Core.Rendering.Renderer",
+        L"ImGuiRender"
     );
     m_core_initialize_imgui = coreclr->get_method<ImGuiContext * ()>(
         ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
@@ -522,11 +527,15 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 
+    self->m_core_render();
+
+    prm->render_primitives_for_d3d12();
+
     // Start new frame
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
 
-    ImDrawData* draw_data = self->m_core_render();
+    ImDrawData* draw_data = self->m_core_imgui_render();
 
     const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
     const FrameContext& frame_ctx = self->m_d3d12_frame_contexts[swap_chain3->GetCurrentBackBufferIndex()];
@@ -622,12 +631,14 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         prm->late_init(self.get());
     }
 
+    self->m_core_render();
+
     prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
 
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
 
-    const auto draw_data = self->m_core_render();
+    const auto draw_data = self->m_core_imgui_render();
 
     ImGui_ImplDX11_RenderDrawData(draw_data);
 

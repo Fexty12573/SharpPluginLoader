@@ -32,7 +32,14 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe nint Render()
+        public static void Render()
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+                plugin.OnRender();
+        }
+
+        [UnmanagedCallersOnly]
+        public static unsafe nint ImGuiRender()
         {
             if (Input.IsPressed(Key.F9))
                 _showMenu = !_showMenu;

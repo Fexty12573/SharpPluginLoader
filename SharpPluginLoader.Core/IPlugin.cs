@@ -106,6 +106,8 @@ namespace SharpPluginLoader.Core
         #endregion
 
         #region Rendering
+        /// <inheritdoc cref="IPlugin.OnRender"/>
+        public bool OnRender;
         /// <inheritdoc cref="IPlugin.OnImGuiRender"/>
         public bool OnImGuiRender;
         #endregion
@@ -348,6 +350,10 @@ namespace SharpPluginLoader.Core
         #endregion
 
         #region Rendering
+        /// <summary>
+        /// The user can use this function to render arbitrary things on the screen (after the game has rendered).
+        /// </summary>
+        public void OnRender() => throw new MissingEventException();
         /// <summary>
         /// The user can use this function to render ImGui widgets on the screen.
         /// </summary>

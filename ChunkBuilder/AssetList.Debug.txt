@@ -13,3 +13,8 @@ Data.Debug/fa-solid-900.ttf
 Data.Debug/AddressRecords.json
 n:Data.Debug/FASMX64.dll
 n:Data.Debug/cimgui.debug.dll
+Sphere.obj
+Cube.obj
+Capsule.obj
+$(ShaderDir)/PrimitiveRenderingVS.hlsl
+$(ShaderDir)/PrimitiveRenderingPS.hlsl

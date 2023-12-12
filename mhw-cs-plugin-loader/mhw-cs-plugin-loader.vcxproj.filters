@@ -25,6 +25,9 @@
     <Filter Include="Header Files\Chunk">
       <UniqueIdentifier>{0c4e9f57-5e77-4b71-94ea-e45abb7a2170}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{a1d2c7d4-fa1a-43d1-9180-bd1ed7a63fff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -74,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="Timeline.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveRenderingModule.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +152,15 @@
     <ClInclude Include="..\dependencies\imgui-notify\imgui_notify.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Primitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveRenderingModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HResultHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">
@@ -157,5 +172,14 @@
     <None Include="..\vcpkg.json">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Shaders\PrimitiveRenderingPS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\PrimitiveRenderingVS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PrimitiveRenderingVS.hlsl" />
   </ItemGroup>
 </Project>

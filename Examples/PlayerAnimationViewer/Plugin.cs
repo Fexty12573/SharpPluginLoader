@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -11,6 +12,7 @@ using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
+using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
@@ -22,7 +24,7 @@ namespace PlayerAnimationViewer
         public string Name => "Player Animation Viewer";
         public string Author => "Fexty";
 
-        private Config _config = null!;
+        private Config? _config;
 
         #region Entity Picker
         private Model? _selectedModel;
@@ -92,8 +94,6 @@ namespace PlayerAnimationViewer
 
         public PluginData OnLoad()
         {
-            _config = ConfigManager.GetConfig<Config>(this);
-
             var timlObjDti = MtDti.Find("nTimeline::Object");
             Ensure.NotNull(timlObjDti);
 
@@ -118,6 +118,8 @@ namespace PlayerAnimationViewer
 
         public void OnUpdate(float deltaTime)
         {
+            _config ??= ConfigManager.GetConfig<Config>(this);
+
             if (KeyBindings.IsPressed("PAV:DumpDti"))
                 DumpDtiHashMap("./dtimap.txt");
 
@@ -159,6 +161,9 @@ namespace PlayerAnimationViewer
 
         public void OnRender()
         {
+            if (_selectedModel is not null)
+                Primitives.RenderSphere(_selectedModel.Position, 50f, new MtColor(0xFF, 0, 0xFF, 0x50));
+
             if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
             {
                 var entities = GetEntityList();
@@ -574,7 +579,7 @@ namespace PlayerAnimationViewer
                                 {
                                     var vec4 = _selectedKeyframe->ColorValue.ToVector4();
                                     ImGui.ColorEdit4("Value", ref vec4);
-                                    _selectedKeyframe->ColorValue = vec4;
+                                    _selectedKeyframe->ColorValue = MtColor.FromVector4(vec4);
                                     break;
                                 }
                                 case PropType.F32:

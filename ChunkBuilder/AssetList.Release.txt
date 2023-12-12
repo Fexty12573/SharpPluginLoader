@@ -13,3 +13,8 @@ Data/fa-solid-900.ttf
 Data/AddressRecords.json
 n:Data/FASMX64.dll
 n:Data/cimgui.dll
+Sphere.obj
+Cube.obj
+Capsule.obj
+$(ShaderDir)/PrimitiveRenderingVS.hlsl
+$(ShaderDir)/PrimitiveRenderingPS.hlsl

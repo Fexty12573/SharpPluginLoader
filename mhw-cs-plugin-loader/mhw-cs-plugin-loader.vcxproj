@@ -166,6 +166,7 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
+    <ClCompile Include="PrimitiveRenderingModule.cpp" />
     <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -186,10 +187,13 @@
     <ClInclude Include="GuiModule.h" />
     <ClInclude Include="hostfxr.h" />
     <ClInclude Include="FileSystemItem.h" />
+    <ClInclude Include="HResultHandler.h" />
     <ClInclude Include="ImGuiModule.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="NativeModule.h" />
     <ClInclude Include="NativePluginFramework.h" />
+    <ClInclude Include="PrimitiveRenderingModule.h" />
+    <ClInclude Include="Primitives.h" />
     <ClInclude Include="SharpPluginLoader.h" />
     <ClInclude Include="Timeline.h" />
   </ItemGroup>
@@ -197,6 +201,18 @@
     <None Include="..\README.md" />
     <None Include="..\vcpkg.json" />
     <None Include="SharpPluginLoader.runtimeconfig.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\PrimitiveRenderingPS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\PrimitiveRenderingVS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

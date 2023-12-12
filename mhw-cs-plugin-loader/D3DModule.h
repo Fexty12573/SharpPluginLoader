@@ -1,5 +1,6 @@
 #pragma once
 #include "NativeModule.h"
+#include "PrimitiveRenderingModule.h"
 
 #include <d3d11.h>
 #include <d3d12.h>
@@ -85,6 +86,8 @@ private:
 
     ImGuiContext*(*m_core_initialize_imgui)() = nullptr;
     ImDrawData*(*m_core_render)() = nullptr;
+
+    friend class PrimitiveRenderingModule;
 
     static constexpr const char* s_game_window_name = "MONSTER HUNTER: WORLD(421652)";
 

@@ -110,7 +110,7 @@ namespace PlayerAnimationViewer
             return new PluginData
             {
                 OnUpdate = true,
-                OnRender = true,
+                OnImGuiRender = true,
                 OnEntityAnimation = true,
                 OnMonsterAction = true
             };
@@ -159,7 +159,7 @@ namespace PlayerAnimationViewer
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
         }
 
-        public void OnRender()
+        public void OnImGuiRender()
         {
             if (_selectedModel is not null)
                 Primitives.RenderSphere(_selectedModel.Position, 50f, new MtColor(0xFF, 0, 0xFF, 0x50));

@@ -52,12 +52,12 @@ namespace SharpPluginLoader.Core.Rendering
             {
                 if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
                 {
-                    foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+                    foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnImGuiRender))
                     {
                         if (ImGui.TreeNodeEx(plugin.Name,
                                 ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
                         {
-                            plugin.OnRender();
+                            plugin.OnImGuiRender();
                             ImGui.TreePop();
                         }
                     }

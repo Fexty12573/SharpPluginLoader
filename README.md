@@ -21,11 +21,16 @@ The `CoreLoadContext` resolves all dependencies either from the current director
 
 The core assembly then loads all plugins into a custom ALC (`PluginLoadContext`) and resolves all dependencies from the `CoreLoadContext`. Each plugin is loaded into a separate ALC.
 
-
 ## **Enabling C# Debugging**
 1. Make sure all projects are compiled in **Debug** mode.
 2. Open the `mhw-cs-plugin-loader` project properties, make sure the **Debug** configuration is selected and go to General > Debugging. Here set the Debugger Type to **Mixed (.NET Core)**.
 3. In the Attach to Process dialog, make sure **Managed (.NET Core, .NET 5+)** and **Native** are selected.
+
+## **Hosting Docs Locally**
+1. `python -m venv venv`
+2. `venv\Scripts\activate`
+3. `pip install -r requirements.txt`
+4. `mkdocs serve`
 
 ## **Libraries Used**
 - [safetyhook](https://github.com/cursey/safetyhook) - Native hooking library

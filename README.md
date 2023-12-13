@@ -26,3 +26,14 @@ The core assembly then loads all plugins into a custom ALC (`PluginLoadContext`)
 1. Make sure all projects are compiled in **Debug** mode.
 2. Open the `mhw-cs-plugin-loader` project properties, make sure the **Debug** configuration is selected and go to General > Debugging. Here set the Debugger Type to **Mixed (.NET Core)**.
 3. In the Attach to Process dialog, make sure **Managed (.NET Core, .NET 5+)** and **Native** are selected.
+
+## **Libraries Used**
+- [safetyhook](https://github.com/cursey/safetyhook) - Native hooking library
+- [Reloaded.Hooks](https://github.com/Reloaded-Project/Reloaded.Hooks) - Managed hooking library
+- [cimgui](https://github.com/cimgui/cimgui) - C wrapper for Dear ImGui
+- [Dear ImGui](https://github.com/ocornut/imgui) - GUI library
+- [ImGui.NET](https://github.com/ImGuiNET/ImGui.NET) - C# wrapper for Dear ImGui
+- [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) - Wavefront OBJ loader
+- [nlohmann-json](https://github.com/nlohmann/json) - C++ JSON library
+- [zlib](https://www.zlib.net/) - Compression library
+- [DirectXMath](https://github.com/microsoft/DirectXMath) - DirectX Math library

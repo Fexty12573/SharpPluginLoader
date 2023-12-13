@@ -39,4 +39,4 @@ jobs:
         # uses: mhausenblas/mkdocs-deploy-gh-pages@66340182cb2a1a63f8a3783e3e2146b7d151a0bb
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

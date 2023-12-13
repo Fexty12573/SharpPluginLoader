@@ -9,6 +9,7 @@ using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Geometry;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
@@ -16,6 +17,7 @@ using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
+using static SharpPluginLoader.Core.Components.CollisionComponent;
 
 namespace PlayerAnimationViewer
 {
@@ -92,6 +94,9 @@ namespace PlayerAnimationViewer
         #endregion
         #endregion
 
+        private Vector3 _p0Offset = new(0, 50, 0);
+        private Vector3 _p1Offset = new(0, 150, 0);
+
         public PluginData OnLoad()
         {
             var timlObjDti = MtDti.Find("nTimeline::Object");
@@ -162,8 +167,53 @@ namespace PlayerAnimationViewer
 
         public void OnRender()
         {
-            if (_selectedModel is not null)
-                Primitives.RenderSphere(_selectedModel.Position, 35f, new MtVector4(0f, 1f, 1f, 0.5f));
+            if (_selectedModel is null)
+                return;
+
+            var entity = _selectedModel.Is("uMhModel") ? _selectedModel.As<Entity>() : null;
+            var colComponent = entity?.CollisionComponent;
+            if (colComponent is null)
+                return;
+
+            foreach (var node in colComponent.Nodes)
+            {
+                if (!node.Get<bool>(0xB1))
+                    continue;
+
+                foreach (var geometry in node.Geometries)
+                {
+                    if (geometry.Geom is null) continue;
+
+                    MtVector4 color;
+                    if (node.Get<bool>(0xB1))
+                    {
+                        color = geometry.Geom.Type switch
+                        {
+                            GeometryType.Sphere => new MtVector4(1, 0, 0, 0.25f),
+                            GeometryType.Capsule => new MtVector4(0, 1, 0, 0.25f),
+                            GeometryType.Obb => new MtVector4(0, 0, 1, 0.25f),
+                            _ => new MtVector4(1, 1, 1, 0.25f)
+                        };
+                    }
+                    else
+                    {
+                        color = new MtVector4(0.5f, 0.5f, 0.5f, 0.1f);
+                    }
+
+                    switch (geometry.Geom.Type)
+                    {
+                        case GeometryType.Sphere:
+                            Primitives.RenderSphere(geometry.Geom.Get<MtSphere>(0x20), color);
+                            break;
+                        case GeometryType.Capsule:
+                            Primitives.RenderCapsule(geometry.Geom.Get<MtCapsule>(0x20), color);
+                            break;
+                        case GeometryType.Obb:
+                            Primitives.RenderObb(geometry.Geom.Get<MtObb>(0x20), color);
+                            break;
+                    }
+                }
+            }
         }
 
         public void OnImGuiRender()

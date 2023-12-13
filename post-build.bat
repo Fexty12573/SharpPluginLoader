@@ -24,4 +24,6 @@ copy /y "%SOLUTION_DIR%\SharpPluginLoader.Core\AddressRecords.json" "%SOLUTION_D
 copy /y "%SOLUTION_DIR%\SharpPluginLoader.Core\AddressRecords.json" "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\Data.Debug\AddressRecords.json"
 
 :: Invoke ChunkBuilder
-call "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\ChunkBuilder.exe" "%SOLUTION_DIR%\ChunkBuilder\AssetList.%CONFIGURATION%.txt" ShaderDir="%SOLUTION_DIR%\mhw-cs-plugin-loader\Shaders\"
+call "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\ChunkBuilder.exe"^
+ "%SOLUTION_DIR%\Assets\AssetList.%CONFIGURATION%.txt"^
+ ShaderDir="%SOLUTION_DIR%\mhw-cs-plugin-loader\Shaders\";AssetDir="%SOLUTION_DIR%\Assets\"

@@ -15,10 +15,13 @@ namespace ChunkBuilder
                 {
                     for (var i = 1; i < args.Length; i++)
                     {
-                        Console.WriteLine(args[i]);
                         var arg = args[i];
-                        var split = arg.Split('=');
-                        envVars.Add(split[0], split[1].Trim(['\'', '"']));
+                        var splitArgs = arg.Split(';');
+                        foreach (var subArg in splitArgs)
+                        {
+                            var split = subArg.Split('=');
+                            envVars.Add(split[0], split[1].Trim(['\'', '"']));
+                        }
                     }
                 }
 
@@ -61,7 +64,11 @@ namespace ChunkBuilder
                 root.Add(nativeLibs);
                 var chunk = new Chunk(root);
 
-                chunk.WriteToFile(exeDir + "/" + outputFile);
+                outputFile = ProcessString(outputFile, envVars);
+                if (!Path.IsPathFullyQualified(outputFile))
+                    outputFile = exeDir + "/" + outputFile;
+
+                chunk.WriteToFile(outputFile);
             }
             catch (Exception e)
             {

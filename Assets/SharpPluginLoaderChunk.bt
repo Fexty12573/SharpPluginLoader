@@ -1,0 +1,75 @@
+//------------------------------------------------
+//--- 010 Editor v13.0.1 Binary Template
+//
+//      File: SharpPluginLoaderChunk
+//   Authors: Fexty
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: *.bin
+//  ID Bytes: 62 69 6E 00
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    char Magic[4];
+    uint Version;
+    int64 RootOffset;
+    FSeek(RootOffset);
+} Header;
+
+typedef struct {
+    int16 Length;
+    char String[Length];
+} PrefixedString<read=Str("%s", this.String)>;
+
+typedef enum<byte> {
+    ItemFile = 0,
+    ItemFolder = 1
+} ItemType;
+
+struct ChunkFolder;
+struct ChunkFile;
+
+typedef struct {
+    ItemType Type;
+    if (Type == ItemFile) {
+        ChunkFile file<read=Str("%s", this.Name.String)>;
+    } else if (Type == ItemFolder) {
+        ChunkFolder folder<read=Str("%s", this.Name.String)>;
+    } else {
+        Printf("ERROR: Invalid ItemType: %d", Type);
+    }
+} ChunkItem;
+
+struct ChunkFolder {
+    local int i;
+
+    int16 ChildCount;
+    PrefixedString Name;
+    for (i = 0; i < ChildCount; i++) {
+        Printf("ChunkItem[%i]\n", i);
+        ChunkItem Child<read=readItem>;
+    }
+};
+
+struct ChunkFile {
+    int32 ContentLength;
+    int32 DecompressedLength;
+    PrefixedString Name;
+    byte Contents[ContentLength];
+};
+
+string readItem(ChunkItem& x) {
+    if (x.Type == ItemFile) {
+        return x.file.Name.String;
+    } else if (x.Type == ItemFolder) {
+        return x.folder.Name.String;
+    } else {
+        return "Error";
+    }
+}
+
+
+Header header;
+ChunkFolder Root<read=Str("%s", this.Name.String)>;

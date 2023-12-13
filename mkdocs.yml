@@ -1,0 +1,54 @@
+site_name: SharpPluginLoader Documentation
+site_url: https://fexty12573.github.io/SharpPluginLoader/
+
+repo_name: Fexty12573/SharpPluginLoader
+repo_url: https://github.com/Fexty12573/SharpPluginLoader/
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.path
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch
+        name: Default
+      primary: slate blue
+      accent: sky blue
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Slate
+      primary: slate blue
+      accent: sky blue
+
+nav:
+  - Home: index.md
+  - Installation: Installation.md
+  - Plugin Development:
+    - Development/index.md
+    - Getting Started: Development/GettingStarted.md
+    - Game Objects: Development/GameObjects.md
+    - Function Hooking: Development/FunctionHooking.md
+    - Calling Native Functions: Development/CallingNativeFuncs.md
+    - Rendering with ImGui: Development/ImGui.md
+  - API Reference:
+    - API/index.md
+  - Examples:
+    - Examples/index.md

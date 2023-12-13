@@ -115,7 +115,7 @@ public:
 
 	NOTIFY_INLINE auto get_type() -> const ImGuiToastType& { return this->type; };
 
-	NOTIFY_INLINE auto get_color() -> const ImVec4&
+	NOTIFY_INLINE auto get_color() -> ImVec4
 	{
 		switch (this->type)
 		{
@@ -130,6 +130,8 @@ public:
 		case ImGuiToastType_Info:
 			return { 0, 157, 255, 255 }; // Blue
 		}
+
+		return { 255, 255, 255, 255 }; // White
 	}
 
 	NOTIFY_INLINE auto get_icon() -> const char*
@@ -147,13 +149,15 @@ public:
 		case ImGuiToastType_Info:
 			return ICON_FA_CIRCLE_INFO;
 		}
+
+		return NULL;
 	}
 
 	NOTIFY_INLINE auto get_content() -> char* { return this->content; };
 
 	NOTIFY_INLINE auto get_elapsed_time() { return GetTickCount64() - this->creation_time; }
 
-	NOTIFY_INLINE auto get_phase() -> const ImGuiToastPhase&
+	NOTIFY_INLINE auto get_phase() -> ImGuiToastPhase
 	{
 		const auto elapsed = get_elapsed_time();
 
@@ -254,7 +258,8 @@ namespace ImGui
 			}
 
 			// Get icon, title and other data
-			const auto icon = current_toast->get_icon();
+			const char* icon = nullptr;
+			icon = current_toast->get_icon();
 			const auto title = current_toast->get_title();
 			const auto content = current_toast->get_content();
 			const auto default_title = current_toast->get_default_title();

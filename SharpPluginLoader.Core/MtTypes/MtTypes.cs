@@ -179,41 +179,41 @@ namespace SharpPluginLoader.Core.MtTypes
         public MtVector3 Normal;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct MtSphere
     {
         public MtVector3 Center;
         public float Radius;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit)]
     public struct MtCapsule
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
-        public float Radius;
+        [FieldOffset(0x00)] public MtVector3 Point1;
+        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x20)] public float Radius;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit, Size = 0x20)]
     public struct MtAabb
     {
-        public MtVector3 Min;
-        public MtVector3 Max;
+        [FieldOffset(0x00)] public MtVector3 Min;
+        [FieldOffset(0x10)] public MtVector3 Max;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Size = 0x50)]
     public struct MtObb
     {
         public Float4X4 Transform;
         public MtVector3 Extents;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit)]
     public struct MtCylinder
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
-        public float Radius;
+        [FieldOffset(0x00)] public MtVector3 Point1;
+        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x20)] public float Radius;
     }
 
     [StructLayout(LayoutKind.Sequential)]

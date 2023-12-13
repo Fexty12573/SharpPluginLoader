@@ -54,7 +54,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     ComPtr<ID3D11RenderTargetView> rtv;
     context->OMGetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     context->IASetInputLayout(m_d3d11_input_layout.Get());
     context->VSSetShader(m_d3d11_vertex_shader.Get(), nullptr, 0);
     context->PSSetShader(m_d3d11_pixel_shader.Get(), nullptr, 0);
@@ -168,43 +168,119 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         i = 0;
         for (const auto& capsule : m_capsules) {
             // Translation
-            const XMVECTOR p0{ capsule.capsule.p0.x, capsule.capsule.p0.y, capsule.capsule.p0.z };
-            const XMVECTOR p1{ capsule.capsule.p1.x, capsule.capsule.p1.y, capsule.capsule.p1.z };
-            const XMVECTOR midpoint = XMVectorScale(XMVectorAdd(p0, p1), 0.5f);
-            const XMMATRIX translation = XMMatrixTranslationFromVector(midpoint);
+            XMVECTOR p0{ capsule.capsule.p0.x, capsule.capsule.p0.y, capsule.capsule.p0.z, 1.0f };
+            XMVECTOR p1{ capsule.capsule.p1.x, capsule.capsule.p1.y, capsule.capsule.p1.z, 1.0f };
+            if (XMVectorGetY(p0) > XMVectorGetY(p1)) {
+                std::swap(p0, p1);
+            }
 
-            const XMVECTOR dir = p1 - p0;
-            const XMVECTOR axis = XMVector3Cross(XMVectorSet(0, 1, 0, 0), dir);
-            const float angle = std::acosf(XMVectorGetY(XMVector3Normalize(dir)));
-            const XMMATRIX rotation = XMMatrixRotationAxis(axis, angle);
+            const XMMATRIX translation_htop = XMMatrixTranslationFromVector(p1);
+            const XMMATRIX translation_hbottom = XMMatrixTranslationFromVector(p0);
+            const XMMATRIX translation_cylinder = XMMatrixTranslationFromVector((p0 + p1) * 0.5f);
 
-            const float length = XMVectorGetX(XMVector3Length(dir));
-            const XMMATRIX scale = XMMatrixScaling(capsule.capsule.r, length, capsule.capsule.r);
+            // Rotation
+            // if (ez := {0,1,0}) == (ev := P2-P1/norm(P2-P1)) -> R = Id
+            // if (ez := {0,1,0}) == (ev := P1-P2/norm(P2-P1)) -> R = Id (but swap which cap you use for each end)
+            // else
+            // v = ez x ev
+            // s = norm(ev)
+            // c = ez . ev
+            // R = Id + [v]x + [v]^2x 1/(1+c)
+            XMMATRIX rotation = XMMatrixIdentity();
+            XMVECTOR ez = XMVectorSet(0, 1, 0, 0); // Y-up coordinate system
+            XMVECTOR ev = XMVector3Normalize(XMVectorSubtract(p1, p0));
 
-            m_instances[i++] = {
-                .Transform = XMMatrixTranspose(scale * rotation * translation),
+            // Check if ev is parallel or anti-parallel to ez
+            if (XMVector3Equal(ev, ez) || XMVector3Equal(ev, XMVectorNegate(ez))) {
+                // No rotation needed
+                rotation = XMMatrixIdentity();
+            }
+            else {
+                // Compute the rotation matrix
+                const XMVECTOR v = XMVector3Cross(ez, ev);
+                const float c = XMVectorGetX(XMVector3Dot(ez, ev));
+
+                const XMMATRIX vx = { 0, XMVectorGetZ(v), XMVectorGetY(v), 0,
+                                -XMVectorGetZ(v), 0, XMVectorGetX(v), 0,
+                                -XMVectorGetY(v), -XMVectorGetX(v), 0, 0,
+                                0, 0, 0, 0 };
+                const XMMATRIX vx2 = XMMatrixMultiply(vx, vx);
+                
+                rotation = XMMatrixAdd(XMMatrixAdd(XMMatrixIdentity(), vx), vx2 * (1.0f / (1.0f + c)));
+            }
+
+            // Scale
+            const XMMATRIX scale_hemisphere = XMMatrixScaling(capsule.capsule.r, capsule.capsule.r, capsule.capsule.r);
+            const XMMATRIX scale_cylinder = XMMatrixScaling(
+                capsule.capsule.r, 
+                XMVectorGetX(XMVector3Length(p1 - p0)) * 0.5f, 
+                capsule.capsule.r
+            );
+
+            m_instances[i] = {
+                .Transform = XMMatrixTranspose(scale_cylinder * rotation * translation_cylinder),
+                .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
+            };
+            m_instances_hemisphere_top[i] = {
+                .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_htop),
+                .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
+            };
+            m_instances_hemisphere_bottom[i] = {
+                .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_hbottom),
                 .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
             };
 
+            i += 1;
             if (i >= MAX_INSTANCES) {
                 break;
             }
         }
 
-        // Copy Instance Data to GPU
+        // Top Hemisphere
+        HandleResult(context->Map(m_d3d11_htop_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+
+        std::memcpy(msr.pData, m_instances_hemisphere_top.data(), sizeof(Instance) * i);
+        context->Unmap(m_d3d11_htop_transform_buffer.Get(), 0);
+
+        context->IASetIndexBuffer(m_d3d11_hemisphere_top.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+        buffers[0] = m_d3d11_hemisphere_top.VertexBuffer.Get();
+        buffers[1] = m_d3d11_htop_transform_buffer.Get();
+        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->DrawIndexedInstanced(
+            m_d3d11_hemisphere_top.IndexCount,
+            i, 0, 0, 0
+        );
+
+        // Bottom Hemisphere
+        HandleResult(context->Map(m_d3d11_hbottom_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+
+        std::memcpy(msr.pData, m_instances_hemisphere_bottom.data(), sizeof(Instance) * i);
+        context->Unmap(m_d3d11_hbottom_transform_buffer.Get(), 0);
+
+        context->IASetIndexBuffer(m_d3d11_hemisphere_bottom.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+        buffers[0] = m_d3d11_hemisphere_bottom.VertexBuffer.Get();
+        buffers[1] = m_d3d11_hbottom_transform_buffer.Get();
+        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->DrawIndexedInstanced(
+            m_d3d11_hemisphere_bottom.IndexCount,
+            i, 0, 0, 0
+        );
+
+        // Cylinder
         HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
 
         std::memcpy(msr.pData, m_instances.data(), sizeof(Instance) * i);
         context->Unmap(m_d3d11_transform_buffer.Get(), 0);
 
-        // Set up pipeline
-        context->IASetIndexBuffer(m_d3d11_capsule.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+        context->IASetIndexBuffer(m_d3d11_cylinder.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-        buffers[0] = m_d3d11_capsule.VertexBuffer.Get();
-
+        buffers[0] = m_d3d11_cylinder.VertexBuffer.Get();
+        buffers[1] = m_d3d11_transform_buffer.Get();
         context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
         context->DrawIndexedInstanced(
-            m_d3d11_capsule.IndexCount,
+            m_d3d11_cylinder.IndexCount,
             i, 0, 0, 0
         );
     }
@@ -220,7 +296,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12() {
 void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Sphere.obj", m_d3d11_sphere);
     load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Cube.obj", m_d3d11_cube);
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Capsule.obj", m_d3d11_capsule);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Hemisphere.obj", m_d3d11_hemisphere_top);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/BottomHemisphere.obj", m_d3d11_hemisphere_bottom);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Cylinder.obj", m_d3d11_cylinder);
 
     // Create ViewProj Constant Buffer
     D3D11_BUFFER_DESC bd{};
@@ -239,6 +317,8 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     bd.StructureByteStride = sizeof Instance;
 
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_transform_buffer.GetAddressOf()));
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_htop_transform_buffer.GetAddressOf()));
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_hbottom_transform_buffer.GetAddressOf()));
 
     ComPtr<ID3DBlob> vs_blob;
     ComPtr<ID3DBlob> ps_blob;

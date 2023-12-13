@@ -51,6 +51,15 @@ private:
     static void render_obb_api(const MtOBB* obb, const MtVector4* color);
     static void render_capsule_api(const MtCapsule* capsule, const MtVector4* color);
 
+    static DirectX::XMMATRIX XMMatrixAdd(DirectX::FXMMATRIX M1, DirectX::CXMMATRIX M2) {
+        DirectX::XMMATRIX m;
+        m.r[0] = DirectX::XMVectorAdd(M1.r[0], M2.r[0]);
+        m.r[1] = DirectX::XMVectorAdd(M1.r[1], M2.r[1]);
+        m.r[2] = DirectX::XMVectorAdd(M1.r[2], M2.r[2]);
+        m.r[3] = DirectX::XMVectorAdd(M1.r[3], M2.r[3]);
+        return m;
+    }
+
 private:
     struct Instance {
         DirectX::XMMATRIX Transform;
@@ -68,12 +77,18 @@ private:
     std::vector<primitives::Capsule> m_capsules;
 
     std::array<Instance, MAX_INSTANCES> m_instances{};
+    std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_top{};
+    std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_bottom{};
 
     #pragma region D3D11
 
+    Mesh<ID3D11Buffer> m_d3d11_cylinder{};
+    Mesh<ID3D11Buffer> m_d3d11_hemisphere_top{};
+    Mesh<ID3D11Buffer> m_d3d11_hemisphere_bottom{};
     Mesh<ID3D11Buffer> m_d3d11_sphere{};
     Mesh<ID3D11Buffer> m_d3d11_cube{};
-    Mesh<ID3D11Buffer> m_d3d11_capsule{};
+    ComPtr<ID3D11Buffer> m_d3d11_htop_transform_buffer = nullptr;
+    ComPtr<ID3D11Buffer> m_d3d11_hbottom_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_viewproj_buffer = nullptr;
     ComPtr<ID3D11VertexShader> m_d3d11_vertex_shader = nullptr;

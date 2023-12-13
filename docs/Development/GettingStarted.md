@@ -63,3 +63,16 @@ The above code simply prints "Hello!" to the console every frame.
 ## Loading the plugin
 Now you can compile your plugin (either in Debug or Release mode) and place the resulting DLL inside the `nativePC\plugins\CSharp` folder (or any subdirectory
 inside it). The plugin will be loaded automatically when the game starts.
+
+## Debugging
+Game update 15.20 removed all anti-debug measures that the game has in place. Now you can attach the Visual Studio debugger directly to the game process.
+
+To debug your plugin compile it in Debug mode, put the DLL inside the `nativePC\plugins\CSharp` folder and start the game. 
+Then, in Visual Studio, go to `Debug > Attach to Process...` and select `MonsterHunterWorld.exe` from the list. You should now be able to place
+breakpoints and debug your plugin as you would with any other project.
+
+Additionally, for some light-weight "debugging" you can use the `Log` class to print messages to the console. 
+```csharp
+Log.Info("Hello!");
+Log.Error("Something went wrong!");
+```

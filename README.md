@@ -2,6 +2,8 @@
 
 A C# plugin loader for Monster Hunter World based on .NET 8.0.
 
+For more detailed documentation and tutorials, visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/).
+
 ## How to use
 1. Install [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (Get the **.NET Desktop Runtime 8.0.0**)
 2. Download the latest release from the [releases page]() and extract it into your Monster Hunter World directory.

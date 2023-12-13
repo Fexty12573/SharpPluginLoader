@@ -1,20 +1,14 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.MtTypes
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtVector3
+    public struct MtVector3(float x, float y, float z)
     {
-        public float X;
-        public float Y;
-        public float Z;
-
-        public MtVector3(float x, float y, float z)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-        }
+        public float X = x;
+        public float Y = y;
+        public float Z = z;
 
         public static MtVector3 Zero => new(0, 0, 0);
 
@@ -65,7 +59,7 @@ namespace SharpPluginLoader.Core.MtTypes
             return !(a == b);
         }
 
-        public override bool Equals(object? obj)
+        public readonly override bool Equals(object? obj)
         {
             if (obj is MtVector3 vec3)
             {
@@ -75,16 +69,16 @@ namespace SharpPluginLoader.Core.MtTypes
             return false;
         }
 
-        public override int GetHashCode()
+        public readonly override int GetHashCode()
         {
             return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode();
         }
 
-        public float Length => (float)Math.Sqrt(LengthSquared);
+        public readonly float Length => (float)Math.Sqrt(LengthSquared);
 
-        public float LengthSquared => X * X + Y * Y + Z * Z;
+        public readonly float LengthSquared => X * X + Y * Y + Z * Z;
 
-        public MtVector3 Normalized => this / Length;
+        public readonly MtVector3 Normalized => this / Length;
 
         public MtVector3 SetLength(float length)
         {
@@ -112,5 +106,8 @@ namespace SharpPluginLoader.Core.MtTypes
         {
             return a + (b - a) * t;
         }
+
+        public static implicit operator Vector3(MtVector3 vec3) => new (vec3.X, vec3.Y, vec3.Z);
+        public static implicit operator MtVector3(Vector3 vec3) => new (vec3.X, vec3.Y, vec3.Z);
     }
 }

@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Memory;
+﻿using SharpPluginLoader.Core.Components;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
@@ -12,6 +13,11 @@ namespace SharpPluginLoader.Core.Entities
     {
         public Entity(nint instance) : base(instance) { }
         public Entity() { }
+
+        /// <summary>
+        /// Gets the entity's collision component
+        /// </summary>
+        public CollisionComponent? CollisionComponent => GetObject<CollisionComponent>(0x6A8);
 
         /// <summary>
         /// Creates an effect on the entity

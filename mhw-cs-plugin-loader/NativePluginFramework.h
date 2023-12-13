@@ -6,6 +6,7 @@
 #include <vector>
 #include <concepts>
 #include <memory>
+#include <stdexcept>
 
 
 class NativePluginFramework {
@@ -22,7 +23,7 @@ public:
             }
         }
 
-        return nullptr;
+        throw std::runtime_error("Module not found");
     }
 
     explicit NativePluginFramework(CoreClr* coreclr);

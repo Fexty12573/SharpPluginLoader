@@ -22,6 +22,7 @@ namespace SharpPluginLoader.Core.Configuration
                 cfg = new T();
                 Configs.Add(plugin.Key, cfg);
                 InternalSaveConfig(plugin, cfg);
+                return (T)cfg;
             }
 
             var json = File.ReadAllText(configPath);
@@ -42,6 +43,18 @@ namespace SharpPluginLoader.Core.Configuration
             Ensure.NotNull(plugin.ConfigPath);
             var json = JsonSerializer.Serialize(config, WriteOptions);
             File.WriteAllText(plugin.ConfigPath, json);
+        }
+
+        internal static void SaveAndUnloadConfig(IPlugin plugin)
+        {
+            Log.Debug($"Unloading Config for '{plugin.Key}'");
+            if (Configs.TryGetValue(plugin.Key, out var cfg))
+            {
+                Log.Debug($"Saving Config for '{plugin.Key}'");
+                InternalSaveConfig(plugin, cfg);
+                Log.Debug($"Removing Config for '{plugin.Key}'");
+                Configs.Remove(plugin.Key);
+            }
         }
 
         private static readonly Dictionary<string, IConfig> Configs = [];

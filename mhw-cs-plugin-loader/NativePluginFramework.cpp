@@ -15,6 +15,7 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
     m_modules.push_back(std::make_shared<D3DModule>());
     m_modules.push_back(std::make_shared<ChunkModule>());
     m_modules.push_back(std::make_shared<ImGuiModule>());
+    m_modules.push_back(std::make_shared<PrimitiveRenderingModule>());
 
     for (const auto& module : m_modules) {
         module->initialize(coreclr);

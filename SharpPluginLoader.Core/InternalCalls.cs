@@ -30,6 +30,10 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<string, int, void> NotificationInfoPtr;
         public static delegate* unmanaged<int, int, string, string, void> NotificationPtr;
         public static delegate* unmanaged<void> RenderNotificationsPtr;
+
+        public static delegate* unmanaged<nint, nint, void> RenderSpherePtr;
+        public static delegate* unmanaged<nint, nint, void> RenderObbPtr;
+        public static delegate* unmanaged<nint, nint, void> RenderCapsulePtr;
 #pragma warning restore CS0649
 
         public static void TestInternalCall() => TestInternalCallPtr();
@@ -89,5 +93,11 @@ namespace SharpPluginLoader.Core
         public static void Notification(int type, int duration, string title, string message) => NotificationPtr(type, duration, title, message);
 
         public static void RenderNotifications() => RenderNotificationsPtr();
+
+        public static void RenderSphere(nint spherePtr, nint colorPtr) => RenderSpherePtr(spherePtr, colorPtr);
+
+        public static void RenderObb(nint obbPtr, nint colorPtr) => RenderObbPtr(obbPtr, colorPtr);
+
+        public static void RenderCapsule(nint capsulePtr, nint colorPtr) => RenderCapsulePtr(capsulePtr, colorPtr);
     }
 }

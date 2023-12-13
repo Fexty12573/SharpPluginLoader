@@ -16,7 +16,7 @@ namespace SharpPluginLoader.Core.Components
         /// <summary>
         /// The owner of this animation layer.
         /// </summary>
-        public Entity? Owner => GetObject<Entity>(0x30);
+        public new Entity? Owner => GetObject<Entity>(0x30);
 
         /// <summary>
         /// The current frame of the animation.

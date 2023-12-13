@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.MtTypes
@@ -178,41 +179,41 @@ namespace SharpPluginLoader.Core.MtTypes
         public MtVector3 Normal;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct MtSphere
     {
         public MtVector3 Center;
         public float Radius;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit)]
     public struct MtCapsule
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
-        public float Radius;
+        [FieldOffset(0x00)] public MtVector3 Point1;
+        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x20)] public float Radius;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit, Size = 0x20)]
     public struct MtAabb
     {
-        public MtVector3 Min;
-        public MtVector3 Max;
+        [FieldOffset(0x00)] public MtVector3 Min;
+        [FieldOffset(0x10)] public MtVector3 Max;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Size = 0x50)]
     public struct MtObb
     {
         public Float4X4 Transform;
         public MtVector3 Extents;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit)]
     public struct MtCylinder
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
-        public float Radius;
+        [FieldOffset(0x00)] public MtVector3 Point1;
+        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x20)] public float Radius;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -356,27 +357,41 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct MtColor
+    public struct MtColor(byte r, byte g, byte b, byte a)
     {
         [FieldOffset(0x0)] public uint Rgba;
 
-        [FieldOffset(0x0)] public byte R;
-        [FieldOffset(0x1)] public byte G;
-        [FieldOffset(0x2)] public byte B;
-        [FieldOffset(0x3)] public byte A;
+        [FieldOffset(0x0)] public byte R = r;
+        [FieldOffset(0x1)] public byte G = g;
+        [FieldOffset(0x2)] public byte B = b;
+        [FieldOffset(0x3)] public byte A = a;
 
+        public static implicit operator MtColor(Color color) => new() { R = color.R, G = color.G, B = color.B, A = color.A };
         public static implicit operator MtColor(uint rgba) => new() { Rgba = rgba };
         public static implicit operator uint(MtColor color) => color.Rgba;
-        public static implicit operator MtColor(Vector4 color) => new()
+        public static explicit operator MtColor(MtVector4 color) => new()
         {
             R = (byte)(color.X * 255), 
             G = (byte)(color.Y * 255), 
             B = (byte)(color.Z * 255), 
             A = (byte)(color.W * 255)
         };
-        
-        public MtVector4 ToMtVector4() => new() { X = R / 255.0f, Y = G / 255.0f, Z = B / 255.0f, W = A / 255.0f };
+        public static explicit operator MtVector4(MtColor color) => new()
+        {
+            X = color.R / 255.0f, 
+            Y = color.G / 255.0f, 
+            Z = color.B / 255.0f, 
+            W = color.A / 255.0f
+        };
+
         public Vector4 ToVector4() => new() { X = R / 255.0f, Y = G / 255.0f, Z = B / 255.0f, W = A / 255.0f };
+        public static MtColor FromVector4(Vector4 color) => new()
+        {
+            R = (byte)(color.X * 255), 
+            G = (byte)(color.Y * 255), 
+            B = (byte)(color.Z * 255), 
+            A = (byte)(color.W * 255)
+        };
     }
 
     [StructLayout(LayoutKind.Sequential)]

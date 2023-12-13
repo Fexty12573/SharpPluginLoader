@@ -32,7 +32,14 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe nint Render()
+        public static void Render()
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+                plugin.OnRender();
+        }
+
+        [UnmanagedCallersOnly]
+        public static unsafe nint ImGuiRender()
         {
             if (Input.IsPressed(Key.F9))
                 _showMenu = !_showMenu;
@@ -52,12 +59,12 @@ namespace SharpPluginLoader.Core.Rendering
             {
                 if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
                 {
-                    foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
+                    foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnImGuiRender))
                     {
                         if (ImGui.TreeNodeEx(plugin.Name,
                                 ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
                         {
-                            plugin.OnRender();
+                            plugin.OnImGuiRender();
                             ImGui.TreePop();
                         }
                     }

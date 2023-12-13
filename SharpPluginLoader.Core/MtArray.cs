@@ -155,26 +155,16 @@ namespace SharpPluginLoader.Core
             return GetEnumerator();
         }
 
-        private class CustomEnumerator : IEnumerator<T>
+        private class CustomEnumerator(MtArray<T> array) : IEnumerator<T>
         {
-            private readonly MtArray<T> _array;
-            private int _index;
+            private int _index = -1;
 
-            public CustomEnumerator(MtArray<T> array)
-            {
-                _array = array;
-                _index = -1;
-            }
-
-            public void Dispose()
-            {
-                throw new NotImplementedException();
-            }
+            public void Dispose() { }
 
             public bool MoveNext()
             {
                 _index++;
-                return _index < _array.Length;
+                return _index < array.Length;
             }
 
             public void Reset()
@@ -182,7 +172,7 @@ namespace SharpPluginLoader.Core
                 _index = -1;
             }
 
-            public T Current => _array[_index]!;
+            public T Current => array[_index]!;
 
             object IEnumerator.Current => Current;
         }

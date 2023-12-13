@@ -48,6 +48,7 @@ nav:
     - Function Hooking: Development/FunctionHooking.md
     - Calling Native Functions: Development/CallingNativeFuncs.md
     - Rendering with ImGui: Development/ImGui.md
+    - Rendering: Development/Rendering.md
   - API Reference:
     - API/index.md
   - Examples:

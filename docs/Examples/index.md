@@ -6,6 +6,8 @@ For some more elaborate examples, check the [Examples section](https://github.co
 
 ## API Examples
 - [Direct Memory Access](DirectMemoryAccess.md)
+- [Logging](Logging.md)
+- [User Input](UserInput.md)
 
 ## Plugin Examples
 - [Hello World](HelloWorld.md)

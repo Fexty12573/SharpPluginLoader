@@ -27,13 +27,13 @@ theme:
   palette:
     - scheme: default
       toggle:
-        icon: material/weather-night
+        icon: material/weather-sunny
         name: Default
       primary: slate blue
       accent: sky blue
     - scheme: slate
       toggle:
-        icon: material/weather-sunny
+        icon: material/weather-night
         name: Slate
       primary: slate blue
       accent: sky blue
@@ -53,3 +53,7 @@ nav:
     - API/index.md
   - Examples:
     - Examples/index.md
+    - API Examples:
+      - Direct Memory Access: Examples/DirectMemoryAccess.md
+      - Logging: Examples/Logging.md
+      - User Input: Examples/UserInput.md

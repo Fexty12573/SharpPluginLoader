@@ -27,13 +27,13 @@ theme:
   palette:
     - scheme: default
       toggle:
-        icon: material/toggle-switch
+        icon: material/weather-night
         name: Default
       primary: slate blue
       accent: sky blue
     - scheme: slate
       toggle:
-        icon: material/toggle-switch
+        icon: material/weather-sunny
         name: Slate
       primary: slate blue
       accent: sky blue

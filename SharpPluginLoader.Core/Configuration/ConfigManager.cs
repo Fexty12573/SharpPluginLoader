@@ -47,12 +47,9 @@ namespace SharpPluginLoader.Core.Configuration
 
         internal static void SaveAndUnloadConfig(IPlugin plugin)
         {
-            Log.Debug($"Unloading Config for '{plugin.Key}'");
             if (Configs.TryGetValue(plugin.Key, out var cfg))
             {
-                Log.Debug($"Saving Config for '{plugin.Key}'");
                 InternalSaveConfig(plugin, cfg);
-                Log.Debug($"Removing Config for '{plugin.Key}'");
                 Configs.Remove(plugin.Key);
             }
         }

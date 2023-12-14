@@ -94,9 +94,6 @@ namespace PlayerAnimationViewer
         #endregion
         #endregion
 
-        private Vector3 _p0Offset = new(0, 50, 0);
-        private Vector3 _p1Offset = new(0, 150, 0);
-
         public PluginData OnLoad()
         {
             var timlObjDti = MtDti.Find("nTimeline::Object");
@@ -108,9 +105,6 @@ namespace PlayerAnimationViewer
             _paramMemberDefPool->PoolSize = _paramMemberDefBuffer.Length * sizeof(LmtParamMemberDef);
             _paramMemberDefPool->UsedSize = 0;
             _paramMemberDefPool->AllocatorIndex = 0;
-
-            KeyBindings.AddKeybind("PAV:DumpDti", new Keybind<Key>(Key.I, [Key.LeftControl]));
-            KeyBindings.AddKeybind("PAV:Save", new Keybind<Key>(Key.S, [Key.LeftControl]));
 
             return new PluginData
             {
@@ -125,12 +119,6 @@ namespace PlayerAnimationViewer
         public void OnUpdate(float deltaTime)
         {
             _config ??= ConfigManager.GetConfig<Config>(this);
-
-            if (KeyBindings.IsPressed("PAV:DumpDti"))
-                DumpDtiHashMap("./dtimap.txt");
-
-            if (KeyBindings.IsPressed("PAV:Save"))
-                ConfigManager.SaveConfig<Config>(this);
 
             if (Monster.SingletonInstance == 0)
                 return;

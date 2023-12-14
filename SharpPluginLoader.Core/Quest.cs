@@ -6,7 +6,7 @@ namespace SharpPluginLoader.Core
     {
         public static unsafe nint SingletonInstance => *(nint*)0x14500caf0;
 
-        public static int CurrentQuestId => SingletonInstance.Read<int>(0x4C);
+        public static int CurrentQuestId => MemoryUtil.Read<int>(SingletonInstance + 0x4C);
 
         public static string CurrentQuestName => GetQuestName(CurrentQuestId);
 

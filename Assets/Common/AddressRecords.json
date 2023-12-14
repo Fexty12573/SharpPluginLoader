@@ -258,5 +258,10 @@
         "Name": "Entity:RegisterShll",
         "Pattern": "48 8B D8 48 85 C0 74 2A 48 8B 0C F7",
         "Offset": -40
+    },
+    {
+        "Name": "MtMatrix:operator*",
+        "Pattern": "4C 8B DC 48 81 EC A8 00 00 00 F3 0F 10 61 04",
+        "Offset": 0
     }
 ]

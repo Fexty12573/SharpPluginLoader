@@ -77,11 +77,11 @@ namespace SharpPluginLoader.Core.IO
         private static nint Pad => MemoryUtil.Read<nint>(0x1451c2318);
         private static nint Keyboard => MemoryUtil.Read<nint>(0x1451c3170);
 
-        private static uint PadDown => (Pad + 0x198).Read<uint>();
-        private static uint PadOld => (Pad + 0x19C).Read<uint>();
-        private static uint PadTrg => (Pad + 0x1A0).Read<uint>();
-        private static uint PadRel => (Pad + 0x1A4).Read<uint>();
-        private static uint PadChg => (Pad + 0x1A8).Read<uint>();
+        private static uint PadDown => MemoryUtil.Read<uint>(Pad + 0x198);
+        private static uint PadOld => MemoryUtil.Read<uint>(Pad + 0x19C);
+        private static uint PadTrg => MemoryUtil.Read<uint>(Pad + 0x1A0);
+        private static uint PadRel => MemoryUtil.Read<uint>(Pad + 0x1A4);
+        private static uint PadChg => MemoryUtil.Read<uint>(Pad + 0x1A8);
 
         private static unsafe KeyboardState* KbState => (KeyboardState*)(Keyboard + 0x138);
         private static unsafe byte* KbVkTable => (byte*)(Keyboard + 0x38);

@@ -31,7 +31,7 @@ namespace SharpPluginLoader.Core.Resources
                 var shells = new ShellParam[count];
                 for (var i = 0; begin < end; begin += 0x10)
                 {
-                    var shell = begin.Read<nint>(0x8);
+                    var shell = MemoryUtil.Read<nint>(begin + 0x8);
                     if (shell != 0)
                         shells[i++] = new ShellParam(shell);
                 }
@@ -53,7 +53,7 @@ namespace SharpPluginLoader.Core.Resources
             if (shell == 0)
                 return null;
 
-            var shellObj = shell.Read<nint>(0x8);
+            var shellObj = MemoryUtil.Read<nint>(shell + 0x8);
             return shellObj == 0 ? null : new ShellParam(shellObj);
         }
 

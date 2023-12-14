@@ -24,7 +24,7 @@ namespace SharpPluginLoader.Core.Entities
             {
                 if (aiData == 0)
                     continue;
-                var monster = aiData.Read<nint>(0x138);
+                var monster = MemoryUtil.Read<nint>(aiData + 0x138);
                 if (monster == 0)
                     continue;
 
@@ -60,12 +60,12 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The current health of the monster
         /// </summary>
-        public ref float Health => ref Get<nint>(0x7670).ReadRef<float>(0x64);
+        public ref float Health => ref MemoryUtil.GetRef<float>(Get<nint>(0x7670) + 0x64);
 
         /// <summary>
         /// The maximum health of the monster
         /// </summary>
-        public ref float MaxHealth => ref Get<nint>(0x7670).ReadRef<float>(0x60);
+        public ref float MaxHealth => ref MemoryUtil.GetRef<float>(Get<nint>(0x7670) + 0x60);
 
         /// <summary>
         /// The speed of the monster (1.0 is normal speed)
@@ -80,7 +80,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The index of the monster in the difficulty table (dtt_dif)
         /// </summary>
-        public ref uint DifficultyIndex => ref AiData.ReadRef<uint>(0x8AC);
+        public ref uint DifficultyIndex => ref MemoryUtil.GetRef<uint>(AiData + 0x8AC);
 
         /// <summary>
         /// Freezes the monster and pauses all ai processing
@@ -98,7 +98,7 @@ namespace SharpPluginLoader.Core.Entities
         public unsafe void ForceAction(int id)
         {
             Set(0x18938, id);
-            ForceActionFunc.Invoke(AiData.Read<nint>(0x4B0), AiData);
+            ForceActionFunc.Invoke(MemoryUtil.Read<nint>(AiData + 0x4B0), AiData);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="target"></param>
         public void SetTarget(nint target)
         {
-            AiData.Read<nint>(0xAA8).ReadRef<nint>(0x5D0) = target;
+            MemoryUtil.GetRef<nint>(MemoryUtil.Read<nint>(AiData + 0xAA8) + 0x5D0) = target;
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace SharpPluginLoader.Core.Entities
 
         private static void MonsterFlinchHook(nint instance, nint ai)
         {
-            var monster = new Monster(ai.Read<nint>(0x138));
+            var monster = new Monster(MemoryUtil.Read<nint>(ai + 0x138));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterFlinch))
                 plugin.OnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938));
 
@@ -207,7 +207,7 @@ namespace SharpPluginLoader.Core.Entities
 
         private static bool EnrageHook(nint instance)
         {
-            var monster = new Monster(instance.Read<nint>(0x128));
+            var monster = new Monster(MemoryUtil.Read<nint>(instance + 0x128));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterEnrage))
                 plugin.OnMonsterEnrage(monster);
 
@@ -216,7 +216,7 @@ namespace SharpPluginLoader.Core.Entities
 
         private static void UnenrageHook(nint instance)
         {
-            var monster = new Monster(instance.Read<nint>(0x128));
+            var monster = new Monster(MemoryUtil.Read<nint>(instance + 0x128));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterUnenrage))
                 plugin.OnMonsterUnenrage(monster);
 
@@ -225,7 +225,7 @@ namespace SharpPluginLoader.Core.Entities
 
         private static void MonsterDieHook(nint instance, nint ai)
         {
-            var monster = new Monster(ai.Read<nint>(0x138));
+            var monster = new Monster(MemoryUtil.Read<nint>(ai + 0x138));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDeath))
                 plugin.OnMonsterDeath(monster);
 

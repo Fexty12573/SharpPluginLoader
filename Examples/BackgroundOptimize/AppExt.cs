@@ -14,8 +14,8 @@ namespace BackgroundOptimize
 
         public static bool GameFocused => SingletonInstance.Read<bool>(0x29AD);
 
-        public static ref bool BackgroundMove => ref SingletonInstance.ReadRef<bool>(0x38);
+        public static ref bool BackgroundMove => ref SingletonInstance.GetRef<bool>(0x38);
 
-        public static ref bool BackgroundLowPower => ref SingletonInstance.ReadRef<bool>(0x3A);
+        public static ref bool BackgroundLowPower => ref SingletonInstance.GetRef<bool>(0x3A);
     }
 }

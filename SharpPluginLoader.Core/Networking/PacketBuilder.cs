@@ -78,15 +78,15 @@ namespace SharpPluginLoader.Core.Networking
         [UnmanagedCallersOnly]
         private static int NativeGetSize(nint packet)
         {
-            return packet.Read<int>(0x8);
+            return MemoryUtil.Read<int>(packet + 0x8);
         }
 
         [UnmanagedCallersOnly]
         private static void NativeSerializer(nint packet, nint buffer)
         {
             var src = (void*)(packet + 8 + 4 + 1); // Skip vtable + size + padding byte
-            var dst = (void*)buffer.Read<nint>(0x48);
-            var size = (nuint)packet.Read<int>(0x8);
+            var dst = (void*)MemoryUtil.Read<nint>(buffer + 0x48);
+            var size = (nuint)MemoryUtil.Read<int>(packet + 0x8);
 
             NativeMemory.Copy(src, dst, size);
         }

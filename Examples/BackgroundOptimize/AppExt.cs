@@ -12,10 +12,10 @@ namespace BackgroundOptimize
     {
         public static nint SingletonInstance => MemoryUtil.Read<nint>(0x144cb6230);
 
-        public static bool GameFocused => SingletonInstance.Read<bool>(0x29AD);
+        public static bool GameFocused => MemoryUtil.Read<bool>(SingletonInstance + 0x29AD);
 
-        public static ref bool BackgroundMove => ref SingletonInstance.GetRef<bool>(0x38);
+        public static ref bool BackgroundMove => ref MemoryUtil.GetRef<bool>(SingletonInstance + 0x38);
 
-        public static ref bool BackgroundLowPower => ref SingletonInstance.GetRef<bool>(0x3A);
+        public static ref bool BackgroundLowPower => ref MemoryUtil.GetRef<bool>(SingletonInstance + 0x3A);
     }
 }

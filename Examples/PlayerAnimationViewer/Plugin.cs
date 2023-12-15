@@ -808,8 +808,10 @@ namespace PlayerAnimationViewer
             var populateParamMemberDefs = new NativeAction<nint, nint>(0x14231df70);
             var paramTypeCountAddr = (nint)0x1451c39e8;
             var paramTypesAddr = (nint)0x1451c39e0;
-            var paramTypes = paramTypesAddr.Read<nint>()
-                .ReadStructArray<LmtParamType>(0, paramTypeCountAddr.Read<int>());
+            var paramTypes = MemoryUtil.ReadStructArray<LmtParamType>(
+                MemoryUtil.Read<nint>(paramTypesAddr),
+                MemoryUtil.Read<int>(paramTypeCountAddr)
+            );
 
             Directory.CreateDirectory(dir);
 

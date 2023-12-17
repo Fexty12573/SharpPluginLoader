@@ -8,7 +8,7 @@
 
 #include <Windows.h>
 #include <imgui_impl.h>
-#include <game_functions.h>
+#include <utility/game_functions.h>
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_dx11.h"
@@ -62,8 +62,6 @@ void D3DModule::common_initialize() {
         return;
     }
 
-    
-
     const auto window_class = new WNDCLASSEX;
     window_class->cbSize = sizeof(WNDCLASSEX);
     window_class->style = CS_HREDRAW | CS_VREDRAW;
@@ -114,14 +112,13 @@ void D3DModule::common_initialize() {
 
 void D3DModule::initialize_for_d3d12() {
     HMODULE dxgi;
-    HMODULE d3d12;
 
     if ((dxgi = GetModuleHandleA("dxgi.dll")) == nullptr) {
         dlog::error("Failed to find dxgi.dll");
         return;
     }
 
-    if ((d3d12 = GetModuleHandleA("d3d12.dll")) == nullptr) {
+    if ((m_d3d12_module = GetModuleHandleA("d3d12.dll")) == nullptr) {
         dlog::error("Failed to find d3d12.dll");
         return;
     }
@@ -145,7 +142,7 @@ void D3DModule::initialize_for_d3d12() {
     }
 
     decltype(D3D12CreateDevice)* d3d12_create_device;
-    if ((d3d12_create_device = (decltype(d3d12_create_device))GetProcAddress(d3d12, "D3D12CreateDevice")) == nullptr) {
+    if ((d3d12_create_device = (decltype(d3d12_create_device))GetProcAddress(m_d3d12_module, "D3D12CreateDevice")) == nullptr) {
         dlog::error("Failed to find D3D12CreateDevice");
         return;
     }
@@ -244,14 +241,13 @@ void D3DModule::initialize_for_d3d12() {
 }
 
 void D3DModule::initialize_for_d3d11() {
-    HMODULE d3d11;
-    if ((d3d11 = GetModuleHandleA("d3d11.dll")) == nullptr) {
+    if ((m_d3d11_module = GetModuleHandleA("d3d11.dll")) == nullptr) {
         dlog::error("Failed to find d3d11.dll");
         return;
     }
 
     decltype(D3D11CreateDeviceAndSwapChain)* d3d11_create_device_and_swap_chain;
-    if ((d3d11_create_device_and_swap_chain = (decltype(d3d11_create_device_and_swap_chain))GetProcAddress(d3d11, "D3D11CreateDeviceAndSwapChain")) == nullptr) {
+    if ((d3d11_create_device_and_swap_chain = (decltype(d3d11_create_device_and_swap_chain))GetProcAddress(m_d3d11_module, "D3D11CreateDeviceAndSwapChain")) == nullptr) {
         dlog::error("Failed to find D3D11CreateDeviceAndSwapChain");
         return;
     }
@@ -520,7 +516,7 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
-        prm->late_init(self.get());
+        prm->late_init(self.get(), swap_chain);
     }
 
     if (!self->m_d3d12_command_queue) {
@@ -529,7 +525,8 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     self->m_core_render();
 
-    prm->render_primitives_for_d3d12();
+    const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
+    prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
 
     // Start new frame
     ImGui_ImplDX12_NewFrame();
@@ -537,7 +534,6 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     ImDrawData* draw_data = self->m_core_imgui_render();
 
-    const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
     const FrameContext& frame_ctx = self->m_d3d12_frame_contexts[swap_chain3->GetCurrentBackBufferIndex()];
     frame_ctx.CommandAllocator->Reset();
 
@@ -628,7 +624,7 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     if (!self->m_is_initialized) {
         self->d3d11_initialize_imgui(swap_chain);
-        prm->late_init(self.get());
+        prm->late_init(self.get(), swap_chain);
     }
 
     self->m_core_render();

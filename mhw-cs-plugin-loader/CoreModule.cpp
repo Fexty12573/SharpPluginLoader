@@ -3,7 +3,7 @@
 #include "Log.h"
 #include "NativePluginFramework.h"
 
-#include <game_functions.h>
+#include <utility/game_functions.h>
 
 static void test_icall() {
     dlog::info("Hello from internal call!");
@@ -27,7 +27,7 @@ void CoreModule::shutdown() {
 }
 
 void CoreModule::main_update_hook(const sMain* main) {
-    const auto& self = NativePluginFramework::get()->get_module<CoreModule>();
+    const auto& self = NativePluginFramework::get_module<CoreModule>();
     self->m_plugin_on_update(main->mDeltaSec);
 
     return self->m_main_update_hook.call(main);

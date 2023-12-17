@@ -179,7 +179,4 @@
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="PrimitiveRenderingVS.hlsl" />
-  </ItemGroup>
 </Project>

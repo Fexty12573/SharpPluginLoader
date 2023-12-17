@@ -77,6 +77,9 @@ private:
     ID3D11DeviceContext* m_d3d11_device_context = nullptr;
     IDXGISwapChain* m_d3d11_swap_chain = nullptr;
 
+    HMODULE m_d3d12_module = nullptr;
+    HMODULE m_d3d11_module = nullptr;
+
     HWND m_game_window = nullptr;
     HMODULE m_game_module = nullptr;
     WNDPROC m_game_window_proc = nullptr;

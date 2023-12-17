@@ -6,6 +6,8 @@
 #include "HResultHandler.h"
 #include "D3DModule.h"
 
+#include <d3dx12.h>
+#include <dxgi1_4.h>
 #include <tiny_obj_loader.h>
 #include <dti/sMhCamera.h>
 
@@ -21,11 +23,14 @@ void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
 }
 
 void PrimitiveRenderingModule::shutdown() {
+    if (m_d3d12_frame_contexts) {
+        delete[] m_d3d12_frame_contexts;
+    }
 }
 
-void PrimitiveRenderingModule::late_init(D3DModule* d3dmodule) {
+void PrimitiveRenderingModule::late_init(D3DModule* d3dmodule, IDXGISwapChain* swap_chain) {
     if (D3DModule::is_d3d12()) {
-        late_init_d3d12(d3dmodule);
+        late_init_d3d12(d3dmodule, swap_chain);
     } else {
         late_init_d3d11(d3dmodule);
     }
@@ -290,7 +295,275 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     m_capsules.clear();
 }
 
-void PrimitiveRenderingModule::render_primitives_for_d3d12() {
+void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue) {
+    using namespace DirectX;
+
+    if (m_spheres.empty() && m_cubes.empty() && m_capsules.empty()) {
+        return;
+    }
+
+    // Set up common pipeline state
+    
+    const FrameContext& frame_context = m_d3d12_frame_contexts[swap_chain->GetCurrentBackBufferIndex()];
+
+    HandleResult(m_d3d12_command_allocator->Reset());
+
+    D3D12_RESOURCE_BARRIER barrier{};
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    barrier.Transition.pResource = frame_context.RenderTarget.Get();
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+    HandleResult(m_d3d12_command_list->Reset(m_d3d12_command_allocator.Get(), m_d3d12_pipeline_state.Get()));
+    m_d3d12_command_list->ResourceBarrier(1, &barrier);
+
+    m_d3d12_command_list->SetGraphicsRootSignature(m_d3d12_root_signature.Get());
+    m_d3d12_command_list->SetPipelineState(m_d3d12_pipeline_state.Get());
+
+    constexpr float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    //m_d3d12_command_list->ClearRenderTargetView(frame_context.RenderTargetDescriptor, clear_color, 0, nullptr);
+    m_d3d12_command_list->OMSetRenderTargets(
+        1,     
+        &frame_context.RenderTargetDescriptor, 
+        false, 
+        &m_d3d12_depth_stencil_view
+    );
+    //m_d3d12_command_list->SetDescriptorHeaps(1, m_d3d12_rtv_heap.GetAddressOf());
+
+    m_d3d12_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    // Store VP data
+    const auto camera = sMhCamera::get();
+
+    ViewProj12* vp = nullptr;
+    HandleResult(m_d3d12_viewproj_buffer->Map(0, nullptr, (void**)&vp));
+    vp->View = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mViewMat.ptr()));
+    vp->Proj = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mProjMat.ptr()));
+
+    m_d3d12_viewproj_buffer->Unmap(0, nullptr);
+
+    // Set up VP constant buffer
+    m_d3d12_command_list->SetGraphicsRootConstantBufferView(0, m_d3d12_viewproj_buffer->GetGPUVirtualAddress());
+
+    // Common variables
+    int i = 0;
+    std::array<D3D12_VERTEX_BUFFER_VIEW, 2> views{};
+
+    // Spheres ------------------------------
+    if (!m_spheres.empty()) {
+        // Build Instance Data
+        const D3D12_RANGE range{ 
+            0, 
+            sizeof(Instance) * std::min<u32>(m_spheres.size(), MAX_INSTANCES) 
+        };
+        Instance* data = nullptr;
+        HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
+
+        for (const auto& sphere : m_spheres) {
+            const XMMATRIX scale = XMMatrixScaling(sphere.sphere.r, sphere.sphere.r, sphere.sphere.r);
+            const XMMATRIX translation = XMMatrixTranslation(sphere.sphere.pos.x, sphere.sphere.pos.y, sphere.sphere.pos.z);
+
+            data[i++] = {
+                .Transform = XMMatrixTranspose(scale * translation),
+                .Color = { sphere.color.r, sphere.color.g, sphere.color.b, sphere.color.a }
+            };
+
+            if (i >= MAX_INSTANCES) {
+                break;
+            }
+        }
+
+        m_d3d12_transform_buffer->Unmap(0, nullptr);
+
+        // Set up pipeline
+        views[0] = m_d3d12_sphere.VertexBufferView;
+        views[1] = m_d3d12_transform_buffer_view;
+
+        m_d3d12_command_list->IASetIndexBuffer(&m_d3d12_sphere.IndexBufferView);
+        m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+        m_d3d12_command_list->DrawIndexedInstanced(
+            m_d3d12_sphere.IndexCount,
+            i, 0, 0, 0
+        );
+    }
+
+    // OBBs ---------------------------------
+    if (!m_cubes.empty()) {
+        // Build Instance Data
+        i = 0;
+        const D3D12_RANGE range{
+            0,
+            sizeof(Instance) * std::min<u32>(m_cubes.size(), MAX_INSTANCES)
+        };
+        Instance* data = nullptr;
+        HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
+
+        for (const auto& cube : m_cubes) {
+            const XMMATRIX scale = XMMatrixScaling(cube.obb.extent.x, cube.obb.extent.y, cube.obb.extent.z);
+            const XMMATRIX translation_rotation{ cube.obb.coord.ptr() };
+
+            data[i++] = {
+                .Transform = XMMatrixTranspose(scale * translation_rotation),
+                .Color = { cube.color.r, cube.color.g, cube.color.b, cube.color.a }
+            };
+
+            if (i >= MAX_INSTANCES) {
+                break;
+            }
+        }
+
+        m_d3d12_transform_buffer->Unmap(0, nullptr);
+
+        // Set up pipeline
+        views[0] = m_d3d12_cube.VertexBufferView;
+        views[1] = m_d3d12_transform_buffer_view;
+
+        m_d3d12_command_list->IASetIndexBuffer(&m_d3d12_cube.IndexBufferView);
+        m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+        m_d3d12_command_list->DrawIndexedInstanced(
+            m_d3d12_cube.IndexCount,
+            i, 0, 0, 0
+        );
+    }
+
+    // Capsules -----------------------------
+    if (!m_capsules.empty()) {
+        // Build Instance Data
+        i = 0;
+        const D3D12_RANGE range{
+            0,
+            sizeof(Instance) * std::min<u32>(m_capsules.size(), MAX_INSTANCES)
+        };
+        Instance* data = nullptr;
+        Instance* data_htop = nullptr;
+        Instance* data_hbottom = nullptr;
+        HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
+        HandleResult(m_d3d12_htop_transform_buffer->Map(0, &range, (void**)&data_htop));
+        HandleResult(m_d3d12_hbottom_transform_buffer->Map(0, &range, (void**)&data_hbottom));
+
+        for (const auto& capsule : m_capsules) {
+            // Translation
+            XMVECTOR p0{ capsule.capsule.p0.x, capsule.capsule.p0.y, capsule.capsule.p0.z, 1.0f };
+            XMVECTOR p1{ capsule.capsule.p1.x, capsule.capsule.p1.y, capsule.capsule.p1.z, 1.0f };
+            if (XMVectorGetY(p0) > XMVectorGetY(p1)) {
+                std::swap(p0, p1);
+            }
+
+            const XMMATRIX translation_htop = XMMatrixTranslationFromVector(p1);
+            const XMMATRIX translation_hbottom = XMMatrixTranslationFromVector(p0);
+            const XMMATRIX translation_cylinder = XMMatrixTranslationFromVector((p0 + p1) * 0.5f);
+
+            // Rotation
+            // if (ez := {0,1,0}) == (ev := P2-P1/norm(P2-P1)) -> R = Id
+            // if (ez := {0,1,0}) == (ev := P1-P2/norm(P2-P1)) -> R = Id (but swap which cap you use for each end)
+            // else
+            // v = ez x ev
+            // s = norm(ev)
+            // c = ez . ev
+            // R = Id + [v]x + [v]^2x 1/(1+c)
+            XMMATRIX rotation = XMMatrixIdentity();
+            XMVECTOR ez = XMVectorSet(0, 1, 0, 0); // Y-up coordinate system
+            XMVECTOR ev = XMVector3Normalize(XMVectorSubtract(p1, p0));
+
+            // Check if ev is parallel or anti-parallel to ez
+            if (XMVector3Equal(ev, ez) || XMVector3Equal(ev, XMVectorNegate(ez))) {
+                // No rotation needed
+                rotation = XMMatrixIdentity();
+            }
+            else {
+                // Compute the rotation matrix
+                const XMVECTOR v = XMVector3Cross(ez, ev);
+                const float c = XMVectorGetX(XMVector3Dot(ez, ev));
+
+                const XMMATRIX vx = { 0, XMVectorGetZ(v), XMVectorGetY(v), 0,
+                                      -XMVectorGetZ(v), 0, XMVectorGetX(v), 0,
+                                      -XMVectorGetY(v), -XMVectorGetX(v), 0, 0,
+                                      0, 0, 0, 0 };
+
+                const XMMATRIX vx2 = XMMatrixMultiply(vx, vx);
+
+                rotation = XMMatrixAdd(XMMatrixAdd(XMMatrixIdentity(), vx), vx2 * (1.0f / (1.0f + c)));
+            }
+
+            // Scale
+            const XMMATRIX scale_hemisphere = XMMatrixScaling(capsule.capsule.r, capsule.capsule.r, capsule.capsule.r);
+            const XMMATRIX scale_cylinder = XMMatrixScaling(
+                capsule.capsule.r,
+                XMVectorGetX(XMVector3Length(p1 - p0)) * 0.5f,
+                capsule.capsule.r
+            );
+
+            data[i] = {
+                .Transform = XMMatrixTranspose(scale_cylinder * rotation * translation_cylinder),
+                .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
+            };
+            data_htop[i] = {
+                .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_htop),
+                .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
+            };
+            data_hbottom[i] = {
+                .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_hbottom),
+                .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
+            };
+
+            i += 1;
+            if (i >= MAX_INSTANCES) {
+                break;
+            }
+        }
+
+        m_d3d12_transform_buffer->Unmap(0, nullptr);
+        m_d3d12_htop_transform_buffer->Unmap(0, nullptr);
+        m_d3d12_hbottom_transform_buffer->Unmap(0, nullptr);
+
+        // Top Hemisphere
+        views[0] = m_d3d12_hemisphere_top.VertexBufferView;
+        views[1] = m_d3d12_htop_transform_buffer_view;
+
+        m_d3d12_command_list->IASetIndexBuffer(&m_d3d12_hemisphere_top.IndexBufferView);
+        m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+        m_d3d12_command_list->DrawIndexedInstanced(
+            m_d3d12_hemisphere_top.IndexCount,
+            i, 0, 0, 0
+        );
+
+        // Bottom Hemisphere
+        views[0] = m_d3d12_hemisphere_bottom.VertexBufferView;
+        views[1] = m_d3d12_hbottom_transform_buffer_view;
+
+        m_d3d12_command_list->IASetIndexBuffer(&m_d3d12_hemisphere_bottom.IndexBufferView);
+        m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+        m_d3d12_command_list->DrawIndexedInstanced(
+            m_d3d12_hemisphere_bottom.IndexCount,
+            i, 0, 0, 0
+        );
+
+        // Cylinder
+        views[0] = m_d3d12_cylinder.VertexBufferView;
+        views[1] = m_d3d12_transform_buffer_view;
+
+        m_d3d12_command_list->IASetIndexBuffer(&m_d3d12_cylinder.IndexBufferView);
+        m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+        m_d3d12_command_list->DrawIndexedInstanced(
+            m_d3d12_cylinder.IndexCount,
+            i, 0, 0, 0
+        );
+    }
+
+    // Close command list
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
+    m_d3d12_command_list->ResourceBarrier(1, &barrier);
+    HandleResult(m_d3d12_command_list->Close());
+
+    command_queue->ExecuteCommandLists(1, CommandListCast(m_d3d12_command_list.GetAddressOf()));
+
+    m_spheres.clear();
+    m_cubes.clear();
+    m_capsules.clear();
 }
 
 void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
@@ -450,7 +723,313 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     ));
 }
 
-void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule) {
+void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapChain* swap_chain) {
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Sphere.obj", m_d3d12_sphere);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cube.obj", m_d3d12_cube);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Hemisphere.obj", m_d3d12_hemisphere_top);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/BottomHemisphere.obj", m_d3d12_hemisphere_bottom);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cylinder.obj", m_d3d12_cylinder);
+
+    CD3DX12_ROOT_PARAMETER root_parameters[3]{};
+
+    // ViewProj Constant Buffer
+    root_parameters[0].InitAsConstantBufferView(0);
+
+    // Vertex Buffer
+    root_parameters[1].InitAsShaderResourceView(0);
+
+    // Instance Buffer
+    root_parameters[2].InitAsShaderResourceView(1);
+
+    CD3DX12_ROOT_SIGNATURE_DESC root_signature_desc{};
+    root_signature_desc.Init(
+        _countof(root_parameters),
+        root_parameters,
+        0,
+        nullptr,
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+    );
+
+    ComPtr<ID3DBlob> signature_blob;
+    ComPtr<ID3DBlob> error_blob;
+    
+    const auto serialize_root_signature = (decltype(D3D12SerializeRootSignature)*)GetProcAddress(
+        d3dmodule->m_d3d12_module, "D3D12SerializeRootSignature"
+    );
+    if (!serialize_root_signature) {
+        dlog::error("Failed to get D3D12SerializeRootSignature");
+    }
+
+    HandleResult(serialize_root_signature(
+        &root_signature_desc,
+        D3D_ROOT_SIGNATURE_VERSION_1,
+        signature_blob.GetAddressOf(),
+        error_blob.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateRootSignature(
+        0,
+        signature_blob->GetBufferPointer(),
+        signature_blob->GetBufferSize(),
+        IID_PPV_ARGS(m_d3d12_root_signature.GetAddressOf())
+    ));
+
+    ComPtr<ID3DBlob> vs_blob;
+    ComPtr<ID3DBlob> ps_blob;
+
+    const auto& chunk = NativePluginFramework::get_module<ChunkModule>()->request_chunk("Default");
+    const auto& vs = chunk->get_file("/Resources/PrimitiveRenderingVS.hlsl");
+    const auto& ps = chunk->get_file("/Resources/PrimitiveRenderingPS.hlsl");
+
+    const auto load = [&](const Ref<FileSystemFile>& file, const char* target, ComPtr<ID3DBlob>& blob) {
+        HandleResult(D3DCompile(
+            file->Contents.data(),
+            file->size(),
+            nullptr,
+            nullptr,
+            nullptr,
+            "main",
+            target,
+            D3DCOMPILE_DEBUG,
+            0,
+            blob.GetAddressOf(),
+            nullptr
+        ));
+    };
+
+    load(vs, "vs_5_0", vs_blob);
+    load(ps, "ps_5_0", ps_blob);
+
+    D3D12_INPUT_ELEMENT_DESC input_element_desc[] = {
+        // Per Vertex (Buffer 1)
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        // Per Instance (Buffer 2)
+        {"TRANSFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+    };
+
+    // Raseterizer State
+    D3D12_RASTERIZER_DESC rasterizer_desc{};
+    rasterizer_desc.FillMode = D3D12_FILL_MODE_SOLID;
+    rasterizer_desc.CullMode = D3D12_CULL_MODE_NONE;
+    rasterizer_desc.FrontCounterClockwise = false;
+    rasterizer_desc.DepthBias = 0;
+    rasterizer_desc.DepthClipEnable = false;
+
+    // Depth Stencil State
+    D3D12_DEPTH_STENCIL_DESC depth_stencil_desc{};
+    depth_stencil_desc.DepthEnable = true;
+    depth_stencil_desc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+    depth_stencil_desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+    depth_stencil_desc.StencilEnable = false;
+
+    // Blend State
+    D3D12_BLEND_DESC blend_desc{};
+    blend_desc.RenderTarget[0].BlendEnable = true;
+    blend_desc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    blend_desc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+    blend_desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+    // Pipeline State
+    const auto sc3 = (IDXGISwapChain3*)swap_chain;
+    DXGI_SWAP_CHAIN_DESC swap_chain_desc{};
+    HandleResult(sc3->GetDesc(&swap_chain_desc));
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+    pso_desc.pRootSignature = m_d3d12_root_signature.Get();
+    pso_desc.VS = CD3DX12_SHADER_BYTECODE(vs_blob.Get());
+    pso_desc.PS = CD3DX12_SHADER_BYTECODE(ps_blob.Get());
+    pso_desc.InputLayout = { input_element_desc, _countof(input_element_desc) };
+    pso_desc.RasterizerState = rasterizer_desc;
+    pso_desc.DepthStencilState = depth_stencil_desc;
+    pso_desc.BlendState = blend_desc;
+    pso_desc.SampleMask = UINT_MAX;
+    pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    pso_desc.NumRenderTargets = swap_chain_desc.BufferCount;
+    for (u32 i = 0; i < swap_chain_desc.BufferCount; ++i) {
+        pso_desc.RTVFormats[i] = swap_chain_desc.BufferDesc.Format;
+    }
+    pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    pso_desc.SampleDesc.Count = 1;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateGraphicsPipelineState(
+        &pso_desc,
+        IID_PPV_ARGS(m_d3d12_pipeline_state.GetAddressOf())
+    ));
+
+    // ViewProj Constant Buffer
+    D3D12_HEAP_PROPERTIES heap_properties{};
+    heap_properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+    D3D12_RESOURCE_DESC resource_desc{};
+    resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    resource_desc.Width = sizeof ViewProj12;
+    resource_desc.Height = 1;
+    resource_desc.DepthOrArraySize = 1;
+    resource_desc.MipLevels = 1;
+    resource_desc.SampleDesc.Count = 1;
+    resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_viewproj_buffer.GetAddressOf())
+    ));
+
+    // Instance Buffer
+    resource_desc.Width = sizeof Instance * MAX_INSTANCES;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_transform_buffer.GetAddressOf())
+    ));
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_htop_transform_buffer.GetAddressOf())
+    ));
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_hbottom_transform_buffer.GetAddressOf())
+    ));
+
+    // Create Views
+    m_d3d12_transform_buffer_view.BufferLocation = m_d3d12_transform_buffer->GetGPUVirtualAddress();
+    m_d3d12_transform_buffer_view.SizeInBytes = sizeof Instance * MAX_INSTANCES;
+    m_d3d12_transform_buffer_view.StrideInBytes = sizeof Instance;
+
+    m_d3d12_htop_transform_buffer_view.BufferLocation = m_d3d12_htop_transform_buffer->GetGPUVirtualAddress();
+    m_d3d12_htop_transform_buffer_view.SizeInBytes = sizeof Instance * MAX_INSTANCES;
+    m_d3d12_htop_transform_buffer_view.StrideInBytes = sizeof Instance;
+
+    m_d3d12_hbottom_transform_buffer_view.BufferLocation = m_d3d12_hbottom_transform_buffer->GetGPUVirtualAddress();
+    m_d3d12_hbottom_transform_buffer_view.SizeInBytes = sizeof Instance * MAX_INSTANCES;
+    m_d3d12_hbottom_transform_buffer_view.StrideInBytes = sizeof Instance;
+
+    // Depth Stencil
+    // Depth Stencil Descriptor Heap
+    D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc{};
+    descriptor_heap_desc.NumDescriptors = 1;
+    descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    descriptor_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    descriptor_heap_desc.NodeMask = 0;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateDescriptorHeap(
+        &descriptor_heap_desc,
+        IID_PPV_ARGS(m_d3d12_dsv_heap.GetAddressOf())
+    ));
+
+    m_d3d12_depth_stencil_view = m_d3d12_dsv_heap->GetCPUDescriptorHandleForHeapStart();
+
+    RECT rect{};
+    if (!GetClientRect(d3dmodule->m_game_window, &rect)) {
+        dlog::error("Failed to get client rect");
+    }
+
+    D3D12_RESOURCE_DESC texture_desc{};
+    texture_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    texture_desc.Width = rect.right - rect.left;
+    texture_desc.Height = rect.bottom - rect.top;
+    texture_desc.MipLevels = 1;
+    texture_desc.DepthOrArraySize = 1;
+    texture_desc.Format = DXGI_FORMAT_D32_FLOAT;
+    texture_desc.SampleDesc.Count = 1;
+    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+    D3D12_CLEAR_VALUE depth_clear_value{};
+    depth_clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+    depth_clear_value.DepthStencil.Depth = 1.0f;
+
+    const auto default_heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &default_heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &texture_desc,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        &depth_clear_value,
+        IID_PPV_ARGS(m_d3d12_depth_stencil_texture.GetAddressOf())
+    ));
+
+    D3D12_DEPTH_STENCIL_VIEW_DESC depth_stencil_view_desc{};
+    depth_stencil_view_desc.Format = DXGI_FORMAT_D32_FLOAT;
+    depth_stencil_view_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    depth_stencil_view_desc.Texture2D.MipSlice = 0;
+
+    d3dmodule->m_d3d12_device->CreateDepthStencilView(
+        m_d3d12_depth_stencil_texture.Get(),
+        &depth_stencil_view_desc,
+        m_d3d12_depth_stencil_view
+    );
+
+    // Command Allocator
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommandAllocator(
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        IID_PPV_ARGS(m_d3d12_command_allocator.GetAddressOf())
+    ));
+
+    // Command List
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommandList(
+        0,
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        m_d3d12_command_allocator.Get(),
+        m_d3d12_pipeline_state.Get(),
+        IID_PPV_ARGS(m_d3d12_command_list.GetAddressOf())
+    ));
+
+    HandleResult(m_d3d12_command_list->Close());
+
+    // Backbuffers
+    const u32 buffer_count = swap_chain_desc.BufferCount;
+
+    m_d3d12_frame_contexts = new FrameContext[buffer_count];
+
+    descriptor_heap_desc.NumDescriptors = buffer_count;
+    descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    descriptor_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    descriptor_heap_desc.NodeMask = 0;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateDescriptorHeap(
+        &descriptor_heap_desc,
+        IID_PPV_ARGS(m_d3d12_rtv_heap.GetAddressOf())
+    ));
+
+    const u32 rtv_descriptor_size = d3dmodule->m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_rtv_heap->GetCPUDescriptorHandleForHeapStart();
+
+    for (u32 i = 0; i < buffer_count; i++) {
+        HandleResult(sc3->GetBuffer(i, IID_PPV_ARGS(m_d3d12_frame_contexts[i].RenderTarget.GetAddressOf())));
+
+        d3dmodule->m_d3d12_device->CreateRenderTargetView(
+            m_d3d12_frame_contexts[i].RenderTarget.Get(),
+            nullptr,
+            rtv_handle
+        );
+
+        m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
+        rtv_handle.ptr += rtv_descriptor_size;
+    }
 }
 
 PrimitiveRenderingModule::CpuMesh PrimitiveRenderingModule::load_mesh(const std::string& path) {
@@ -484,7 +1063,7 @@ PrimitiveRenderingModule::CpuMesh PrimitiveRenderingModule::load_mesh(const std:
     return mesh;
 }
 
-void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh<ID3D11Buffer>& out) {
+void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out) {
     const CpuMesh mesh = load_mesh(path);
 
     out.IndexCount = (u32)mesh.Indices.size();
@@ -513,7 +1092,7 @@ void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const std::
     HandleResult(device->CreateBuffer(&bd, &sd, out.IndexBuffer.GetAddressOf()));
 }
 
-void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh<ID3D12Resource>& out) {
+void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out) {
     const CpuMesh mesh = load_mesh(path);
 
     out.IndexCount = (u32)mesh.Indices.size();
@@ -559,6 +1138,14 @@ void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::
     HandleResult(out.IndexBuffer->Map(0, nullptr, (void**)&index_data));
     std::memcpy(index_data, mesh.Indices.data(), sizeof(u32) * mesh.Indices.size());
     out.IndexBuffer->Unmap(0, nullptr);
+
+    out.VertexBufferView.BufferLocation = out.VertexBuffer->GetGPUVirtualAddress();
+    out.VertexBufferView.SizeInBytes = sizeof(Vertex) * (u32)mesh.Vertices.size();
+    out.VertexBufferView.StrideInBytes = sizeof(Vertex);
+
+    out.IndexBufferView.BufferLocation = out.IndexBuffer->GetGPUVirtualAddress();
+    out.IndexBufferView.SizeInBytes = sizeof(u32) * (u32)mesh.Indices.size();
+    out.IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 }
 
 void PrimitiveRenderingModule::render_sphere_api(const MtSphere* sphere, const MtVector4* color) {

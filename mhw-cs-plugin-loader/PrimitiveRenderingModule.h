@@ -8,6 +8,7 @@
 #include <wrl/client.h>
 
 #include <array>
+#include <dxgi1_4.h>
 #include <vector>
 
 class D3DModule;
@@ -18,22 +19,29 @@ public:
     void initialize(CoreClr* coreclr) override;
     void shutdown() override;
 
-    void late_init(D3DModule* d3dmodule);
+    void late_init(D3DModule* d3dmodule, IDXGISwapChain* swap_chain);
 
     void render_sphere(const MtSphere& sphere, MtVector4 color);
     void render_obb(const MtOBB& obb, MtVector4 color);
     void render_capsule(const MtCapsule& capsule, MtVector4 color);
 
     void render_primitives_for_d3d11(ID3D11DeviceContext* context);
-    void render_primitives_for_d3d12();
+    void render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue);
 
 private:
     template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
     using Vertex = MtVector4;
-    template<class T> struct Mesh {
-        ComPtr<T> VertexBuffer = nullptr;
-        ComPtr<T> IndexBuffer = nullptr;
+    struct Mesh11 {
+        ComPtr<ID3D11Buffer> VertexBuffer = nullptr;
+        ComPtr<ID3D11Buffer> IndexBuffer = nullptr;
         u32 IndexCount = 0;
+    };
+    struct Mesh12 {
+        ComPtr<ID3D12Resource> VertexBuffer = nullptr;
+        ComPtr<ID3D12Resource> IndexBuffer = nullptr;
+        u32 IndexCount = 0;
+        D3D12_VERTEX_BUFFER_VIEW VertexBufferView{};
+        D3D12_INDEX_BUFFER_VIEW IndexBufferView{};
     };
     struct CpuMesh {
         std::vector<Vertex> Vertices;
@@ -41,11 +49,11 @@ private:
     };
 
     void late_init_d3d11(D3DModule* d3dmodule);
-    void late_init_d3d12(D3DModule* d3dmodule);
+    void late_init_d3d12(D3DModule* d3dmodule, IDXGISwapChain* swap_chain);
 
     static CpuMesh load_mesh(const std::string& path);
-    static void load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh<ID3D11Buffer>& out);
-    static void load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh<ID3D12Resource>& out);
+    static void load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out);
+    static void load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out);
 
     static void render_sphere_api(const MtSphere* sphere, const MtVector4* color);
     static void render_obb_api(const MtOBB* obb, const MtVector4* color);
@@ -69,6 +77,14 @@ private:
         DirectX::XMMATRIX View;
         DirectX::XMMATRIX Proj;
     };
+    struct alignas(256) ViewProj12 { // Constant buffer must be 256-byte aligned in D3D12
+        DirectX::XMMATRIX View;
+        DirectX::XMMATRIX Proj;
+    };
+    struct FrameContext {
+        ComPtr<ID3D12Resource> RenderTarget = nullptr;
+        D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptor = { 0 };
+    };
 
     static constexpr u32 MAX_INSTANCES = 128;
 
@@ -82,11 +98,11 @@ private:
 
     #pragma region D3D11
 
-    Mesh<ID3D11Buffer> m_d3d11_cylinder{};
-    Mesh<ID3D11Buffer> m_d3d11_hemisphere_top{};
-    Mesh<ID3D11Buffer> m_d3d11_hemisphere_bottom{};
-    Mesh<ID3D11Buffer> m_d3d11_sphere{};
-    Mesh<ID3D11Buffer> m_d3d11_cube{};
+    Mesh11 m_d3d11_cylinder{};
+    Mesh11 m_d3d11_hemisphere_top{};
+    Mesh11 m_d3d11_hemisphere_bottom{};
+    Mesh11 m_d3d11_sphere{};
+    Mesh11 m_d3d11_cube{};
     ComPtr<ID3D11Buffer> m_d3d11_htop_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_hbottom_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_transform_buffer = nullptr;
@@ -103,11 +119,29 @@ private:
     #pragma endregion
     #pragma region D3D12
 
-    Mesh<ID3D12Resource> m_d3d12_sphere;
-    Mesh<ID3D12Resource> m_d3d12_cube;
-    Mesh<ID3D12Resource> m_d3d12_capsule;
+    Mesh12 m_d3d12_cylinder{};
+    Mesh12 m_d3d12_hemisphere_top{};
+    Mesh12 m_d3d12_hemisphere_bottom{};
+    Mesh12 m_d3d12_sphere{};
+    Mesh12 m_d3d12_cube{};
+    ComPtr<ID3D12Resource> m_d3d12_htop_transform_buffer = nullptr;
+    ComPtr<ID3D12Resource> m_d3d12_hbottom_transform_buffer = nullptr;
     ComPtr<ID3D12Resource> m_d3d12_transform_buffer = nullptr;
-    ComPtr<ID3D12Resource> m_d3d12_vp_matrix_buffer = nullptr;
+    ComPtr<ID3D12Resource> m_d3d12_viewproj_buffer = nullptr;
+    ComPtr<ID3D12Resource> m_d3d12_depth_stencil_texture = nullptr;
+    ComPtr<ID3D12RootSignature> m_d3d12_root_signature = nullptr;
+    ComPtr<ID3D12PipelineState> m_d3d12_pipeline_state = nullptr;
+
+    ComPtr<ID3D12CommandAllocator> m_d3d12_command_allocator = nullptr;
+    ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
+    FrameContext* m_d3d12_frame_contexts;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_rtv_heap = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_dsv_heap = nullptr;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE m_d3d12_depth_stencil_view = { 0 };
+    D3D12_VERTEX_BUFFER_VIEW m_d3d12_htop_transform_buffer_view{};
+    D3D12_VERTEX_BUFFER_VIEW m_d3d12_hbottom_transform_buffer_view{};
+    D3D12_VERTEX_BUFFER_VIEW m_d3d12_transform_buffer_view{};
 
     #pragma endregion
 };

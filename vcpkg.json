@@ -9,6 +9,7 @@
         "nlohmann-json",
         "zlib",
         "directxmath",
-        "tinyobjloader"
+        "tinyobjloader",
+        "d3dx12"
     ]
 }

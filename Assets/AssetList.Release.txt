@@ -12,7 +12,7 @@ $(AssetDir)/Common/NotoSansJP-Regular.ttf
 $(AssetDir)/Common/fa-solid-900.ttf
 $(AssetDir)/Common/AddressRecords.json
 n:$(AssetDir)/Common/FASMX64.dll
-n:$(AssetDir)/ReleaseAssets/cimgui.debug.dll
+n:$(AssetDir)/ReleaseAssets/cimgui.dll
 $(AssetDir)/Common/Sphere.obj
 $(AssetDir)/Common/Cube.obj
 $(AssetDir)/Common/Hemisphere.obj

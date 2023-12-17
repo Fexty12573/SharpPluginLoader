@@ -15,6 +15,19 @@ For more detailed documentation and tutorials, visit the [wiki](https://fexty125
 4. Implement the required methods.
 5. Put the compiled assembly into `nativePC/plugins/CSharp`. Assemblies are also allowed to be in subdirectories.
 
+## Framework Development (with Visual Studio 2022)
+1. Clone the repository with submodules:
+    1. `git clone --recursive git@github.com:Fexty12573/SharpPluginLoader.git`
+2. Setup vcpkg IDE integration if you haven't already done so:
+    1. Open `Developer PowerShell for Visual Studio`
+    2. Run `vcpkg integrate install`
+3. Generate cimgui VS project:
+    1. Open `Developer PowerShell for Visual Studio`
+    2. `cd SharpPluginLoader\dependencies\cimgui\`
+    3. `cmake -B . -G 'Visual Studio 17 2022'`
+4. Open `mhw-cs-plugin-loader.sln`
+5. Build solution `Build -> Build Solution`
+
 ## Dependency Resolution
 The native host (`SharpPluginLoader.Native.dll`) loads the Bootstrapper assembly (`SharpPluginLoader.Bootstrapper.dll`)
 into the default AssemblyLoadContext (ALC). The Bootstrapper then loads the core assembly into a custom ALC (`CoreLoadContext`).

@@ -20,6 +20,8 @@ if "%2" == "Debug" (
 )
 
 :: Copy AddressRecords.json
+mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\Data" 2> NUL
+mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\Data.Debug" 2> NUL
 copy /y "%SOLUTION_DIR%\SharpPluginLoader.Core\AddressRecords.json" "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\Data\AddressRecords.json"
 copy /y "%SOLUTION_DIR%\SharpPluginLoader.Core\AddressRecords.json" "%SOLUTION_DIR%\ChunkBuilder\bin\Release\net8.0\Data.Debug\AddressRecords.json"
 

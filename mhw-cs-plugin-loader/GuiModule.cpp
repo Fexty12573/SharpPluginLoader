@@ -3,7 +3,7 @@
 #include "Log.h"
 #include "NativePluginFramework.h"
 
-#include <game_functions.h>
+#include <utility/game_functions.h>
 #include <dti/dti_types.h>
 
 struct GuiElement {

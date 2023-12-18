@@ -138,6 +138,8 @@ private:
     ComPtr<ID3D12DescriptorHeap> m_d3d12_rtv_heap = nullptr;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_dsv_heap = nullptr;
 
+    D3D12_VIEWPORT m_d3d12_viewport{};
+    D3D12_RECT m_d3d12_scissor_rect{};
     D3D12_CPU_DESCRIPTOR_HANDLE m_d3d12_depth_stencil_view = { 0 };
     D3D12_VERTEX_BUFFER_VIEW m_d3d12_htop_transform_buffer_view{};
     D3D12_VERTEX_BUFFER_VIEW m_d3d12_hbottom_transform_buffer_view{};

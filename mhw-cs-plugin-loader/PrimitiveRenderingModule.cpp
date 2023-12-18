@@ -322,15 +322,15 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     m_d3d12_command_list->SetGraphicsRootSignature(m_d3d12_root_signature.Get());
     m_d3d12_command_list->SetPipelineState(m_d3d12_pipeline_state.Get());
 
-    constexpr float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    //m_d3d12_command_list->ClearRenderTargetView(frame_context.RenderTargetDescriptor, clear_color, 0, nullptr);
+    constexpr float clear_color[] = { 1.f, 0.f, 1.f, 1.0f };
+    m_d3d12_command_list->RSSetViewports(1, &m_d3d12_viewport);
+    m_d3d12_command_list->RSSetScissorRects(1, &m_d3d12_scissor_rect);
     m_d3d12_command_list->OMSetRenderTargets(
         1,     
         &frame_context.RenderTargetDescriptor, 
         false, 
-        &m_d3d12_depth_stencil_view
+        nullptr
     );
-    //m_d3d12_command_list->SetDescriptorHeaps(1, m_d3d12_rtv_heap.GetAddressOf());
 
     m_d3d12_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
@@ -356,7 +356,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         // Build Instance Data
         const D3D12_RANGE range{ 
             0, 
-            sizeof(Instance) * std::min<u32>(m_spheres.size(), MAX_INSTANCES) 
+            sizeof(Instance) * std::min<u32>((u32)m_spheres.size(), MAX_INSTANCES)
         };
         Instance* data = nullptr;
         HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
@@ -395,7 +395,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         i = 0;
         const D3D12_RANGE range{
             0,
-            sizeof(Instance) * std::min<u32>(m_cubes.size(), MAX_INSTANCES)
+            sizeof(Instance) * std::min<u32>((u32)m_cubes.size(), MAX_INSTANCES)
         };
         Instance* data = nullptr;
         HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
@@ -434,7 +434,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         i = 0;
         const D3D12_RANGE range{
             0,
-            sizeof(Instance) * std::min<u32>(m_capsules.size(), MAX_INSTANCES)
+            sizeof(Instance) * std::min<u32>((u32)m_capsules.size(), MAX_INSTANCES)
         };
         Instance* data = nullptr;
         Instance* data_htop = nullptr;
@@ -782,6 +782,12 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     const auto& ps = chunk->get_file("/Resources/PrimitiveRenderingPS.hlsl");
 
     const auto load = [&](const Ref<FileSystemFile>& file, const char* target, ComPtr<ID3DBlob>& blob) {
+#ifdef _DEBUG
+        constexpr UINT compile_flags = D3DCOMPILE_DEBUG;
+#else
+        constexpr UINT compile_flags = 0;
+#endif
+
         HandleResult(D3DCompile(
             file->Contents.data(),
             file->size(),
@@ -790,7 +796,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
             nullptr,
             "main",
             target,
-            D3DCOMPILE_DEBUG,
+            compile_flags,
             0,
             blob.GetAddressOf(),
             nullptr
@@ -816,26 +822,27 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     rasterizer_desc.FillMode = D3D12_FILL_MODE_SOLID;
     rasterizer_desc.CullMode = D3D12_CULL_MODE_NONE;
     rasterizer_desc.FrontCounterClockwise = false;
-    rasterizer_desc.DepthBias = 0;
     rasterizer_desc.DepthClipEnable = false;
 
     // Depth Stencil State
     D3D12_DEPTH_STENCIL_DESC depth_stencil_desc{};
-    depth_stencil_desc.DepthEnable = true;
+    depth_stencil_desc.DepthEnable = false; // TODO
     depth_stencil_desc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
     depth_stencil_desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
     depth_stencil_desc.StencilEnable = false;
 
     // Blend State
     D3D12_BLEND_DESC blend_desc{};
-    blend_desc.RenderTarget[0].BlendEnable = true;
-    blend_desc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    blend_desc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-    blend_desc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    blend_desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
-    blend_desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    for (auto& rtv : blend_desc.RenderTarget) {
+        rtv.BlendEnable = true;
+        rtv.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+        rtv.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+        rtv.BlendOp = D3D12_BLEND_OP_ADD;
+        rtv.SrcBlendAlpha = D3D12_BLEND_ONE;
+        rtv.DestBlendAlpha = D3D12_BLEND_ZERO;
+        rtv.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+        rtv.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    }
 
     // Pipeline State
     const auto sc3 = (IDXGISwapChain3*)swap_chain;
@@ -848,7 +855,8 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     pso_desc.PS = CD3DX12_SHADER_BYTECODE(ps_blob.Get());
     pso_desc.InputLayout = { input_element_desc, _countof(input_element_desc) };
     pso_desc.RasterizerState = rasterizer_desc;
-    pso_desc.DepthStencilState = depth_stencil_desc;
+    pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    //pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     pso_desc.BlendState = blend_desc;
     pso_desc.SampleMask = UINT_MAX;
     pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -874,6 +882,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     resource_desc.Height = 1;
     resource_desc.DepthOrArraySize = 1;
     resource_desc.MipLevels = 1;
+    resource_desc.Format = DXGI_FORMAT_UNKNOWN;
     resource_desc.SampleDesc.Count = 1;
     resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
@@ -947,21 +956,31 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         dlog::error("Failed to get client rect");
     }
 
-    D3D12_RESOURCE_DESC texture_desc{};
-    texture_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    texture_desc.Width = rect.right - rect.left;
-    texture_desc.Height = rect.bottom - rect.top;
-    texture_desc.MipLevels = 1;
-    texture_desc.DepthOrArraySize = 1;
-    texture_desc.Format = DXGI_FORMAT_D32_FLOAT;
-    texture_desc.SampleDesc.Count = 1;
-    texture_desc.SampleDesc.Quality = 0;
-    texture_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    D3D12_RESOURCE_DESC texture_desc = CD3DX12_RESOURCE_DESC::Tex2D(
+        DXGI_FORMAT_D32_FLOAT,
+        rect.right - rect.left,
+        rect.bottom - rect.top,
+        1, 1, 1, 0,
+        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+    );
+
+    m_d3d12_viewport = CD3DX12_VIEWPORT(
+        0.0f,
+        0.0f,
+        (float)texture_desc.Width,
+        (float)texture_desc.Height
+    );
+    m_d3d12_scissor_rect = CD3DX12_RECT(
+        0,
+        0,
+        (LONG)texture_desc.Width,
+        (LONG)texture_desc.Height
+    );
 
     D3D12_CLEAR_VALUE depth_clear_value{};
     depth_clear_value.Format = DXGI_FORMAT_D32_FLOAT;
     depth_clear_value.DepthStencil.Depth = 1.0f;
-
+    
     const auto default_heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
         &default_heap_properties,
@@ -975,7 +994,6 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     D3D12_DEPTH_STENCIL_VIEW_DESC depth_stencil_view_desc{};
     depth_stencil_view_desc.Format = DXGI_FORMAT_D32_FLOAT;
     depth_stencil_view_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-    depth_stencil_view_desc.Texture2D.MipSlice = 0;
 
     d3dmodule->m_d3d12_device->CreateDepthStencilView(
         m_d3d12_depth_stencil_texture.Get(),
@@ -1021,6 +1039,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     for (u32 i = 0; i < buffer_count; i++) {
         HandleResult(sc3->GetBuffer(i, IID_PPV_ARGS(m_d3d12_frame_contexts[i].RenderTarget.GetAddressOf())));
 
+        HandleResult(m_d3d12_frame_contexts[i].RenderTarget->SetName(L"SPL: Render Target"));
         d3dmodule->m_d3d12_device->CreateRenderTargetView(
             m_d3d12_frame_contexts[i].RenderTarget.Get(),
             nullptr,
@@ -1102,7 +1121,7 @@ void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::
 
     D3D12_RESOURCE_DESC resource_desc{};
     resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    resource_desc.Width = sizeof(Vertex) * (u32)mesh.Vertices.size();
+    resource_desc.Width = sizeof(Vertex) * mesh.Vertices.size();
     resource_desc.Height = 1;
     resource_desc.DepthOrArraySize = 1;
     resource_desc.MipLevels = 1;
@@ -1123,7 +1142,7 @@ void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::
     std::memcpy(vertex_data, mesh.Vertices.data(), sizeof(Vertex) * mesh.Vertices.size());
     out.VertexBuffer->Unmap(0, nullptr);
 
-    resource_desc.Width = sizeof(u32) * (u32)mesh.Indices.size();
+    resource_desc.Width = sizeof(u32) * mesh.Indices.size();
 
     HandleResult(device->CreateCommittedResource(
         &heap_properties,

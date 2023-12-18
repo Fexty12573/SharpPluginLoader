@@ -37,6 +37,9 @@ namespace SharpPluginLoader.Core
         }
 
         private static readonly Dictionary<int, RetrievedMethod> RetrievedMethods = new();
+        private static Patch? _exceptionFilterPatch1 = null;
+        private static Patch? _exceptionFilterPatch2 = null;
+
 
         public static void PreInitialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
@@ -45,6 +48,9 @@ namespace SharpPluginLoader.Core
                 var e = (Exception)args.ExceptionObject;
                 Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
             };
+
+            _exceptionFilterPatch1 = new Patch((nint)0x1427419ab, [0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90]);
+            _exceptionFilterPatch2 = new Patch((nint)0x141af3500, [0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90]);
 
             Log.Initialize(logFunc);
             GetManagedFunctionPointers((ManagedFunctionPointers*)pointers);

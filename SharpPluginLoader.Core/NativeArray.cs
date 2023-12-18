@@ -99,6 +99,63 @@ namespace SharpPluginLoader.Core
         }
     }
 
+    /// <summary>
+    /// A wrapper around a native array of pointers.
+    /// </summary>
+    /// <typeparam name="T">The type of the underlying elements</typeparam>
+    public readonly unsafe struct PointerArray<T>(nint address, int length) where T : unmanaged
+    {
+        /// <summary>
+        /// The number of elements in the array.
+        /// </summary>
+        public int Length { get; } = length;
+
+        /// <summary>
+        /// The address of the first element in the array.
+        /// </summary>
+        public nint Address { get; } = address;
+
+        /// <summary>
+        /// A pointer to the first element in the array.
+        /// </summary>
+        public T** Pointer => (T**)Address;
+
+        /// <summary>
+        /// Gets a reference to the element at the specified index.
+        /// </summary>
+        public ref T this[int index] => ref *Pointer[index];
+
+        /// <summary>
+        /// Gets a pointer to the element at the specified index.
+        /// </summary>
+        public T* this[nint index] => Pointer[index];
+
+        /// <summary>
+        /// Gets an enumerator for the array.
+        /// </summary>
+        public readonly Enumerator GetEnumerator() => new(this);
+
+        public struct Enumerator
+        {
+            private readonly PointerArray<T> _array;
+            private int _index;
+
+            internal Enumerator(PointerArray<T> array)
+            {
+                _array = array;
+                _index = -1;
+            }
+
+            public readonly ref T Current => ref *_array.Pointer[_index];
+
+            public bool MoveNext()
+            {
+                _index++;
+                return _index < _array.Length;
+            }
+        }
+    }
+
     public static class SpanExtensions
     {
         public static unsafe NativeArray<T> AsNativeArray<T>(this Span<T> span) where T : unmanaged

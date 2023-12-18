@@ -1,0 +1,59 @@
+name: MSBuild
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Release] #[Debug, Release]
+
+    runs-on: windows-latest
+    
+    env:
+      BUILD_CONFIGURATION: ${{matrix.configuration}}
+      # Path to the solution file relative to the root of the project.
+      SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
+      
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-version: '[,17)'
+        msbuild-architecture: x64
+
+    - name: Install vcpkg
+      uses: lukka/run-vcpkg@v10.2
+      with:
+        vcpkgDirectory: '${{runner.workspace}}/b/vcpkg'
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00' # github.com/microsoft/vcpkg - 2023-12-12 release.
+        vcpkgJsonGlob: '**/vcpkg.json'
+        runVcpkgInstall: true
+    
+    - name: Integrate vcpkg
+      working-directory: ${{env.VCPKG_ROOT}}
+      run: |
+        vcpkg integrate install
+
+    - name: Generate cimgui project files
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        cd ./dependencies/cimgui/
+        cmake -B . -G 'Visual Studio 17 2022'
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 /p:VcpkgEnableManifest=true ${{env.SOLUTION_FILE_PATH}}

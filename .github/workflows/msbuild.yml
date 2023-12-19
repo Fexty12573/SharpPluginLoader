@@ -9,19 +9,14 @@ on:
 permissions:
   contents: read
 
-jobs:
-  build:
-    strategy:
-      matrix:
-        configuration: [Release] #[Debug, Release]
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
 
+jobs:
+  prepare:
     runs-on: windows-latest
-    
-    env:
-      BUILD_CONFIGURATION: ${{matrix.configuration}}
-      # Path to the solution file relative to the root of the project.
-      SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
-      
+
     steps:
     - uses: actions/checkout@v3
       with:
@@ -46,6 +41,23 @@ jobs:
       run: |
         vcpkg integrate install
 
+    - name: Build Utilities\ChunkBuilder (Release mode)
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # We _ALWAYS_ build ChunkBuilder in Release mode in the prepare step,
+      # as certain build scripts expect a release build path on disk, regardless of the build mode.
+      run: msbuild /p:Configuration="Release" /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:BuildProjectReferences=false /p:VcpkgEnableManifest=true /t:Utilities\ChunkBuilder
+
+
+  build:
+    needs: prepare
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    env:
+      BUILD_CONFIGURATION: ${{matrix.configuration}}
+      
+    steps:
     - name: Generate cimgui project files
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
@@ -56,11 +68,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         dotnet restore ${{env.SOLUTION_FILE_PATH}}
-
-    - name: Build Utilities\ChunkBuilder (Release mode)
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      # We _ALWAYS_ build ChunkBuilder in Release mode, as certain build scripts expect a release build path on disk,
-      run: msbuild /p:Configuration="Release" /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:BuildProjectReferences=false /p:VcpkgEnableManifest=true /t:Utilities\ChunkBuilder
 
     - name: Build Native\mhw-cs-plugin-loader
       working-directory: ${{env.GITHUB_WORKSPACE}}

@@ -64,7 +64,7 @@ jobs:
 
     - name: Build Native\mhw-cs-plugin-loader
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Native\mhw-cs-plugin-loader
+      run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:BuildProjectReferences=true /p:VcpkgEnableManifest=true /t:Native\mhw-cs-plugin-loader
 
     - name: Build Managed\SharpPluginLoader.Bootstrapper
       working-directory: ${{env.GITHUB_WORKSPACE}}

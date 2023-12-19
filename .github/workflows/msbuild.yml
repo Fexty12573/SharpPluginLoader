@@ -46,16 +46,16 @@ jobs:
       run: |
         vcpkg integrate install
 
-    - name: Dotnet Restore
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: |
-        dotnet restore ${{env.SOLUTION_FILE_PATH}}
-
     - name: Generate cimgui project files
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         cd ./dependencies/cimgui/
         cmake -B . -G 'Visual Studio 17 2022'
+
+    - name: Dotnet Restore
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        dotnet restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build Utilities\ChunkBuilder (Release mode)
       working-directory: ${{env.GITHUB_WORKSPACE}}

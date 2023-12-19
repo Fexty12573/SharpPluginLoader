@@ -117,7 +117,8 @@ namespace SharpPluginLoader.Core
                     break;
                 }
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(reason), reason, null);
+                    Log.Debug($"Unknown quest end reason: {reason}");
+                    break;
             }
 
             _endQuestHook.Original(questMgr, unk1, reason, unk3);

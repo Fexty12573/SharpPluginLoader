@@ -52,8 +52,26 @@ jobs:
         cd ./dependencies/cimgui/
         cmake -B . -G 'Visual Studio 17 2022'
 
-    - name: Build
+    - name: Build Utilities\ChunkBuilder (Release mode)
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 /p:VcpkgEnableManifest=true ${{env.SOLUTION_FILE_PATH}}
+      # We _ALWAYS_ build ChunkBuilder in Release mode, as certain build scripts expect a release build path on disk,
+      run: msbuild /p:Configuration="Release" /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:BuildProjectReferences=false /p:VcpkgEnableManifest=true /t:Utilities\ChunkBuilder
+
+    - name: Build Native\mhw-cs-plugin-loader
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Native\mhw-cs-plugin-loader
+
+    - name: Build Managed\SharpPluginLoader.Bootstrapper
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Managed\SharpPluginLoader_Bootstrapper
+
+    - name: Build Managed\SharpPluginLoader.Core
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Managed\SharpPluginLoader_Core
+
+    # TODO(Andoryuuta): Can't currently build solution directly due to build order issues + "Release" mode binaries expected on-disk for some build scripts.
+    # - name: Build Solution
+    #   working-directory: ${{env.GITHUB_WORKSPACE}}
+    #   # Add additional options to the MSBuild command line here (like platform or verbosity level).
+    #   # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+    #   run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 /p:VcpkgEnableManifest=true ${{env.SOLUTION_FILE_PATH}}

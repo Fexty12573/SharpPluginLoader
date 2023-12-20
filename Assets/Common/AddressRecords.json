@@ -263,5 +263,10 @@
         "Name": "MtMatrix:operator*",
         "Pattern": "4C 8B DC 48 81 EC A8 00 00 00 F3 0F 10 61 04",
         "Offset": 0
+    },
+    {
+        "Name": "MtFile:Ctor",
+        "Pattern": "48 89 01 41 8B F1 C6 41 10 00",
+        "Offset": -35
     }
 ]

@@ -1,7 +1,6 @@
 #include "NativePluginFramework.h"
 #include "CoreClr.h"
 #include "Log.h"
-#include <dinput.h>
 #include <thread>
 
 namespace {

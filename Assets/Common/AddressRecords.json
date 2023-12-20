@@ -268,5 +268,20 @@
         "Name": "MtFile:Ctor",
         "Pattern": "48 89 01 41 8B F1 C6 41 10 00",
         "Offset": -35
+    },
+    {
+        "Name": "MtFileStream:Ctor",
+        "Pattern": "48 8B 02 48 8B CA FF 50 68 84 C0",
+        "Offset": -37
+    },
+    {
+        "Name": "MtMemoryStream:Ctor",
+        "Pattern": "74 04 41 83 E1 FB",
+        "Offset": -19
+    },
+    {
+        "Name": "MtCipherStream:Ctor",
+        "Pattern": "89 69 08 49 8B D8 48 83 C1 18",
+        "Offset": -47
     }
 ]

@@ -16,8 +16,9 @@ public unsafe class MtFile : MtObject, IDisposable
     /// </summary>
     /// <param name="path">The path of the file.</param>
     /// <param name="mode">The mode to open the file in.</param>
+    /// <param name="createPath">Whether to create the path if it does not exist.</param>
     /// <returns>The opened file, or null if the file could not be opened.</returns>
-    public static MtFile? Open(string path, OpenMode mode)
+    public static MtFile? Open(string path, OpenMode mode, bool createPath = true)
     {
         var dti = MtDti.Find("MtFile");
         if (dti is null) 
@@ -29,7 +30,7 @@ public unsafe class MtFile : MtObject, IDisposable
         };
 
         var ctor = new NativeFunction<nint, string, OpenMode, uint, nint>(AddressRepository.Get("MtFile:Ctor"));
-        ctor.Invoke(file.Instance, path, mode, 0);
+        ctor.Invoke(file.Instance, path, mode, createPath ? 2u : 0u);
 
         return file;
     }
@@ -64,11 +65,12 @@ public unsafe class MtFile : MtObject, IDisposable
     /// </summary>
     /// <param name="path">The path of the file.</param>
     /// <param name="mode">The mode to open the file in.</param>
+    /// <param name="createPath">Whether to create the path if it does not exist.</param>
     /// <returns>Whether the file was reopened successfully.</returns>
-    public bool Reopen(string path, OpenMode mode)
+    public bool Reopen(string path, OpenMode mode, bool createPath = true)
     {
         return new NativeFunction<nint, string, OpenMode, uint, bool>(GetVirtualFunction(5))
-            .Invoke(Instance, path, mode, 0);
+            .Invoke(Instance, path, mode, createPath ? 2u : 0u);
     }
 
     /// <summary>
@@ -138,8 +140,8 @@ public unsafe class MtFile : MtObject, IDisposable
     /// <returns>The new position in the file.</returns>
     public long Seek(long offset, SeekOrigin origin)
     {
-        return new NativeFunction<nint, long, SeekOrigin, long>(GetVirtualFunction(9))
-            .Invoke(Instance, offset, origin);
+        return new NativeFunction<nint, long, int, long>(GetVirtualFunction(9))
+            .Invoke(Instance, offset, (int)origin + 1); // +1 because MtFile::Seek's origin is 1-based
     }
 
     /// <summary>
@@ -174,7 +176,7 @@ public unsafe class MtFile : MtObject, IDisposable
     {
         if (_ownsPointer)
         {
-            Close();
+            Destroy(false);
             MemoryUtil.Free(Instance);
         }
     }

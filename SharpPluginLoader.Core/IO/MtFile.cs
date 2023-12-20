@@ -4,7 +4,7 @@ using SharpPluginLoader.Core.Memory;
 namespace SharpPluginLoader.Core.IO;
 
 /// <summary>
-/// Represents a file object.
+/// Represents a file.
 /// </summary>
 public unsafe class MtFile : MtObject, IDisposable
 {

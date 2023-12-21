@@ -28,6 +28,12 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{a1d2c7d4-fa1a-43d1-9180-bd1ed7a63fff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Modules">
+      <UniqueIdentifier>{02ec72f3-0e5f-4cd9-98e9-4546ca3af646}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Modules">
+      <UniqueIdentifier>{c4c2058b-1f63-452b-b29d-9ebbc2ac56ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -45,17 +51,8 @@
     <ClCompile Include="NativeModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CoreModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp">
       <Filter>Source Files\safetyhook</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DModule.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files\ImGui</Filter>
@@ -69,17 +66,26 @@
     <ClCompile Include="DelayLoad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChunkModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Timeline.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="D3DModule.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreModule.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkModule.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiModule.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiModule.cpp">
+      <Filter>Source Files\Modules</Filter>
+    </ClCompile>
     <ClCompile Include="PrimitiveRenderingModule.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,16 +107,7 @@
     <ClInclude Include="NativeModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CoreModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SharpPluginLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h">
@@ -125,9 +122,6 @@
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ChunkModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Chunk.h">
       <Filter>Header Files\Chunk</Filter>
     </ClInclude>
@@ -139,9 +133,6 @@
     </ClInclude>
     <ClInclude Include="FileSystemFolder.h">
       <Filter>Header Files\Chunk</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiModule.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Timeline.h">
       <Filter>Header Files\ImGui</Filter>
@@ -155,11 +146,26 @@
     <ClInclude Include="Primitives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PrimitiveRenderingModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HResultHandler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiModule.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreModule.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DModule.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkModule.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveRenderingModule.h">
+      <Filter>Header Files\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiModule.h">
+      <Filter>Header Files\Modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

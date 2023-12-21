@@ -283,5 +283,25 @@
         "Name": "MtCipherStream:Ctor",
         "Pattern": "89 69 08 49 8B D8 48 83 C1 18",
         "Offset": -47
+    },
+    {
+        "Name": "MtSerializer:DeserializeBinary",
+        "Pattern": "48 83 EC 60 C6 81 70 03 00 00 00",
+        "Offset": -11
+    },
+    {
+        "Name": "MtSerializer:SerializeBinary",
+        "Pattern": "48 8B E9 8B 50 08 D1 EA F6 C2 01",
+        "Offset": -24
+    },
+    {
+        "Name": "MtSerializer:DeserializeXml",
+        "Pattern": "57 41 56 41 57 B8 10 60 00 00",
+        "Offset": -15
+    },
+    {
+        "Name": "MtSerializer:SerializeXml",
+        "Pattern": "48 89 5C 24 18 55 56 41 56 B8",
+        "Offset": 0
     }
 ]

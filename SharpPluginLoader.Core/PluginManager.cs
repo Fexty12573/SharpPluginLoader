@@ -145,11 +145,27 @@ namespace SharpPluginLoader.Core
             var context = new PluginLoadContext(pluginPath);
 
             var assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
-            var pluginType = assembly.GetTypes().FirstOrDefault(type => typeof(IPlugin).IsAssignableFrom(type));
+
+            var hasIPluginType = false;
+            Type? pluginType = null;
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.GetInterfaces().Any(i => i.ToString() == typeof(IPlugin).ToString()))
+                    hasIPluginType = true;
+
+                if (typeof(IPlugin).IsAssignableFrom(type))
+                    pluginType = type;
+            }
 
             if (pluginType is null)
             {
-                Log.Warn($"Plugin {pluginPath} does not have an entry point");
+                // If there is a type that implements some IPlugin, but it is not assignable to IPlugin, then it is likely
+                // that the plugin author made some mistake, (such as combining Debug/Release builds) and we should warn
+                // them about it.
+                // If there is no type at all that implements IPlugin, then that dll is most likely just a dependency of
+                // another plugin, and we should just ignore it.
+                if (hasIPluginType)
+                    Log.Warn($"Plugin {pluginPath} does not have an entry point");
                 return;
             }
 

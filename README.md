@@ -9,6 +9,7 @@ For more detailed documentation and tutorials, visit the [wiki](https://fexty125
 2. Download the latest release from the [releases page]() and extract it into your Monster Hunter World directory.
 
 ## Plugin Development
+For more detailed instructions visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/Development/).
 1. Install the Visual Studio 2022 17.8 Preview 2 or later.
 2. Create a new **.NET 8.0** class library project and add a reference to `SharpPluginLoader.Core.dll`. 
 3. Create a class that implements the `SharpPluginLoader.Core.IPlugin` interface.

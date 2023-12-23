@@ -32,15 +32,15 @@ public unsafe class MtStream : MtObject
     /// <summary>
     /// Gets the position of the stream.
     /// </summary>
-    public long Position => new NativeFunction<nint, long>(GetVirtualFunction(10)).InvokeUnsafe(Instance);
+    public long Position => new NativeFunction<nint, long>(GetVirtualFunction(10)).Invoke(Instance);
 
     /// <summary>
     /// Gets or sets the length of the stream.
     /// </summary>
     public long Length
     {
-        get => new NativeFunction<nint, long>(GetVirtualFunction(11)).InvokeUnsafe(Instance);
-        set => new NativeFunction<nint, long, long>(GetVirtualFunction(10)).InvokeUnsafe(Instance, value);
+        get => new NativeFunction<nint, long>(GetVirtualFunction(11)).Invoke(Instance);
+        set => new NativeFunction<nint, long, long>(GetVirtualFunction(10)).Invoke(Instance, value);
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public unsafe class MtStream : MtObject
         fixed (byte* ptr = buffer)
         {
             return new NativeFunction<nint, nint, long, long>(GetVirtualFunction(8))
-                .InvokeUnsafe(Instance, (nint)ptr, count);
+                .Invoke(Instance, (nint)ptr, count);
         }
     }
 
@@ -104,7 +104,7 @@ public unsafe class MtStream : MtObject
         fixed (byte* ptr = buffer)
         {
             return new NativeFunction<nint, nint, long, long>(GetVirtualFunction(9))
-                .InvokeUnsafe(Instance, (nint)ptr, buffer.Length);
+                .Invoke(Instance, (nint)ptr, buffer.Length);
         }
     }
 
@@ -117,7 +117,7 @@ public unsafe class MtStream : MtObject
     public long Seek(long offset, SeekOrigin origin)
     {
         return new NativeFunction<nint, long, SeekOrigin, long>(GetVirtualFunction(12))
-            .InvokeUnsafe(Instance, offset, origin);
+            .Invoke(Instance, offset, origin);
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Memory;
+﻿using SharpPluginLoader.Core.IO;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.Resources
 {
@@ -44,6 +45,25 @@ namespace SharpPluginLoader.Core.Resources
         /// </summary>
         public uint RefCount => Get<uint>(0x5C);
 
+        /// <summary>
+        /// Deserializes this resource from the specified stream.
+        /// </summary>
+        /// <param name="stream">The stream to deserialize this resource from.</param>
+        /// <returns>True if the resource was deserialized successfully, false otherwise.</returns>
+        public unsafe bool LoadFrom(MtStream stream)
+        {
+            return new NativeFunction<nint, nint, bool>(GetVirtualFunction(10)).Invoke(Instance, stream.Instance);
+        }
+
+        /// <summary>
+        /// Serializes this resource to the specified stream.
+        /// </summary>
+        /// <param name="stream">The stream to serialize this resource to.</param>
+        /// <returns>True if the resource was serialized successfully, false otherwise.</returns>
+        public unsafe bool SaveTo(MtStream stream)
+        {
+            return new NativeFunction<nint, nint, bool>(GetVirtualFunction(11)).Invoke(Instance, stream.Instance);
+        }
 
         private static readonly NativeAction<nint, nint> AddRefFunc = new(AddressRepository.Get("ResourceManager:AddRef"));
         private static readonly NativeAction<nint, nint> ReleaseFunc = new(AddressRepository.Get("ResourceManager:Release"));

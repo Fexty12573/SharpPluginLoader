@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.MtTypes;
@@ -46,4 +47,36 @@ public class Viewport : MtObject
     /// The previous projection matrix of the viewports camera.
     /// </summary>
     public ref MtMatrix4X4 PrevProjectionMatrix => ref GetRef<MtMatrix4X4>(0x160);
+
+    /// <summary>
+    /// Converts a point in world space to screen space.
+    /// </summary>
+    /// <param name="worldPosition">The point in world space.</param>
+    /// <param name="screenPos">The point in screen space.</param>
+    /// <returns>True if the point is visible, false otherwise.</returns>
+    public bool WorldToScreen(MtVector3 worldPosition, out MtVector2 screenPos)
+    {
+        Vector4 worldPos = new(worldPosition, 1.0f);
+        
+        var viewPos = Vector4.Transform(worldPos, ViewMatrix);
+        var clipPos = Vector4.Transform(viewPos, ProjectionMatrix);
+
+        if (clipPos.W < (Camera?.NearClip ?? 0.01f))
+        {
+            screenPos = default;
+            return false;
+        }
+
+        var ndcPos = clipPos / clipPos.W;
+
+        var hwidth = (Region.W - Region.X) * 0.5f;
+        var hheight = (Region.H - Region.Y) * 0.5f;
+
+        screenPos = new MtVector2(
+            (hwidth * ndcPos.X) + hwidth,
+            -(hheight * ndcPos.Y) + hheight
+        );
+
+        return true;
+    }
 }

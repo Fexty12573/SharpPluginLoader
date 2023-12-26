@@ -134,5 +134,8 @@
 	<ItemGroup>
 	  <NativeLibs Remove="MtString.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Timer.cs" />
+	</ItemGroup>
 
 </Project>

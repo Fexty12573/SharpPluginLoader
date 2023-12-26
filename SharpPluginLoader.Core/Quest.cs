@@ -1,20 +1,68 @@
 ﻿using SharpPluginLoader.Core.Memory;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Exposes various functions and properties related to quests.
+    /// </summary>
     public static class Quest
     {
+        /// <summary>
+        /// The sQuest singleton instance.
+        /// </summary>
         public static unsafe nint SingletonInstance => *(nint*)0x14500caf0;
 
+        /// <summary>
+        /// Gets the current quest ID, or -1 if there is no current quest.
+        /// </summary>
         public static int CurrentQuestId => MemoryUtil.Read<int>(SingletonInstance + 0x4C);
 
+        /// <summary>
+        /// Gets the name of the current quest, or an empty string if there is no current quest.
+        /// </summary>
         public static string CurrentQuestName => GetQuestName(CurrentQuestId);
 
+        /// <summary>
+        /// Gets the current quest star count.
+        /// </summary>
+        public static ref int CurrentQuestStarcount => ref MemoryUtil.GetRef<int>(SingletonInstance + 0x50);
+
+        /// <summary>
+        /// Gets the current quest state.
+        /// </summary>
+        public static ref uint QuestState => ref MemoryUtil.GetRef<uint>(SingletonInstance + 0x54);
+
+        /// <summary>
+        /// Gets the current quests reward money.
+        /// </summary>
+        public static ref uint CurrentQuestRewardMoney => ref MemoryUtil.GetRef<uint>(SingletonInstance + 0x60);
+
+        /// <summary>
+        /// Gets the current quests reward HRP.
+        /// </summary>
+        public static ref uint CurrentQuestRewardHrp => ref MemoryUtil.GetRef<uint>(SingletonInstance + 0x68);
+
+        /// <summary>
+        /// Gets the current quests objectives
+        /// </summary>
+        public static Span<QuestTargetData> Objectives => MemoryUtil.AsSpan<QuestTargetData>(SingletonInstance + 0x90, 4);
+
+        /// <summary>
+        /// Gets the quests ending timer.
+        /// </summary>
+        public static ref Timer QuestEndTimer => ref MemoryUtil.GetRef<Timer>(SingletonInstance + 0x13198);
+
+        /// <summary>
+        /// Gets the name of the quest with the specified ID.
+        /// </summary>
+        /// <param name="questId">The ID of the quest.</param>
+        /// <returns>The name of the quest with the specified ID, or an empty string if the quest does not exist.</returns>
         public static unsafe string GetQuestName(int questId)
         {
             var ptr = GetQuestNameFunc.Invoke(SingletonInstance, questId, 0);
             return ptr != 0 ? new string((sbyte*)ptr) : string.Empty;
-        } 
+        }
 
         internal static void Initialize()
         {
@@ -148,5 +196,30 @@ namespace SharpPluginLoader.Core
             Complete = 3,
             Fail = 5
         }
+    }
+
+
+    [StructLayout(LayoutKind.Explicit, Size = 0x18)]
+    public struct QuestTargetData
+    {
+        [FieldOffset(0x08)] public QuestTargetType Type;
+        [FieldOffset(0x0C)] public short Id;
+        [FieldOffset(0x0E)] public short RequiredCount;
+        [FieldOffset(0x10)] public short Count;
+    }
+
+    [Flags]
+    public enum QuestTargetType
+    {
+        None = 0,
+        Monster = 0x1,
+        Deliver = 0x2,
+        Capture = 0x10,
+        Slay = 0x20,
+        Hunt = Slay | Capture,
+
+        CaptureMonster = Monster | Capture,
+        SlayMonster = Monster | Slay,
+        HuntMonster = Monster | Hunt
     }
 }

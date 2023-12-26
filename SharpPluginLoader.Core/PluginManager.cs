@@ -166,12 +166,15 @@ namespace SharpPluginLoader.Core
                 // another plugin, and we should just ignore it.
                 if (hasIPluginType)
                     Log.Warn($"Plugin {pluginPath} does not have an entry point");
+
+                context.Unload();
                 return;
             }
 
             if (Activator.CreateInstance(pluginType) is not IPlugin plugin)
             {
                 Log.Warn($"Failed to create instance of {pluginType.FullName}");
+                context.Unload();
                 return;
             }
 

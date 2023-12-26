@@ -143,8 +143,22 @@ namespace SharpPluginLoader.Core
             }
             
             var context = new PluginLoadContext(pluginPath);
+            Assembly? assembly;
 
-            var assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
+            try
+            {
+                assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
+            }
+            catch (Exception e)
+            {
+                if (e is BadImageFormatException ex) // Most likely a native dll
+                    Log.Debug(ex.ToString());
+                else
+                    Log.Error(e.ToString());
+                
+                context.Unload();
+                return;
+            }
 
             var hasIPluginType = false;
             Type? pluginType = null;

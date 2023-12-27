@@ -57,11 +57,14 @@ namespace GlobalPendant
             _changePendantHook.Original(equipCharmPtr, pendantIndex, unk);
         }
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
+        {
+            return new PluginData();
+        }
+
+        public void OnLoad()
         {
             _changePendantHook = Hook.Create<ChangePendant>(ChangePendantHook, 0x14050d700);
-
-            return new PluginData();
         }
     }
 }

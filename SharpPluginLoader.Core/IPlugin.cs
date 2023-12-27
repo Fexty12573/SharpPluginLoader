@@ -9,6 +9,15 @@ namespace SharpPluginLoader.Core
 {
     public class PluginData
     {
+
+        #region Pre-Main Events
+        /// <inheritdoc cref="IPlugin.OnPreMain"/>
+        public bool OnPreMain;
+
+        /// <inheritdoc cref="IPlugin.OnWinMain"/>
+        public bool OnWinMain;
+        #endregion
+
         #region Generic
         /// <inheritdoc cref="IPlugin.OnUpdate"/>
         public bool OnUpdate;
@@ -137,17 +146,37 @@ namespace SharpPluginLoader.Core
 
 
         /// <summary>
-        /// Gets called when the plugin is loaded before any of the game's code runs (before the MSVC CRT initalizes).
-        /// This only runs once for plugins loaded at the executable start, and WILL NOT run for live-reloaded plugins.
-        /// </summary>
-        public void OnPreload();
-
-        /// <summary>
-        /// Gets called when the plugin is loaded. This is where you should initialize your plugin.
+        /// Gets called when the plugin is loaded. This is where you configure your plugin within the framework.
         /// The plugin must return a <see cref="PluginData"/> struct, which tells the framework which events to call.
+        /// 
+        /// Default event, always called once per plugin [re]load.
         /// </summary>
         /// <returns>The filled out PluginData</returns>
-        public PluginData OnLoad();
+        public PluginData Initialize();
+
+        /// <summary>
+        /// Gets called after the game has initalized it's singletons. This is you initalize anything in your plugin
+        /// that uses the game state (e.g. reading pointers, accessing singletons, etc).
+        /// 
+        /// Default event, always called once per plugin [re]load.
+        /// </summary>
+        public void OnLoad();
+
+
+        #region Pre-Main Events
+        /// <summary>
+        /// Called before any of the game's code runs (including static initalizers).
+        /// This is only used for special cases, and is not applicable to most plugins.
+        /// This will NOT be called during hot-reloading.
+        /// </summary>
+        public void OnPreMain() => throw new MissingEventException();
+
+        /// <summary>
+        /// Called after game's static initializers, but before WinMain.
+        /// This is only for special cases, and is not applicable to most plugins.
+        /// </summary>
+        public void OnWinMain() => throw new MissingEventException();
+        #endregion
 
         #region Generic
         /// <summary>

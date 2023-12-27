@@ -27,12 +27,15 @@ namespace ExperimentalTesting
             _releaseResourceHook.Original(resourceMgr, resource);
         }
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
+        {
+            return new PluginData();
+        }
+
+        public void OnLoad()
         {
             //_createShinyDropHook = MarshallingHook.Create<CreateShinyDropDelegate>(CreateShinyDropHook, 0x1402cb1d0);
             //_releaseResourceHook = MarshallingHook.Create<ReleaseResourceDelegate>(ReleaseResourceHook, 0x142224890);
-
-            return new PluginData();
         }
     }
 }

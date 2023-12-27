@@ -94,7 +94,19 @@ namespace PlayerAnimationViewer
         #endregion
         #endregion
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
+        {
+            return new PluginData
+            {
+                OnUpdate = true,
+                OnImGuiRender = true,
+                OnRender = true,
+                OnEntityAnimation = true,
+                OnMonsterAction = true
+            };
+        }
+
+        public void OnLoad()
         {
             var timlObjDti = MtDti.Find("nTimeline::Object");
             Ensure.NotNull(timlObjDti);
@@ -105,15 +117,6 @@ namespace PlayerAnimationViewer
             _paramMemberDefPool->PoolSize = _paramMemberDefBuffer.Length * sizeof(LmtParamMemberDef);
             _paramMemberDefPool->UsedSize = 0;
             _paramMemberDefPool->AllocatorIndex = 0;
-
-            return new PluginData
-            {
-                OnUpdate = true,
-                OnImGuiRender = true,
-                OnRender = true,
-                OnEntityAnimation = true,
-                OnMonsterAction = true
-            };
         }
 
         public void OnUpdate(float deltaTime)

@@ -10,7 +10,9 @@ namespace SharpPluginLoader.Core
     internal unsafe class NativeInterface
     {
         private delegate void ShutdownDelegate();
-        private delegate void PreloadPluginsDelegate();
+        private delegate void TriggerOnPreMainDelegate();
+        private delegate void TriggerOnWinMainDelegate();
+        private delegate void TriggerOnMhMainCtorDelegate();
         private delegate void ReloadPluginsDelegate();
         private delegate void ReloadPluginDelegate(string pluginName);
         private delegate void UploadInternalCallsDelegate(InternalCall* internalCalls, uint internalCallsCount);
@@ -25,12 +27,14 @@ namespace SharpPluginLoader.Core
             public int Hash => FullName.GetHashCode();
         }
 
+
         [StructLayout(LayoutKind.Sequential)]
         public struct ManagedFunctionPointers
         {
             public nint ShutdownPtr;
-            public nint PreloadPluginsPtr;
-            public nint LoadPluginsPtr;
+            public nint TriggerOnPreMainPtr;
+            public nint TriggerOnWinMainPtr;
+            public nint TriggerOnMhMainCtorPtr;
             public nint ReloadPluginsPtr;
             public nint ReloadPluginPtr;
             public nint UploadInternalCallsPtr;
@@ -88,8 +92,9 @@ namespace SharpPluginLoader.Core
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
         {
             pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(new ShutdownDelegate(Shutdown));
-            pointers->PreloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new PreloadPluginsDelegate(PreloadPlugins));
-            pointers->LoadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(LoadPlugins));
+            pointers->TriggerOnPreMainPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnPreMainDelegate(TriggerOnPreMain));
+            pointers->TriggerOnWinMainPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnWinMainDelegate(TriggerOnWinMain));
+            pointers->TriggerOnMhMainCtorPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnMhMainCtorDelegate(TriggerOnMhMainCtor));
             pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins));
             pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
             pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls));
@@ -103,14 +108,22 @@ namespace SharpPluginLoader.Core
             PluginManager.Instance.UnloadAllPlugins();
         }
 
-        public static void PreloadPlugins()
-        {
-            PluginManager.Instance.PreloadPlugins(PluginManager.DefaultPluginDirectory);
-        }
-
-        public static void LoadPlugins()
+        public static void TriggerOnPreMain()
         {
             PluginManager.Instance.LoadPlugins(PluginManager.DefaultPluginDirectory);
+
+            // Invoke OnPreMain for even subscribers.
+            PluginManager.Instance.InvokeOnPreMain();
+        }
+
+        public static void TriggerOnWinMain()
+        {
+            PluginManager.Instance.InvokeOnWinMain();
+        }
+
+        public static void TriggerOnMhMainCtor()
+        {
+            PluginManager.Instance.InvokeOnLoad();
         }
 
         public static void ReloadPlugins()

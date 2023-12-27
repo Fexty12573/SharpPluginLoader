@@ -25,10 +25,14 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
     coreclr->initialize_core_assembly();
 }
 
-void NativePluginFramework::PreloadPlugins() {
-    m_managed_functions.PreloadPlugins();
+void NativePluginFramework::TriggerOnPreMain() {
+    m_managed_functions.TriggerOnPreMain();
 }
 
-void NativePluginFramework::LoadPlugins() {
-    m_managed_functions.LoadPlugins();
+void NativePluginFramework::TriggerOnWinMain() {
+    m_managed_functions.TriggerOnWinMain();
+}
+
+void NativePluginFramework::TriggerOnMhMainCtor() {
+    m_managed_functions.TriggerOnMhMainCtor();
 }

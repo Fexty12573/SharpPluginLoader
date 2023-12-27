@@ -20,6 +20,7 @@
 SafetyHookInline g_GetSystemTimeAsFileTime_hook{};
 SafetyHookInline g_WinMain_hook{};
 SafetyHookInline g_SCRTCommonMain_hook{};
+SafetyHookInline g_MhMainCtor_hook{};
 
 CoreClr* s_coreclr = nullptr;
 NativePluginFramework* s_framework = nullptr;
@@ -31,6 +32,7 @@ namespace preloader::address {
     const uint64_t SECURITY_COOKIE_INIT_GETTIME_RET = IMAGE_BASE + 0x27422e2;
     const uint64_t SCRT_COMMON_MAIN_SEH = IMAGE_BASE + 0x27414f4;
     const uint64_t WINMAIN = IMAGE_BASE + 0x13a4c00;
+    const uint64_t MH_MAIN_CTOR = IMAGE_BASE + 0x1aebb00;
 
 }  // namespace preloader::address
 
@@ -53,24 +55,28 @@ void OpenConsole() {
 // This runs before all of the CRT initalization, static initalizers, and WinMain.
 __declspec(noinline) int64_t hookedSCRTCommonMain()
 {
-    dlog::debug("Start initializing CLR/NativePluginFramework (before static-initalizers)");
-
+    dlog::info("Initializing CLR / NativePluginFramework");
     s_coreclr = new CoreClr();
     s_framework = new NativePluginFramework(s_coreclr);
     dlog::info("Initialized");
 
-    // Trigger plugin preload event
-    s_framework->PreloadPlugins();
+    s_framework->TriggerOnPreMain();
 
     return g_SCRTCommonMain_hook.call<int64_t>();
 }
 
 __declspec(noinline) int __stdcall hookedWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-    // Trigger plugin onload event
-    s_framework->LoadPlugins();
+    s_framework->TriggerOnWinMain();
 
     return g_WinMain_hook.call<int>(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+}
+
+__declspec(noinline) void* hookedMhMainCtor(void* this_ptr)
+{
+    s_framework->TriggerOnMhMainCtor();
+
+    return g_MhMainCtor_hook.call<void*>(this_ptr);
 }
 
 // The hooked GetSystemTimeAsFileTime function.
@@ -92,6 +98,11 @@ void hookedGetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime) {
         g_WinMain_hook = safetyhook::create_inline(
             reinterpret_cast<void*>(preloader::address::WINMAIN),
             reinterpret_cast<void*>(hookedWinMain)
+        );
+
+        g_MhMainCtor_hook = safetyhook::create_inline(
+            reinterpret_cast<void*>(preloader::address::MH_MAIN_CTOR),
+            reinterpret_cast<void*>(hookedMhMainCtor)
         );
 
         // Unhook this function and call the original

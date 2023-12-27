@@ -10,6 +10,7 @@ namespace SharpPluginLoader.Core
     internal unsafe class NativeInterface
     {
         private delegate void ShutdownDelegate();
+        private delegate void PreloadPluginsDelegate();
         private delegate void ReloadPluginsDelegate();
         private delegate void ReloadPluginDelegate(string pluginName);
         private delegate void UploadInternalCallsDelegate(InternalCall* internalCalls, uint internalCallsCount);
@@ -28,6 +29,7 @@ namespace SharpPluginLoader.Core
         public struct ManagedFunctionPointers
         {
             public nint ShutdownPtr;
+            public nint PreloadPluginsPtr;
             public nint LoadPluginsPtr;
             public nint ReloadPluginsPtr;
             public nint ReloadPluginPtr;
@@ -86,6 +88,7 @@ namespace SharpPluginLoader.Core
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
         {
             pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(new ShutdownDelegate(Shutdown));
+            pointers->PreloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new PreloadPluginsDelegate(PreloadPlugins));
             pointers->LoadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(LoadPlugins));
             pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins));
             pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
@@ -98,6 +101,11 @@ namespace SharpPluginLoader.Core
         public static void Shutdown()
         {
             PluginManager.Instance.UnloadAllPlugins();
+        }
+
+        public static void PreloadPlugins()
+        {
+            PluginManager.Instance.PreloadPlugins(PluginManager.DefaultPluginDirectory);
         }
 
         public static void LoadPlugins()

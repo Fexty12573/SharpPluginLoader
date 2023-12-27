@@ -28,6 +28,9 @@ public:
 
     explicit NativePluginFramework(CoreClr* coreclr);
 
+    void PreloadPlugins();
+    void LoadPlugins();
+
 private:
     std::vector<std::shared_ptr<NativeModule>> m_modules;
     ManagedFunctionPointers m_managed_functions;

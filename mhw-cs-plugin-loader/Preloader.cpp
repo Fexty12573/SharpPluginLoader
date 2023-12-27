@@ -54,15 +54,22 @@ void OpenConsole() {
 __declspec(noinline) int64_t hookedSCRTCommonMain()
 {
     dlog::debug("Start initializing CLR/NativePluginFramework (before static-initalizers)");
+
     s_coreclr = new CoreClr();
     s_framework = new NativePluginFramework(s_coreclr);
     dlog::info("Initialized");
+
+    // Trigger plugin preload event
+    s_framework->PreloadPlugins();
 
     return g_SCRTCommonMain_hook.call<int64_t>();
 }
 
 __declspec(noinline) int __stdcall hookedWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    // Trigger plugin onload event
+    s_framework->LoadPlugins();
+
     return g_WinMain_hook.call<int>(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
 }
 

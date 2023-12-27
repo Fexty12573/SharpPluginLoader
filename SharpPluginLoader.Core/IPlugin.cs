@@ -135,6 +135,13 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public string Author => "Unknown";
 
+
+        /// <summary>
+        /// Gets called when the plugin is loaded before any of the game's code runs (before the MSVC CRT initalizes).
+        /// This only runs once for plugins loaded at the executable start, and WILL NOT run for live-reloaded plugins.
+        /// </summary>
+        public void OnPreload();
+
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you should initialize your plugin.
         /// The plugin must return a <see cref="PluginData"/> struct, which tells the framework which events to call.

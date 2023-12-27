@@ -106,6 +106,11 @@ namespace SharpPluginLoader.Core
             return Path.GetExtension(path) == ".dll" && Path.GetFileName(Path.GetDirectoryName(path)) != "Loader";
         }
 
+        public void PreloadPlugins(string directory)
+        {
+            Log.Debug($"TODO: preload plugins!");
+        }
+
         public void LoadPlugins(string directory)
         {
             foreach (var pluginPath in Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories))

@@ -205,6 +205,21 @@
         "Offset": 0
     },
     {
+        "Name": "MtArray:Clear",
+        "Pattern": "48 8B D9 8B FD 39 69 08 76 2E 0F 1F 40 00",
+        "Offset": -25
+    },
+    {
+        "Name": "Mtarray:Insert",
+        "Pattern": "8B 79 08 48 8B D9 48 8B 49 18 4C 8B F2",
+        "Offset": -21
+    },
+    {
+        "Name": "MtArray:Erase",
+        "Pattern": "48 8B F9 45 85 C0 74 66 48 8B 49 18",
+        "Offset": -19
+    },
+    {
         "Name": "Monster:GetNameFromId",
         "Pattern": "F7 80 68 4E 0F 00 00 04 00 00 75 14",
         "Offset": -134

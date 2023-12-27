@@ -85,6 +85,7 @@ namespace SharpPluginLoader.Core
                 Utility.ResizeArray(this, Capacity + Capacity / 2);
 
             this[(int)Length] = item;
+            Length += 1;
         }
 
         /// <summary>
@@ -136,9 +137,55 @@ namespace SharpPluginLoader.Core
         /// <param name="item">The item to check for</param>
         /// <remarks>This function does a reference comparison.</remarks>
         /// <returns>True if the array contains the item</returns>
-        public bool Contains(T? item)
+        public bool Contains(T item)
         {
             return this.FirstOrDefault(x => x == item) != null;
+        }
+
+        /// <summary>
+        /// Finds the first item in the array that matches the given predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match</param>
+        /// <returns>The first item that matches the predicate, or null if none match</returns>
+        public T? Find(Func<T, bool> predicate)
+        {
+            return this.FirstOrDefault(predicate);
+        }
+
+        /// <summary>
+        /// Clears the array.
+        /// </summary>
+        /// <param name="freeMem">Whether to free the memory used by the array</param>
+        public void Clear(bool freeMem = false)
+        {
+            Utility.ClearArray(this, freeMem);
+        }
+
+        /// <summary>
+        /// Inserts an item into the array at the given index.
+        /// </summary>
+        /// <param name="index">The index to insert the item at</param>
+        /// <param name="item">The item to insert</param>
+        public void Insert(int index, T item)
+        {
+            Utility.ArrayInsert(this, index, item);
+        }
+
+        /// <summary>
+        /// Erases the given item from the array.
+        /// </summary>
+        /// <param name="item">The item to erase</param>
+        public void Erase(T item)
+        {
+            Utility.ArrayErase(this, item);
+        }
+
+        /// <summary>
+        /// Erases the item at the given index from the array.
+        /// </summary>
+        public void Erase(int index)
+        {
+            Erase(this[index]!);
         }
 
         /// <summary>

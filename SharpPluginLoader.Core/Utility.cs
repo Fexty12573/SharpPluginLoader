@@ -12,6 +12,9 @@ namespace SharpPluginLoader.Core
         private static readonly NativeFunction<uint, nint> FindDtiFunc = new(AddressRepository.Get("MtDti:Find"));
         private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0); // TODO
         private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(AddressRepository.Get("MtArray:Reserve"));
+        private static readonly NativeAction<nint, bool> ClearArrayFunc = new(AddressRepository.Get("MtArray:Clear"));
+        private static readonly NativeAction<nint, nint, int> ArrayInsertFunc = new(AddressRepository.Get("MtArray:Insert"));
+        private static readonly NativeAction<nint, nint> ArrayEraseFunc = new(AddressRepository.Get("MtArray:Erase"));
         private static readonly NativeFunction<MonsterType, nint> GetMonsterNameFunc = new(AddressRepository.Get("Monster:GetNameFromId"));
         private static readonly NativeFunction<nint, nint, nint, nint, nint> SpawnShellPlayerFunc = new(AddressRepository.Get("Player:CreateShell"));
 
@@ -35,6 +38,21 @@ namespace SharpPluginLoader.Core
         internal static void ResizeArray<T>(MtArray<T> array, uint newSize) where T : MtObject, new()
         {
             ResizeArrayFunc.Invoke(array.Instance, newSize);
+        }
+
+        internal static void ClearArray<T>(MtArray<T> array, bool freeMem) where T : MtObject, new()
+        {
+            ClearArrayFunc.Invoke(array.Instance, freeMem);
+        }
+
+        internal static void ArrayInsert<T>(MtArray<T> array, int index, T value) where T : MtObject, new()
+        {
+            ArrayInsertFunc.Invoke(array.Instance, value.Instance, index);
+        }
+
+        internal static void ArrayErase<T>(MtArray<T> array, T obj) where T : MtObject, new()
+        {
+            ArrayEraseFunc.Invoke(array.Instance, obj.Instance);
         }
 
         internal static string GetMonsterName(MonsterType monsterType)

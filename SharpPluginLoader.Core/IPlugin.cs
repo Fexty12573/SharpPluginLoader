@@ -7,7 +7,7 @@ using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {
-    public struct PluginData
+    public class PluginData
     {
         #region Generic
         /// <inheritdoc cref="IPlugin.OnUpdate"/>
@@ -110,10 +110,17 @@ namespace SharpPluginLoader.Core
         public bool OnRender;
         /// <inheritdoc cref="IPlugin.OnImGuiRender"/>
         public bool OnImGuiRender;
+        /// <inheritdoc cref="IPlugin.OnImGuiFreeRender"/>
+        public bool OnImGuiFreeRender;
         #endregion
 
         // Non-Events
-        public bool IsDebugPlugin;
+        public bool IsDebugPlugin; // Currently unused
+
+        /// <summary>
+        /// When set to true, any ImGui widgets rendered inside <see cref="IPlugin.OnImGuiRender"/> will be wrapped in a TreeNode.
+        /// </summary>
+        public bool ImGuiWrappedInTreeNode = true;
     }
 
     public interface IPlugin
@@ -355,9 +362,16 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public void OnRender() => throw new MissingEventException();
         /// <summary>
-        /// The user can use this function to render ImGui widgets on the screen.
+        /// The user can use this function to render ImGui widgets on the screen. Widgets rendered here will be inside the main SPL ImGui window.
         /// </summary>
         public void OnImGuiRender() => throw new MissingEventException();
+        /// <summary>
+        /// The user can use this function to render their own ImGui windows.
+        /// </summary>
+        /// <remarks>
+        /// <b>Note:</b> To render any ImGui widgets inside this function, you <i>must</i> create your own ImGui window.
+        /// </remarks>
+        public void OnImGuiFreeRender() => throw new MissingEventException();
         #endregion
 
         #region Internal
@@ -371,6 +385,8 @@ namespace SharpPluginLoader.Core
                     disposable.Dispose();
             }
         }
+
+        internal PluginData PluginData => PluginManager.Instance.GetPluginData(this);
 
         internal string Key => $"{Author}:{Name}";
         internal string? ConfigPath => PluginManager.Instance.GetPluginConfigPath(this);

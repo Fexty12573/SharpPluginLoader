@@ -252,6 +252,14 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        public PluginData GetPluginData(IPlugin plugin)
+        {
+            lock (_contexts)
+            {
+                return _contexts[plugin.Key].Data;
+            }
+        }
+
         public void InvokeOnUpdate(float deltaTime)
         {
             lock (_contexts)

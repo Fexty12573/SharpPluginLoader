@@ -14,6 +14,7 @@
 #include "CoreClr.h"
 #include "Log.h"
 #include "Preloader.h"
+#include "utility/game_functions.h"
 
 #pragma intrinsic(_ReturnAddress)
 
@@ -32,7 +33,6 @@ namespace preloader::address {
     const uint64_t SECURITY_COOKIE_INIT_GETTIME_RET = IMAGE_BASE + 0x27422e2;
     const uint64_t SCRT_COMMON_MAIN_SEH = IMAGE_BASE + 0x27414f4;
     const uint64_t WINMAIN = IMAGE_BASE + 0x13a4c00;
-    const uint64_t MH_MAIN_CTOR = IMAGE_BASE + 0x1aebb00;
 
 }  // namespace preloader::address
 
@@ -101,7 +101,7 @@ void hookedGetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime) {
         );
 
         g_MhMainCtor_hook = safetyhook::create_inline(
-            reinterpret_cast<void*>(preloader::address::MH_MAIN_CTOR),
+            reinterpret_cast<void*>(MH::sMhMain::ctor),
             reinterpret_cast<void*>(hookedMhMainCtor)
         );
 

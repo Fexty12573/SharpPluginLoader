@@ -74,9 +74,9 @@ __declspec(noinline) int __stdcall hookedWinMain(HINSTANCE hInstance, HINSTANCE 
 
 __declspec(noinline) void* hookedMhMainCtor(void* this_ptr)
 {
+    auto result = g_MhMainCtor_hook.call<void*>(this_ptr);
     s_framework->TriggerOnMhMainCtor();
-
-    return g_MhMainCtor_hook.call<void*>(this_ptr);
+    return result;
 }
 
 // The hooked GetSystemTimeAsFileTime function.

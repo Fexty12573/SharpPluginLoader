@@ -54,6 +54,8 @@ nav:
   - Examples:
     - Examples/index.md
     - API Examples:
-      - Direct Memory Access: Examples/DirectMemoryAccess.md
-      - Logging: Examples/Logging.md
-      - User Input: Examples/UserInput.md
+      - Direct Memory Access: Examples/API/DirectMemoryAccess.md
+      - Logging: Examples/API/Logging.md
+      - User Input: Examples/API/UserInput.md
+    - Plugin Examples:
+      - Quest End Skip: Examples/Plugins/QuestEndSkip.md

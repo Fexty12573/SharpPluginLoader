@@ -47,6 +47,10 @@ namespace SharpPluginLoader.Core
             {
                 var e = (Exception)args.ExceptionObject;
                 Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
+                if (e.InnerException is not null)
+                {
+                    Log.Error($"[Core] Inner exception: {e.InnerException.GetType().Name}: {e.InnerException.Message}, Stacktrace:\n{e.InnerException.StackTrace}");
+                }
             };
 
             _exceptionFilterPatch1 = new Patch((nint)0x1427419ab, [0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90]);

@@ -61,11 +61,14 @@ namespace SharpPluginLoader.Core.Rendering
                 {
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
                     {
-                        if (plugin.PluginData.ImGuiWrappedInTreeNode && ImGui.TreeNodeEx(plugin.Name,
-                                ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                        if (plugin.PluginData.ImGuiWrappedInTreeNode)
                         {
-                            plugin.OnImGuiRender();
-                            ImGui.TreePop();
+                            if (ImGui.TreeNodeEx(plugin.Name,
+                                    ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                            {
+                                plugin.OnImGuiRender();
+                                ImGui.TreePop();
+                            }
                         }
                         else
                         {

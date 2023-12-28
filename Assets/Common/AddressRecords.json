@@ -210,7 +210,7 @@
         "Offset": -25
     },
     {
-        "Name": "Mtarray:Insert",
+        "Name": "MtArray:Insert",
         "Pattern": "8B 79 08 48 8B D9 48 8B 49 18 4C 8B F2",
         "Offset": -21
     },

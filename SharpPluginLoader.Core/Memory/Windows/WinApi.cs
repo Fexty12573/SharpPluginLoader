@@ -56,7 +56,7 @@ namespace SharpPluginLoader.Core.Memory.Windows
         public nint AllocationBase;
         public uint AllocationProtect;
         public ushort PartitionId;
-        public ulong RegionSize;
+        public long RegionSize;
         public uint State;
         public uint Protect;
         public uint Type;

@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Memory.Windows;
 
 namespace SharpPluginLoader.Core.Memory
 {
     public static class PatternScanner
     {
+        /// <summary>
+        /// Scans the entire process for the specified pattern.
+        /// </summary>
+        /// <param name="pattern">The pattern to scan for.</param>
+        /// <returns>A list of addresses where the pattern was found.</returns>
+        /// <remarks>
+        /// It is strongly recommended to cache the results of this method.
+        /// </remarks>
         public static unsafe List<nint> Scan(Pattern pattern)
         {
             List<nint> results = [];
@@ -25,8 +28,6 @@ namespace SharpPluginLoader.Core.Memory
             var endAddr = module + moduleInfo.SizeOfImage;
             var pat = new Span<short>(pattern.Bytes);
 
-            var predicate = new PatternCompareFunc<byte>((a, b) => b == -1 || a == b);
-
             while (addr < endAddr)
             {
                 var memInfo = new MemoryBasicInformation();
@@ -38,12 +39,12 @@ namespace SharpPluginLoader.Core.Memory
                 var begin = (byte*)memInfo.BaseAddress;
                 var end = begin + memInfo.RegionSize;
 
-                var found = Search(begin, end, pat, predicate);
+                var found = Search(begin, end, pat);
 
                 while (found != null)
                 {
                     results.Add((nint)found);
-                    found = Search(found + 1, end, pat, predicate);
+                    found = Search(found + 1, end, pat);
                 }
 
                 addr = (nint)end;
@@ -51,13 +52,13 @@ namespace SharpPluginLoader.Core.Memory
 
             return results;
         }
-        
-        #region Internal
-        private delegate bool PatternCompareFunc<in T>(T a, short b) where T : unmanaged;
 
-        private static unsafe T* Search<T>(T* hayStackBegin, T* hayStackEnd, 
-            Span<short> pattern, PatternCompareFunc<T> predicate) where T : unmanaged
+        #region Internal
+
+        private static unsafe byte* Search(byte* hayStackBegin, byte* hayStackEnd, Span<short> pattern)
         {
+            // Boyer-Moore-Horspool algorithm, and essentially just copied from 
+            // the MSVC implementation of std::search.
             var first1 = hayStackBegin;
             var last1 = hayStackEnd;
             fixed (short* first2 = &pattern[0])
@@ -75,7 +76,7 @@ namespace SharpPluginLoader.Core.Memory
                         if (mid1 == last1)
                             return null;
 
-                        if (!predicate(*mid1, *mid2))
+                        if (*mid2 != -1 && *mid1 != *mid2)
                             break;
                     }
                 }

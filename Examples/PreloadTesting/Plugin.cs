@@ -13,14 +13,6 @@ namespace PreloadTesting
         private delegate void StaticInitalizerMtObjectDTI();
         private Hook<StaticInitalizerMtObjectDTI> _staticInitalizerMtObjectDTIHook = null!;
 
-        private unsafe void StaticInitalizerMtObjectDTIHook()
-        {
-
-            Log.Debug("PreloadTesting->StaticInitalizerMtObjectDTIHook called!");
-            _staticInitalizerMtObjectDTIHook.Original();
-            return;
-        }
-
         public PluginData Initialize()
         {
             Log.Debug("PreloadTesting->Initialize called!");
@@ -29,6 +21,13 @@ namespace PreloadTesting
                 OnPreMain = true,
                 OnWinMain = true
             };
+        }
+
+        private unsafe void StaticInitalizerMtObjectDTIHook()
+        {
+            Log.Debug("PreloadTesting->StaticInitalizerMtObjectDTIHook called!");
+            _staticInitalizerMtObjectDTIHook.Original();
+            return;
         }
 
         public void OnPreMain()
@@ -46,7 +45,7 @@ namespace PreloadTesting
 
         public void OnLoad()
         {
-            Log.Debug("PreloadTesting->OnLoad called 3!");
+            Log.Debug("PreloadTesting->OnLoad called!");
         }
     }
 }

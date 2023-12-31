@@ -1,7 +1,7 @@
 # Game Objects
 
 ## Introduction
-Monster Hunter World runs on the MT Framework engine, which is a proprietary engine developed by Capcom. Both the engine and the game are written in C++. (Officially, it uses World Engine, which is what capcom calls the heavily modified version of MT Framework that they use for MHW but that's besides the point.)
+Monster Hunter World runs on the MT Framework engine, which is a proprietary engine developed by Capcom. Both the engine and the game are written in C++. (Officially, it uses World Engine, which is what Capcom calls the heavily modified version of MT Framework that they use for MHW but that's besides the point.)
 
 The main object class in the game is `MtObject`. It is similar to what `object` is in C#. It is the base class for most objects in the game. Anything from a monster to a weapon to a particle effect is an `MtObject`. It is a very simple class, and doesn't contain any fields (aside from the vtable pointer).
 

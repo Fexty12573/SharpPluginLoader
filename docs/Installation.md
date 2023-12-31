@@ -5,7 +5,7 @@ Grab the x64 Desktop Runtime and install it.
 Once you have the .NET runtime installed you can grab the latest release from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases).
 Extract the contents of the archive into the game's root directory (where `MonsterHunterWorld.exe` is located).
 
-If you installed everything correctly you should now find a `CSharp` directory in `nativePC\plugins`.
+If you installed everything correctly you should now find `winmm.dll` in the same folder as `MonsterHunterWorld.exe`, and a `CSharp` directory in `nativePC\plugins`.
 
 ## Usage
 Any C# plugins will be placed directly into the `CSharp` directory. The plugin loader will automatically load all DLLs in this directory.
@@ -20,20 +20,24 @@ Depending on the plugins you have installed you might also see an overlay/UI app
 
 ## Directory Structure Examples
 ```
-nativePC
-└── plugins
-    └── CSharp
-        ├── Plugin1
-        │   └── Plugin1.dll
-        ├── Plugin2
-        │   └── Plugin2.dll
-        └── Plugin3.dll
+<Root game directory>
+└── winmm.dll
+└── nativePC
+    └── plugins
+        └── CSharp
+            ├── Plugin1
+            │   └── Plugin1.dll
+            ├── Plugin2
+            │   └── Plugin2.dll
+            └── Plugin3.dll
 ```
 Conversely, the following is **not** valid, as `Plugin1.dll` is inside the `Loader` directory. The plugin loader will not load it.
 ```
-nativePC
-└── plugins
-    └── CSharp
-        └── Loader
-            └── Plugin1.dll
+<Root game directory>
+└── winmm.dll
+└── nativePC
+    └── plugins
+        └── CSharp
+            └── Loader
+                └── Plugin1.dll
 ```

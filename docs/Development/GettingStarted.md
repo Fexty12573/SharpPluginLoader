@@ -15,7 +15,7 @@ found inside `nativePC\plugins\CSharp\Loader`.
 
 ## Entry point
 Each plugin has an entry point class, which must implement the `IPlugin` interface inside the `SharpPluginLoader.Core` namespace.
-```csharp title="ExamplePlugin.cs" linenums="1" hl_lines="7 9"
+```csharp title="ExamplePlugin.cs" linenums="1" hl_lines="7 9 14"
 using SharpPluginLoader.Core;
 
 namespace Example
@@ -24,7 +24,12 @@ namespace Example
     {
         public string Name => "Example Plugin";
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
+        {
+            // ...
+        }
+
+        public void OnLoad()
         {
             // ...
         }
@@ -32,12 +37,14 @@ namespace Example
 }
 ```
 Take a look at the highlighted lines. These are the only required methods and properties for a plugin to work.
-The `Name` property is used to identify the plugin, and the `OnLoad` method is called when the plugin is loaded.
+* The `Name` property is used to identify the plugin.
+* The `Initialize` method is called to configure framework callbacks for this plugin.
+* The `OnLoad` method is called when the plugin is loaded (after the game's startup code has run).
 
 ## Events
-You need to return a `PluginData` object from the `OnLoad` method. This object will contain information about which events the plugin subscribes to.
+You need to return a `PluginData` object from the `Initialize` method. This object will contain information about which events the plugin subscribes to.
 ```csharp 
-public PluginData OnLoad()
+public PluginData Initialize()
 {
     return new PluginData
     {

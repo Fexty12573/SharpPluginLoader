@@ -13,16 +13,19 @@ public class Plugin : IPlugin
     public string Name => "QuestEndSkip";
     public string Author => "Fexty";
 
-    public PluginData OnLoad()
+    public PluginData Initialize()
     {
-        // Register the `Ctrl+Alt+S` keybind
-        KeyBindings.AddKeybind("SkipQuestEnd", new Keybind<Key>(Key.S, [Key.LeftControl, Key.LeftAlt]));
-
         return new PluginData
         {
             // Subscribe to the `OnUpdate` event
             OnUpdate = true
         };
+    }
+
+    public void OnLoad()
+    {
+        // Register the `Ctrl+Alt+S` keybind
+        KeyBindings.AddKeybind("SkipQuestEnd", new Keybind<Key>(Key.S, [Key.LeftControl, Key.LeftAlt]));
     }
 
     public void OnUpdate(float dt)

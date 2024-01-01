@@ -101,9 +101,90 @@ namespace SharpPluginLoader.Core
 #endif
         }
 
+        private static string ResolvePluginPath(string path)
+        {
+            var file = new FileInfo(path);
+            if (file.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
+                return file.ResolveLinkTarget(true)?.FullName ?? path;
+
+            var pluginDir = Path.GetDirectoryName(path);
+            var pluginDirInfo = new DirectoryInfo(pluginDir!);
+            if (pluginDirInfo.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
+            {
+                var resolvedPluginDir = pluginDirInfo.ResolveLinkTarget(true);
+                return resolvedPluginDir is null
+                    ? path
+                    : Path.Combine(resolvedPluginDir.FullName, Path.GetFileName(path));
+            }
+
+            return path;
+        }
+
         private static bool IsPlugin(string path)
         {
             return Path.GetExtension(path) == ".dll" && Path.GetFileName(Path.GetDirectoryName(path)) != "Loader";
+        }
+
+
+        private PluginContext? GetPluginContextFromPath(string pluginPath)
+        {
+            var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
+            var relPath = Path.GetRelativePath(".", pluginPath);
+            var resolvedPath = ResolvePluginPath(pluginPath);
+            var absPath = Path.GetFullPath(resolvedPath);
+
+            lock (_contexts)
+            {
+                List<PluginContext> pluginContexts = _contexts.Values.Where(ctx => ctx.Path == absPath).ToList();
+                if(pluginContexts.Count != 1)
+                {
+                    return null;
+                }
+
+                return pluginContexts.First();
+            }
+        }
+
+        public void PreloadPlugins(string pluginDirectory)
+        {
+            // All SPL plugins will be loaded during pre-main.
+            LoadPlugins(pluginDirectory);
+
+            // Call OnPreMain if subscribed.
+            InvokeOnPreMain();
+        }
+
+        public void InvokeOnPreMain()
+        {
+            lock (_contexts)
+            {
+                foreach (var context in _contexts.Values.Where(context => context.Data.OnPreMain))
+                {
+                    context.Plugin.OnPreMain();
+                }
+            }
+        }
+
+        public void InvokeOnWinMain()
+        {
+            lock (_contexts)
+            {
+                foreach (var context in _contexts.Values.Where(context => context.Data.OnWinMain))
+                {
+                    context.Plugin.OnWinMain();
+                }
+            }
+        }
+
+        public void InvokeOnLoad()
+        {
+            lock (_contexts)
+            {
+                foreach (var context in _contexts.Values)
+                {
+                    context.Plugin.OnLoad();
+                }
+            }
         }
 
         public void LoadPlugins(string directory)
@@ -117,6 +198,10 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        /// <summary>
+        /// Loads a plugin assembly into _contexts, with plugin-defined callback data (via `IPlugin.Initialize`).
+        /// </summary>
+        /// <param name="pluginPath"></param>
         public void LoadPlugin(string pluginPath)
         {
             if (!File.Exists(pluginPath))
@@ -200,7 +285,7 @@ namespace SharpPluginLoader.Core
                 }
             }
 
-            var pluginData = plugin.OnLoad();
+            var pluginData = plugin.Initialize();
 
             lock (_contexts)
             {
@@ -215,25 +300,6 @@ namespace SharpPluginLoader.Core
             }
 
             return;
-
-            string ResolvePluginPath(string path)
-            {
-                var file = new FileInfo(path);
-                if (file.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
-                    return file.ResolveLinkTarget(true)?.FullName ?? path;
-
-                var pluginDir = Path.GetDirectoryName(pluginPath);
-                var pluginDirInfo = new DirectoryInfo(pluginDir!);
-                if (pluginDirInfo.Attributes.HasFlag(FileAttributes.ReparsePoint | FileAttributes.Directory))
-                {
-                    var resolvedPluginDir = pluginDirInfo.ResolveLinkTarget(true);
-                    return resolvedPluginDir is null 
-                        ? path 
-                        : Path.Combine(resolvedPluginDir.FullName, Path.GetFileName(path));
-                }
-
-                return path;
-            }
         }
 
         public IPlugin[] GetPlugins()
@@ -278,16 +344,23 @@ namespace SharpPluginLoader.Core
                 if (Path.GetFileName(Path.GetDirectoryName(pluginPath)) == "Loader")
                     continue;
 
-                UnloadPlugin(pluginPath);
+                ReloadPlugin(pluginPath);
             }
-
-            LoadPlugins(directory);
         }
 
         public void ReloadPlugin(string pluginPath)
         {
             UnloadPlugin(pluginPath);
             LoadPlugin(pluginPath);
+            var context = GetPluginContextFromPath(pluginPath);
+            if (context != null)
+            {
+                if(context.Data.OnPreMain || context.Data.OnWinMain)
+                {
+                    Log.Warn("Reloading plugin with (OnPreMain|OnWinMain) event subscriptions. These events WILL NOT be called during hot-reload!");
+                }
+                context.Plugin.OnLoad();
+            }
         }
 
         public void UnloadAllPlugins()

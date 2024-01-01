@@ -331,6 +331,7 @@ inline void* GetInstance() {
     return *reinterpret_cast<void**>(0x1451c2400); // 0x145224b80 (15.11)
 }
 }
+DECLARE_FUNCTION(MH::sMhMain, ctor, 0x141aebb00, void*, void*)
 DECLARE_FUNCTION(MH::sMhMain, dtor, 0x141b02a00, void*, void*, char)
 DECLARE_FUNCTION(MH::sMhMain, move, 0x141af1e90, void, void*)
 

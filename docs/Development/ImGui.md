@@ -7,12 +7,17 @@ To get started add the `ImGui.NET` NuGet package to your project. You can do thi
 
 Next add an event handler for the `OnRender` event to your plugin. This event is called every frame and is where you will do all your rendering.
 ```csharp
-public PluginData OnLoad()
+
+public PluginData Inititalize()
 {
     return new PluginData
     {
         OnRender = true
     };
+}
+
+public void OnLoad()
+{
 }
 
 public void OnRender()

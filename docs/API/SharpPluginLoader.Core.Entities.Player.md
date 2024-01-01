@@ -301,9 +301,3 @@ public void RegisterMbd(Resource mbd, uint index)
 `mbd` [Resource](./SharpPluginLoader.Core.Resources.Resource.md)<br>
 
 `index` [UInt32](https://docs.microsoft.com/en-us/dotnet/api/System.UInt32)<br>
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

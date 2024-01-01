@@ -447,9 +447,3 @@ Reenables the periodic speed reset that the game does
 ```csharp
 public static void EnableSpeedReset()
 ```
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

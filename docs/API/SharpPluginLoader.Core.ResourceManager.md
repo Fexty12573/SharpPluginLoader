@@ -43,9 +43,3 @@ public static T GetResource<T>(string path, MtDti dti, uint flags)
 #### Returns
 
 T<br>
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

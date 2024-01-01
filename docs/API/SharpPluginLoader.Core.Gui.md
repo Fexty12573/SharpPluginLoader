@@ -82,7 +82,7 @@ public static void DisplayYesNoDialog(string message, DialogCallback callback)
 `message` [String](https://docs.microsoft.com/en-us/dotnet/api/System.String)<br>
 The message to display
 
-`callback` [DialogCallback](./SharpPluginLoader.Core.DialogCallback.md)<br>
+`callback` [DialogCallback]()<br>
 The callback to call when the user clicks a button
 
 ### **DisplayMessageWindow(String, MtVector2)**
@@ -106,9 +106,3 @@ public static void DisplayAlert(string message)
 #### Parameters
 
 `message` [String](https://docs.microsoft.com/en-us/dotnet/api/System.String)<br>
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

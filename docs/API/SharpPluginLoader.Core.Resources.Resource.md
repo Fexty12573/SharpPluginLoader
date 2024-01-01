@@ -111,3 +111,39 @@ public void Release()
 
 This class automatically increments and decrements the reference counter when it is created/destroyed.
  You should not have to call this method explicitly.
+
+### **LoadFrom(MtStream)**
+
+Deserializes this resource from the specified stream.
+
+```csharp
+public bool LoadFrom(MtStream stream)
+```
+
+#### Parameters
+
+`stream` [MtStream](./SharpPluginLoader.Core.IO.MtStream.md)<br>
+The stream to deserialize this resource from.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/System.Boolean)<br>
+True if the resource was deserialized successfully, false otherwise.
+
+### **SaveTo(MtStream)**
+
+Serializes this resource to the specified stream.
+
+```csharp
+public bool SaveTo(MtStream stream)
+```
+
+#### Parameters
+
+`stream` [MtStream](./SharpPluginLoader.Core.IO.MtStream.md)<br>
+The stream to serialize this resource to.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/System.Boolean)<br>
+True if the resource was serialized successfully, false otherwise.

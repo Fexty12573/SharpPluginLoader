@@ -242,9 +242,3 @@ Additional flags
 If the owner object of the animation layer this function is called on is an entity,
  it will instead call the function dedicated to entities. Note that in that case the 
  parameter will be ignored.
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

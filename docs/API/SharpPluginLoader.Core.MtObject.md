@@ -114,19 +114,6 @@ public MtDti GetDti()
 [MtDti](./SharpPluginLoader.Core.MtDti.md)<br>
 The DTI, or null if there is no DTI
 
-### **PopulatePropertyList(MtPropertyList)**
-
-Populates the specified property list with the properties of this object.
-
-```csharp
-internal void PopulatePropertyList(MtPropertyList list)
-```
-
-#### Parameters
-
-`list` [MtPropertyList](./SharpPluginLoader.Core.MtPropertyList.md)<br>
-The property list to be populated
-
 ### **Destroy(Boolean)**
 
 Calls the destructor of this object.

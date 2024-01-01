@@ -133,9 +133,3 @@ The id of the action within the action set
 **Remarks:**
 
 For monsters use the [Monster.ForceAction(Int32)](./SharpPluginLoader.Core.Entities.Monster.md#forceactionint32) method instead.
-
-### **Initialize()**
-
-```csharp
-internal static void Initialize()
-```

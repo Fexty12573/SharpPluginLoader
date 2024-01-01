@@ -10,16 +10,6 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/System.Object) 
 
 ## Methods
 
-### **Initialize()**
-
-```csharp
-internal static void Initialize( logFunc)
-```
-
-#### Parameters
-
-`logFunc` <br>
-
 ### **Debug(String)**
 
 ```csharp

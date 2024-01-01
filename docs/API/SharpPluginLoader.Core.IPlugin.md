@@ -34,19 +34,51 @@ public string Author { get; }
 
 ## Methods
 
-### **OnLoad()**
+### **Initialize()**
 
-Gets called when the plugin is loaded. This is where you should initialize your plugin.
- The plugin must return a [PluginData](./SharpPluginLoader.Core.PluginData.md) struct, which tells the framework which events to call.
+Gets called when the plugin is loaded. This is where you configure your plugin within the framework.
+ The plugin must return a  struct, which tells the framework which events to call.
+ 
+ Default event, always called once per plugin [re]load.
 
 ```csharp
-PluginData OnLoad()
+PluginData Initialize()
 ```
 
 #### Returns
 
 [PluginData](./SharpPluginLoader.Core.PluginData.md)<br>
 The filled out PluginData
+
+### **OnLoad()**
+
+Gets called after the game has initalized it's singletons. This is you initalize anything in your plugin
+ that uses the game state (e.g. reading pointers, accessing singletons, etc).
+ 
+ Default event, always called once per plugin [re]load.
+
+```csharp
+void OnLoad()
+```
+
+### **OnPreMain()**
+
+Called before any of the game's code runs (including static initalizers).
+ This is only used for special cases, and is not applicable to most plugins.
+ This will NOT be called during hot-reloading.
+
+```csharp
+void OnPreMain()
+```
+
+### **OnWinMain()**
+
+Called after game's static initializers, but before WinMain.
+ This is only for special cases, and is not applicable to most plugins.
+
+```csharp
+void OnWinMain()
+```
 
 ### **OnUpdate(Single)**
 
@@ -516,14 +548,20 @@ void OnRender()
 
 ### **OnImGuiRender()**
 
-The user can use this function to render ImGui widgets on the screen.
+The user can use this function to render ImGui widgets on the screen. Widgets rendered here will be inside the main SPL ImGui window.
 
 ```csharp
 void OnImGuiRender()
 ```
 
-### **Dispose()**
+### **OnImGuiFreeRender()**
+
+The user can use this function to render their own ImGui windows.
 
 ```csharp
-void Dispose()
+void OnImGuiFreeRender()
 ```
+
+**Remarks:**
+
+Note: To render any ImGui widgets inside this function, you must create your own ImGui window.

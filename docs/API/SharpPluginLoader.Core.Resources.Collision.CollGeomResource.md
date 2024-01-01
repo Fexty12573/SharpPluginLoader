@@ -18,7 +18,7 @@ public PointerArray<CollGeom> Geometries { get; }
 
 #### Property Value
 
-[PointerArray&lt;CollGeom&gt;](./SharpPluginLoader.Core.PointerArray-1.md)<br>
+[PointerArray&lt;CollGeom&gt;]()<br>
 
 ### **FilePath**
 

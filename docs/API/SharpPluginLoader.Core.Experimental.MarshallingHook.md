@@ -37,19 +37,3 @@ public static MarshallingHook<TFunction> Create<TFunction>(TFunction hook, long 
 #### Returns
 
 MarshallingHook&lt;TFunction&gt;<br>
-
-### **CreateHook(Forwarder, Int64)**
-
-```csharp
-internal static IHook CreateHook(Forwarder forwarder, long functionAddress)
-```
-
-#### Parameters
-
-`forwarder` [Forwarder](./SharpPluginLoader.Core.Experimental.Forwarder.md)<br>
-
-`functionAddress` [Int64](https://docs.microsoft.com/en-us/dotnet/api/System.Int64)<br>
-
-#### Returns
-
-IHook<br>

@@ -3,12 +3,24 @@
 Namespace: SharpPluginLoader.Core
 
 ```csharp
-public struct PluginData
+public class PluginData
 ```
 
-Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/System.Object) → [ValueType](https://docs.microsoft.com/en-us/dotnet/api/System.ValueType) → [PluginData](./SharpPluginLoader.Core.PluginData.md)
+Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/System.Object) → [PluginData](./SharpPluginLoader.Core.PluginData.md)
 
 ## Fields
+
+### **OnPreMain**
+
+```csharp
+public bool OnPreMain;
+```
+
+### **OnWinMain**
+
+```csharp
+public bool OnWinMain;
+```
 
 ### **OnUpdate**
 
@@ -196,8 +208,30 @@ public bool OnRender;
 public bool OnImGuiRender;
 ```
 
+### **OnImGuiFreeRender**
+
+```csharp
+public bool OnImGuiFreeRender;
+```
+
 ### **IsDebugPlugin**
 
 ```csharp
 public bool IsDebugPlugin;
+```
+
+### **ImGuiWrappedInTreeNode**
+
+When set to true, any ImGui widgets rendered inside [IPlugin.OnImGuiRender()](./SharpPluginLoader.Core.IPlugin.md#onimguirender) will be wrapped in a TreeNode.
+
+```csharp
+public bool ImGuiWrappedInTreeNode;
+```
+
+## Constructors
+
+### **PluginData()**
+
+```csharp
+public PluginData()
 ```

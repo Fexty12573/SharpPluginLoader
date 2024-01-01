@@ -41,13 +41,3 @@ public static void SaveConfig<T>(IPlugin plugin)
 #### Parameters
 
 `plugin` [IPlugin](./SharpPluginLoader.Core.IPlugin.md)<br>
-
-### **SaveAndUnloadConfig(IPlugin)**
-
-```csharp
-internal static void SaveAndUnloadConfig(IPlugin plugin)
-```
-
-#### Parameters
-
-`plugin` [IPlugin](./SharpPluginLoader.Core.IPlugin.md)<br>

@@ -110,17 +110,21 @@
 
 [PluginData](./SharpPluginLoader.Core.PluginData.md)
 
-[PointerArray&lt;T&gt;](./SharpPluginLoader.Core.PointerArray-1.md)
-
 [PropType](./SharpPluginLoader.Core.PropType.md)
 
 [Quest](./SharpPluginLoader.Core.Quest.md)
+
+[QuestTargetData](./SharpPluginLoader.Core.QuestTargetData.md)
+
+[QuestTargetType](./SharpPluginLoader.Core.QuestTargetType.md)
 
 [ResourceManager](./SharpPluginLoader.Core.ResourceManager.md)
 
 [SpanExtensions](./SharpPluginLoader.Core.SpanExtensions.md)
 
 [TextColor](./SharpPluginLoader.Core.TextColor.md)
+
+[Timer](./SharpPluginLoader.Core.Timer.md)
 
 [Utility](./SharpPluginLoader.Core.Utility.md)
 
@@ -176,6 +180,8 @@
 
 [Button](./SharpPluginLoader.Core.IO.Button.md)
 
+[CipherStreamMode](./SharpPluginLoader.Core.IO.CipherStreamMode.md)
+
 [Input](./SharpPluginLoader.Core.IO.Input.md)
 
 [Key](./SharpPluginLoader.Core.IO.Key.md)
@@ -183,6 +189,26 @@
 [Keybind&lt;T&gt;](./SharpPluginLoader.Core.IO.Keybind-1.md)
 
 [KeyBindings](./SharpPluginLoader.Core.IO.KeyBindings.md)
+
+[MemoryStreamMode](./SharpPluginLoader.Core.IO.MemoryStreamMode.md)
+
+[MtCipherStream](./SharpPluginLoader.Core.IO.MtCipherStream.md)
+
+[MtFile](./SharpPluginLoader.Core.IO.MtFile.md)
+
+[MtFileStream](./SharpPluginLoader.Core.IO.MtFileStream.md)
+
+[MtMemoryStream](./SharpPluginLoader.Core.IO.MtMemoryStream.md)
+
+[MtSerializer](./SharpPluginLoader.Core.IO.MtSerializer.md)
+
+[MtStream](./SharpPluginLoader.Core.IO.MtStream.md)
+
+[OpenMode](./SharpPluginLoader.Core.IO.OpenMode.md)
+
+[SerializerEncoding](./SharpPluginLoader.Core.IO.SerializerEncoding.md)
+
+[SerializerMode](./SharpPluginLoader.Core.IO.SerializerMode.md)
 
 ## SharpPluginLoader.Core.Memory
 

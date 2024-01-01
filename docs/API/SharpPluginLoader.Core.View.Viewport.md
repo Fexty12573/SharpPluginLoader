@@ -123,3 +123,26 @@ public Viewport(nint instance)
 ```csharp
 public Viewport()
 ```
+
+## Methods
+
+### **WorldToScreen(MtVector3, MtVector2&)**
+
+Converts a point in world space to screen space.
+
+```csharp
+public bool WorldToScreen(MtVector3 worldPosition, MtVector2& screenPos)
+```
+
+#### Parameters
+
+`worldPosition` [MtVector3](./SharpPluginLoader.Core.MtTypes.MtVector3.md)<br>
+The point in world space.
+
+`screenPos` [MtVector2&](./SharpPluginLoader.Core.MtTypes.MtVector2.md)<br>
+The point in screen space.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/System.Boolean)<br>
+True if the point is visible, false otherwise.

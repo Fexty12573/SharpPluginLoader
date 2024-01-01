@@ -3,6 +3,7 @@
 #include <dxgi1_4.h>
 
 #include "CoreClr.h"
+#include "Config.h"
 #include "Log.h"
 #include "NativePluginFramework.h"
 
@@ -23,17 +24,17 @@ void D3DModule::initialize(CoreClr* coreclr) {
     AddDllDirectory(TEXT("nativePC/plugins/CSharp/Loader"));
 
     m_core_render = coreclr->get_method<void()>(
-        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Render"
     );
     m_core_imgui_render = coreclr->get_method<ImDrawData * ()>(
-        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ImGuiRender"
     );
     m_core_initialize_imgui = coreclr->get_method<ImGuiContext * ()>(
-        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Initialize"
     );

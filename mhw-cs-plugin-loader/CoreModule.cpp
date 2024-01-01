@@ -1,5 +1,6 @@
 #include "CoreModule.h"
 #include "CoreClr.h"
+#include "Config.h"
 #include "Log.h"
 #include "NativePluginFramework.h"
 
@@ -11,7 +12,7 @@ static void test_icall() {
 
 void CoreModule::initialize(CoreClr* coreclr) {
     m_plugin_on_update = coreclr->get_method<void(float)>(
-        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.NativeInterface",
         L"OnUpdate"
     );

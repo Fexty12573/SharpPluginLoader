@@ -1,5 +1,6 @@
 #include "GuiModule.h"
 #include "CoreClr.h"
+#include "Config.h"
 #include "Log.h"
 #include "NativePluginFramework.h"
 
@@ -28,7 +29,7 @@ struct GuiElement {
 
 void GuiModule::initialize(CoreClr* coreclr) {
     m_propagate_dialog_result = coreclr->get_method<void(void*, void*, int)>(
-        ASSEMBLY_NAME(L"SharpPluginLoader.Core"),
+        config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Gui",
         L"PropagateDialogResult"
     );

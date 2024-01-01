@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "Config.h"
 
 #include <chrono>
 #include <fstream>
@@ -53,7 +54,7 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
     }
 
     if (!s_file) {
-        s_file.open("nativePC/plugins/SharpPluginLoader.log", std::ios::out);
+        s_file.open(config::SPL_LOG_FILE, std::ios::out);
         if (!s_file) {
             loader::LOG(loader::ERR) << "[SPL] Failed to open log file";
             return;

@@ -1,4 +1,5 @@
 #include "CoreClr.h"
+#include "Config.h"
 #include "Log.h"
 #include "hostfxr.h"
 
@@ -22,6 +23,7 @@ struct ManagedFunctionPointersInternal {
 };
 
 CoreClr::CoreClr() {
+    using namespace config;
     char_t buffer[MAX_PATH];
     size_t buffer_size = MAX_PATH;
     if (get_hostfxr_path(buffer, &buffer_size, nullptr) != 0) {
@@ -45,7 +47,7 @@ CoreClr::CoreClr() {
     }
 
     hostfxr_handle ctx = nullptr;
-    HRESULT hr = initialize(L"nativePC/plugins/SharpPluginLoader.runtimeconfig.json", nullptr, &ctx);
+    HRESULT hr = initialize(SPL_RUNTIME_CONFIG.data(), nullptr, &ctx);
     if (FAILED(hr)) {
         dlog::error("Failed to initialize hostfxr: {}", hr);
         return;
@@ -71,11 +73,7 @@ CoreClr::CoreClr() {
 
     close(ctx);
 
-#ifdef _DEBUG
-    const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Bootstrapper.Debug.dll");
-#else
-    const auto bootstrapper_path = std::filesystem::absolute("nativePC/plugins/CSharp/Loader/SharpPluginLoader.Bootstrapper.dll");
-#endif
+    const auto bootstrapper_path = std::filesystem::absolute(SPL_BOOTSTRAPPER_ASSEMBLY);
 
     dlog::debug("Loading bootstrapper from {}", bootstrapper_path.string());
 

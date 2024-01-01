@@ -179,6 +179,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui_impl_win32.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="ChunkModule.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="CoreClr.h" />
     <ClInclude Include="coreclr_delegates.h" />
     <ClInclude Include="CoreModule.h" />

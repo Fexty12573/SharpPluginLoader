@@ -72,14 +72,17 @@ namespace SharpPluginLoader.Core
             {
                 PlaceNativeDlls();
                 AddressRepository.Initialize();
-                Gui.Initialize();
-                Quest.Initialize();
-                ResourceManager.Initialize();
-                Network.Initialize();
-                Player.Initialize();
-                Monster.Initialize();
-                ActionController.Initialize();
-                AnimationLayerComponent.Initialize();
+
+                Task.WaitAll([
+                    Task.Run(Gui.Initialize),
+                    Task.Run(Quest.Initialize),
+                    Task.Run(ResourceManager.Initialize),
+                    Task.Run(Network.Initialize),
+                    Task.Run(Player.Initialize),
+                    Task.Run(Monster.Initialize),
+                    Task.Run(ActionController.Initialize),
+                    Task.Run(AnimationLayerComponent.Initialize)
+                ]);
             }
             catch (Exception e)
             {

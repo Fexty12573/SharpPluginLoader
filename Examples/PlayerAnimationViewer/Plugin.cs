@@ -27,6 +27,7 @@ namespace PlayerAnimationViewer
         public string Author => "Fexty";
 
         private Config? _config;
+        private string _shellPath = "";
 
         #region Entity Picker
         private Model? _selectedModel;
@@ -108,7 +109,7 @@ namespace PlayerAnimationViewer
 
             return new PluginData
             {
-                OnUpdate = true,
+                OnUpdate = false,
                 OnImGuiRender = true,
                 OnRender = true,
                 OnEntityAnimation = true,
@@ -157,6 +158,11 @@ namespace PlayerAnimationViewer
         {
             if (_selectedModel is null)
                 return;
+            if (!GetEntityList().Contains(_selectedModel))
+            {
+                _selectedModel = null;
+                return;
+            }
 
             var entity = _selectedModel.Is("uMhModel") ? _selectedModel.As<Entity>() : null;
             var colComponent = entity?.CollisionComponent;
@@ -165,7 +171,7 @@ namespace PlayerAnimationViewer
 
             foreach (var node in colComponent.Nodes)
             {
-                if (!node.Get<bool>(0xB1))
+                if (!node.IsActive)
                     continue;
 
                 foreach (var geometry in node.Geometries)
@@ -173,7 +179,7 @@ namespace PlayerAnimationViewer
                     if (geometry.Geom is null) continue;
 
                     MtVector4 color;
-                    if (node.Get<bool>(0xB1))
+                    if (node.IsActive)
                     {
                         color = geometry.Geom.Type switch
                         {
@@ -182,6 +188,9 @@ namespace PlayerAnimationViewer
                             GeometryType.Obb => new MtVector4(0, 0, 1, 0.25f),
                             _ => new MtVector4(1, 1, 1, 0.25f)
                         };
+
+                        if (node.Get<nint>(0x90) == 0) // AttackParam
+                            color = new MtVector4(0f, 0.165f, 0.431f, 0.25f);
                     }
                     else
                     {
@@ -206,6 +215,14 @@ namespace PlayerAnimationViewer
 
         public void OnImGuiRender()
         {
+            ImGui.InputText("Shell Path", ref _shellPath, 260);
+            if (ImGui.Button("Dump Shell"))
+            {
+                var shell = ResourceManager.GetResource<ShellParam>(_shellPath, MtDti.Find("rShellParam")!);
+                if (shell is not null)
+                    LogProperties(shell);
+            }
+
             if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
             {
                 var entities = GetEntityList();
@@ -266,6 +283,11 @@ namespace PlayerAnimationViewer
                 ImGui.NewLine();
 
                 ImGui.Text($"Current Animation: {_selectedModel.CurrentAnimation}");
+                if (_selectedModel.Is("uCharacterModel"))
+                {
+                    var entity = _selectedModel.As<Entity>();
+                    ImGui.Text($"Current Action: {entity.ActionController.CurrentAction}");
+                }
 
                 if (_selectedModel.Is("uPlayer") && ImGui.CollapsingHeader("Flags & Triggers"))
                 {
@@ -881,8 +903,9 @@ namespace PlayerAnimationViewer
                 action = _selectedAction;
         }
 
-        public void LogProperties(MtObject? obj)
+        public void LogProperties(MtObject? obj, string indent = "    ")
         {
+            var mtArrayDti = MtDti.Find("MtArray");
             if (obj is null)
                 return;
 
@@ -891,11 +914,35 @@ namespace PlayerAnimationViewer
             if (dti is null)
                 return;
 
-            Log.Info($"Properties for {dti.Name} (0x{dti.Id:X}):");
+            Log.Info($"{indent[4..]}Properties for {dti.Name} (0x{dti.Id:X}):");
             foreach (var prop in props)
             {
                 var get = prop.IsProperty ? prop.Get : prop.Get - obj.Instance;
-                Log.Info($"    [{prop.Type}] {prop.Name}, Offset:0x{get:X}, CRC32: 0x{Utility.Crc32(prop.Name):X}");
+                Log.Info($"{indent}[{prop.Type}] {prop.Name}, Offset:0x{get:X}, CRC32: 0x{Utility.Crc32(prop.Name):X}");
+
+                if (prop.Type is not PropType.Class and not PropType.ClassRef)
+                    continue;
+                if (prop.IsArray && dti != mtArrayDti)
+                    continue;
+
+                if (dti == mtArrayDti)
+                {
+                    Log.Info($"{indent}Entries:");
+                    var arr = obj.As<MtArray<MtObject>>();
+                    foreach (var item in arr)
+                        LogProperties(item, indent + "    ");
+                    continue;
+                }
+
+                var getter = prop.Type switch
+                {
+                    PropType.Class => new NativeFunction<nint, nint>(0x14218c020),
+                    PropType.ClassRef => new NativeFunction<nint, nint>(0x14218d780),
+                    _ => new NativeFunction<nint, nint>()
+                };
+
+                var cls = new MtObject(getter.Invoke(prop.Instance));
+                LogProperties(cls, indent + "    ");
             }
         }
 

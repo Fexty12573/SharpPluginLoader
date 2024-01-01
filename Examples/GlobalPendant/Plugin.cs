@@ -64,7 +64,7 @@ namespace GlobalPendant
 
         public void OnLoad()
         {
-            _changePendantHook = Hook.Create<ChangePendant>(ChangePendantHook, 0x14050d700);
+            _changePendantHook = Hook.Create<ChangePendant>(0x14050d700, ChangePendantHook);
         }
     }
 }

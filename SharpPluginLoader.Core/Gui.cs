@@ -102,7 +102,7 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(ChatMessageSentHook, AddressRepository.Get("Chat:MessageSent"));
+            _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(AddressRepository.Get("Chat:MessageSent"), ChatMessageSentHook);
         }
 
         private static unsafe nint ChatInstance => *(nint*)0x14500ac30;

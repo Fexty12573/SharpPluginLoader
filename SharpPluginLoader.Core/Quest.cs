@@ -67,28 +67,28 @@ namespace SharpPluginLoader.Core
         internal static void Initialize()
         {
             // AcceptQuest: 141b64be0 (When you accept a quest)
-            _acceptQuestHook = Hook.Create<AcceptQuest>(AcceptQuestHook, AddressRepository.Get("Quest:AcceptQuest"));
+            _acceptQuestHook = Hook.Create<AcceptQuest>(AddressRepository.Get("Quest:AcceptQuest"), AcceptQuestHook);
 
             // EnterQuest: 141b699a0 (When you arrive in the quest)
-            _enterQuestHook = Hook.Create<EnterQuest>(EnterQuestHook, AddressRepository.Get("Quest:EnterQuest"));
+            _enterQuestHook = Hook.Create<EnterQuest>(AddressRepository.Get("Quest:EnterQuest"), EnterQuestHook);
 
             // ReturnFromQuest: 141b6f600 (When you click return from quest)
-            _returnFromQuestHook = Hook.Create<ReturnFromQuest>(ReturnFromQuestHook, AddressRepository.Get("Quest:ReturnFromQuest"));
+            _returnFromQuestHook = Hook.Create<ReturnFromQuest>(AddressRepository.Get("Quest:ReturnFromQuest"), ReturnFromQuestHook);
 
             // LeaveQuest: 141b660d0 (Return/Abandon/Fail/Complete)
-            _leaveQuestHook = Hook.Create<LeaveQuest>(LeaveQuestHook, AddressRepository.Get("Quest:LeaveQuest"));
+            _leaveQuestHook = Hook.Create<LeaveQuest>(AddressRepository.Get("Quest:LeaveQuest"), LeaveQuestHook);
 
             // AbandonQuest: 141b707a0 (When you click abandon quest)
-            _abandonQuestHook = Hook.Create<AbandonQuest>(AbandonQuestHook, AddressRepository.Get("Quest:AbandonQuest"));
+            _abandonQuestHook = Hook.Create<AbandonQuest>(AddressRepository.Get("Quest:AbandonQuest"), AbandonQuestHook);
 
             // CancelQuest: 141b655a0 (When you cancel the quest before entering)
-            _cancelQuestHook = Hook.Create<CancelQuest>(CancelQuestHook, AddressRepository.Get("Quest:CancelQuest"));
+            _cancelQuestHook = Hook.Create<CancelQuest>(AddressRepository.Get("Quest:CancelQuest"), CancelQuestHook);
 
             // EndQuest: 141b646c0 (When you complete/fail the quest)
-            _endQuestHook = Hook.Create<EndQuest>(EndQuestHook, AddressRepository.Get("Quest:EndQuest"));
+            _endQuestHook = Hook.Create<EndQuest>(AddressRepository.Get("Quest:EndQuest"), EndQuestHook);
 
             // DepartOnQuest: 141b69140 (When you click depart on quest)
-            _departOnQuestHook = Hook.Create<DepartOnQuest>(DepartOnQuestHook, AddressRepository.Get("Quest:DepartOnQuest"));
+            _departOnQuestHook = Hook.Create<DepartOnQuest>(AddressRepository.Get("Quest:DepartOnQuest"), DepartOnQuestHook);
         }
 
 

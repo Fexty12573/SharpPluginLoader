@@ -136,8 +136,8 @@ namespace SharpPluginLoader.Core.Components
 
         internal static void Initialize()
         {
-            _updateHook = Hook.Create<UpdateDelegate>(UpdateHook, AddressRepository.Get("AnimationLayerComponent:Update"));
-            _doLmtHook = Hook.Create<DoLmtDelegate>(DoLmtHook, AddressRepository.Get("Entity:DoAnimation"));
+            _updateHook = Hook.Create<UpdateDelegate>(AddressRepository.Get("AnimationLayerComponent:Update"), UpdateHook);
+            _doLmtHook = Hook.Create<DoLmtDelegate>(AddressRepository.Get("Entity:DoAnimation"), DoLmtHook);
         }
 
         private static void UpdateHook(nint animLayer, int a, uint b, nint c, nint d, nint e, nint f, nint g)

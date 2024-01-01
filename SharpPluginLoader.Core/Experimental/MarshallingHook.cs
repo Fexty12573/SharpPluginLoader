@@ -14,7 +14,7 @@ namespace SharpPluginLoader.Core.Experimental
 {
     public class MarshallingHook
     {
-        public static MarshallingHook<TFunction> Create<TFunction>(TFunction hook, long functionAddress) 
+        public static MarshallingHook<TFunction> Create<TFunction>(long functionAddress, TFunction hook) 
             where TFunction : Delegate
         {
             return new MarshallingHook<TFunction>(hook, functionAddress);

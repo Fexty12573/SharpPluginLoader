@@ -35,7 +35,7 @@ namespace PreloadTesting
             Log.Debug("PreloadTesting->OnPreMain called!");
 
             // Hook a static DTI initializer just to test/verify that we running before that.
-            _staticInitalizerMtObjectDTIHook = Hook.Create<StaticInitalizerMtObjectDTI>(StaticInitalizerMtObjectDTIHook, 0x14020C1B0);
+            _staticInitalizerMtObjectDTIHook = Hook.Create<StaticInitalizerMtObjectDTI>(0x14020C1B0, StaticInitalizerMtObjectDTIHook);
         }
 
         public void OnWinMain()

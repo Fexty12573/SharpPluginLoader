@@ -15,7 +15,7 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _getResourceHook = Hook.Create<GetResourceDelegate>(GetResourceHook, GetResourceFunc.NativePointer);
+            _getResourceHook = Hook.Create<GetResourceDelegate>(GetResourceFunc.NativePointer, GetResourceHook);
         }
 
         private static nint GetResourceHook(nint resourceMgr, nint dti, string path, uint flags)

@@ -243,14 +243,14 @@ namespace SharpPluginLoader.Core.Entities
 
         internal static void Initialize()
         {
-            _launchActionHook = Hook.Create<LaunchActionDelegate>(LaunchActionHook, AddressRepository.Get("Monster:LaunchAction"));
-            _monsterCtorHook = Hook.Create<MonsterCtorDelegate>(MonsterCtorHook, AddressRepository.Get("Monster:Ctor"));
-            _entityInitializeHook = Hook.Create<EntityInitializeDelegate>(EntityInitializeHook, AddressRepository.Get("Entity:Initialize"));
-            _monsterFlinchHook = Hook.Create<MonsterFlinchDelegate>(MonsterFlinchHook, AddressRepository.Get("Monster:Flinch"));
-            _enrageHook = Hook.Create<EnrageDelegate>(EnrageHook, AddressRepository.Get("Monster:Enrage"));
-            _unenrageHook = Hook.Create<UnenrageDelegate>(UnenrageHook, AddressRepository.Get("Monster:Unenrage"));
-            _monsterDieHook = Hook.Create<MonsterDieDelegate>(MonsterDieHook, AddressRepository.Get("Monster:Die"));
-            _monsterDtorHook = Hook.Create<MonsterDtorDelegate>(MonsterDtorHook, AddressRepository.Get("Monster:Dtor"));
+            _launchActionHook = Hook.Create<LaunchActionDelegate>(AddressRepository.Get("Monster:LaunchAction"), LaunchActionHook);
+            _monsterCtorHook = Hook.Create<MonsterCtorDelegate>(AddressRepository.Get("Monster:Ctor"), MonsterCtorHook);
+            _entityInitializeHook = Hook.Create<EntityInitializeDelegate>(AddressRepository.Get("Entity:Initialize"), EntityInitializeHook);
+            _monsterFlinchHook = Hook.Create<MonsterFlinchDelegate>(AddressRepository.Get("Monster:Flinch"), MonsterFlinchHook);
+            _enrageHook = Hook.Create<EnrageDelegate>(AddressRepository.Get("Monster:Enrage"), EnrageHook);
+            _unenrageHook = Hook.Create<UnenrageDelegate>(AddressRepository.Get("Monster:Unenrage"), UnenrageHook);
+            _monsterDieHook = Hook.Create<MonsterDieDelegate>(AddressRepository.Get("Monster:Die"), MonsterDieHook);
+            _monsterDtorHook = Hook.Create<MonsterDtorDelegate>(AddressRepository.Get("Monster:Dtor"), MonsterDtorHook);
         }
 
         private delegate bool LaunchActionDelegate(nint monster, int actionId);

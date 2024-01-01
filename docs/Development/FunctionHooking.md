@@ -17,10 +17,7 @@ public class Example : IPlugin
     private delegate void ReleaseResourceDelegate(nint resourceManager, nint resourcePtr);
     private Hook<ReleaseResourceDelegate> _releaseResourceHook;
 
-    public PluginData Initialize()
-    {
-        return new PluginData();
-    }
+    public PluginData Initialize() => new PluginData();
 
     public void OnLoad()
     {
@@ -74,6 +71,17 @@ private void ReleaseResourceHook(nint resourceManager, nint resourcePtr)
     
     This means that so long as you hold a reference to a `Resource` object, the resource will never be unloaded (unless the game force-unloads it for some reason, but that should generally not be the case).
 
+Of course, you can also use a lambda expression instead of a separate method for the detour. This makes the code a bit more compact for simple hooks.
+```csharp
+_releaseResourceHook = Hook.Create<ReleaseResourceDelegate>(0x142224890, (resourceManager, resourcePtr) =>
+{
+    var resource = new Resource(resourcePtr);
+    if (resource.RefCount == 1)
+        Log.Info($"Resource {resource.Name} was unloaded!");
+
+    _releaseResourceHook.Original(resourceManager, resourcePtr);
+});
+```
 
 ## Extended Marshalling
 As mentioned before, the framework only automatically marshalls `string` types. If you want to hook a function that takes other types as parameters, you need to manually marshal them.
@@ -90,22 +98,18 @@ public class Plugin : IPlugin
     private delegate void ReleaseResourceDelegate(MtObject resourceManager, Resource resource);
     private MarshallingHook<ReleaseResourceDelegate> _releaseResourceHook;
 
-    public PluginData Initialize()
-    {
-        return new PluginData();
-    }
+    public PluginData Initialize() => new PluginData();
 
     public void OnLoad()
     {
-        _releaseResourceHook = MarshallingHook.Create<ReleaseResourceDelegate>(0x142224890, ReleaseResourceDetour);
-    }
+        // Using a lambda expression for the detour
+        _releaseResourceHook = MarshallingHook.Create<ReleaseResourceDelegate>(0x142224890, (resourceManager, resource) => 
+        {
+            if (resource.RefCount == 1)
+                Log.Info($"Resource {resource.Name} was unloaded!");
 
-    private void ReleaseResourceHook(MtObject resourceManager, Resource resource)
-    {
-        if (resource.RefCount == 1)
-            Log.Info($"Resource {resource.Name} was unloaded!");
-
-        _releaseResourceHook.Original(resourceManager, resourcePtr);
+            _releaseResourceHook.Original(resourceManager, resource);
+        });
     }
 }
 ```

@@ -75,7 +75,7 @@ namespace SharpPluginLoader.Core.Entities
 
         internal static void Initialize()
         {
-            _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(ChangeWeaponHook, AddressRepository.Get("Player:ChangeWeapon"));
+            _changeWeaponHook = Hook.Create<ChangeWeaponDelegate>(AddressRepository.Get("Player:ChangeWeapon"), ChangeWeaponHook);
         }
 
         private static void ChangeWeaponHook(nint player, WeaponType weaponType, int weaponId)

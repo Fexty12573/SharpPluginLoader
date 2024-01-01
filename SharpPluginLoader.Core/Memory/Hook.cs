@@ -9,10 +9,10 @@ namespace SharpPluginLoader.Core.Memory
         /// Creates a new native function hook.
         /// </summary>
         /// <typeparam name="TFunction">The type of the function to hook</typeparam>
-        /// <param name="hook">The hook function</param>
         /// <param name="address">The address of the function to hook</param>
+        /// <param name="hook">The hook function</param>
         /// <returns>The hook object</returns>
-        public static Hook<TFunction> Create<TFunction>(TFunction hook, long address)
+        public static Hook<TFunction> Create<TFunction>(long address, TFunction hook)
         {
             return new Hook<TFunction>(hook, address);
         }

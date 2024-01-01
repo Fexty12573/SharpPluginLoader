@@ -24,7 +24,7 @@ namespace SharpPluginLoader.Core.Rendering
 
             SetupImGuiStyle();
 
-            _getCursorPositionHook = Hook.Create<GetCursorPositionDelegate>(GetCursorPositionHook, 0x1422e7010);
+            _getCursorPositionHook = Hook.Create<GetCursorPositionDelegate>(0x1422e7010, GetCursorPositionHook);
 
             Log.Debug("Renderer.Initialize");
 

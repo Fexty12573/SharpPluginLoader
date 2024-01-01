@@ -62,7 +62,7 @@ namespace SharpPluginLoader.Core
 
         internal static void Initialize()
         {
-            _doActionHook = Hook.Create<DoActionDelegate>(DoActionHookFunc, AddressRepository.Get("ActionController:DoAction"));
+            _doActionHook = Hook.Create<DoActionDelegate>(AddressRepository.Get("ActionController:DoAction"), DoActionHookFunc);
         }
 
         private static bool DoActionHookFunc(nint instance, ref ActionInfo actionInfo)

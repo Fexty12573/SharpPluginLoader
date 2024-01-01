@@ -8,13 +8,17 @@ namespace CustomPackets
     {
         public string Name => "CustomPackets";
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
         {
             return new PluginData
             {
                 OnUpdate = true,
                 OnReceivePacket = true
             };
+        }
+
+        public void OnLoad()
+        {
         }
 
         public void OnUpdate(float deltaTime)

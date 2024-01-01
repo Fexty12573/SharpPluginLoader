@@ -10,7 +10,11 @@
         "zlib",
         "directxmath",
         "tinyobjloader",
-        "d3dx12"
+        "d3dx12",
+        {
+            "name": "wil",
+            "platform": "windows & x64"
+        }
     ],
     "builtin-baseline": "0e47c1985273129e4d0ee52ff73bed9125555de8"
 }

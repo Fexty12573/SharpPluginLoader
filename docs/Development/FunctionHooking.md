@@ -17,10 +17,14 @@ public class Example : IPlugin
     private delegate void ReleaseResourceDelegate(nint resourceManager, nint resourcePtr);
     private Hook<ReleaseResourceDelegate> _releaseResourceHook;
 
-    public PluginData OnLoad()
+    public PluginData Initialize()
+    {
+        return new PluginData();
+    }
+
+    public void OnLoad()
     {
         _releaseResourceHook = Hook.Create<ReleaseResourceDelegate>(0x142224890, ReleaseResourceDetour);
-        return new PluginData();
     }
 
     private void ReleaseResourceHook(nint resourceManager, nint resourcePtr)
@@ -86,10 +90,14 @@ public class Plugin : IPlugin
     private delegate void ReleaseResourceDelegate(MtObject resourceManager, Resource resource);
     private MarshallingHook<ReleaseResourceDelegate> _releaseResourceHook;
 
-    public PluginData OnLoad()
+    public PluginData Initialize()
+    {
+        return new PluginData();
+    }
+
+    public void OnLoad()
     {
         _releaseResourceHook = MarshallingHook.Create<ReleaseResourceDelegate>(0x142224890, ReleaseResourceDetour);
-        return new PluginData();
     }
 
     private void ReleaseResourceHook(MtObject resourceManager, Resource resource)

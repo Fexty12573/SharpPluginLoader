@@ -8,15 +8,18 @@ namespace BackgroundOptimize
 
         private float _lastFps;
 
-        public PluginData OnLoad()
+        public PluginData Initialize()
         {
-            AppExt.BackgroundLowPower = false;
-            _lastFps = MhMain.MaxFps;
-
             return new PluginData
             {
                 OnUpdate = true
             };
+        }
+
+        public void OnLoad()
+        {
+            AppExt.BackgroundLowPower = false;
+            _lastFps = MhMain.MaxFps;
         }
 
         public void OnUpdate(float deltaTime)

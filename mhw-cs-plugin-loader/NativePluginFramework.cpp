@@ -23,5 +23,16 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
 
     coreclr->upload_internal_calls();
     coreclr->initialize_core_assembly();
-    m_managed_functions.LoadPlugins();
+}
+
+void NativePluginFramework::TriggerOnPreMain() {
+    m_managed_functions.TriggerOnPreMain();
+}
+
+void NativePluginFramework::TriggerOnWinMain() {
+    m_managed_functions.TriggerOnWinMain();
+}
+
+void NativePluginFramework::TriggerOnMhMainCtor() {
+    m_managed_functions.TriggerOnMhMainCtor();
 }

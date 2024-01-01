@@ -366,3 +366,6 @@ FodyWeavers.xsd
 
 # vcpkg install
 vcpkg_installed/
+
+# Generated files from package-release.bat
+release-files/

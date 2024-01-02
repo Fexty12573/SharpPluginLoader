@@ -56,6 +56,11 @@ namespace SharpPluginLoader.Core
         /// <returns>A reference to the element at the provided index</returns>
         public readonly ref T this[int index] => ref *(T*)(Address + index * sizeof(T));
 
+        public readonly NativeArray<T> Slice(int start, int newLength)
+        {
+            return new NativeArray<T>(Address + start * sizeof(T), newLength);
+        }
+
         /// <summary>
         /// Creates a span over the native array.
         /// </summary>

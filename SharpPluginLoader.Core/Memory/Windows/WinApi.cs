@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SharpPluginLoader.Core.Memory.Windows
 {
@@ -21,6 +18,18 @@ namespace SharpPluginLoader.Core.Memory.Windows
 
         [LibraryImport("kernel32.dll")]
         public static partial ulong VirtualQuery(nint lpAddress, out MemoryBasicInformation lpBuffer, ulong dwLength);
+
+        public static bool IsManagedAssembly(string path)
+        {
+            using var stream = File.OpenRead(path);
+            using var reader = new PEReader(stream);
+            
+            if (!reader.HasMetadata)
+                return false;
+
+            var metadataReader = reader.GetMetadataReader();
+            return metadataReader.IsAssembly;
+        }
     }
 
     internal static class Constants

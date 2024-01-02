@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Loader;
 using SharpPluginLoader.Core.Configuration;
+using SharpPluginLoader.Core.Memory.Windows;
 
 namespace SharpPluginLoader.Core
 {
@@ -122,7 +123,9 @@ namespace SharpPluginLoader.Core
 
         private static bool IsPlugin(string path)
         {
-            return Path.GetExtension(path) == ".dll" && Path.GetFileName(Path.GetDirectoryName(path)) != "Loader";
+            return Path.GetExtension(path) == ".dll"
+                   && Path.GetFileName(Path.GetDirectoryName(path)) != "Loader"
+                   && WinApi.IsManagedAssembly(path);
         }
 
 
@@ -136,7 +139,7 @@ namespace SharpPluginLoader.Core
             lock (_contexts)
             {
                 List<PluginContext> pluginContexts = _contexts.Values.Where(ctx => ctx.Path == absPath).ToList();
-                if(pluginContexts.Count != 1)
+                if (pluginContexts.Count != 1)
                 {
                     return null;
                 }
@@ -191,10 +194,8 @@ namespace SharpPluginLoader.Core
         {
             foreach (var pluginPath in Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories))
             {
-                if (Path.GetFileName(Path.GetDirectoryName(pluginPath)) == "Loader")
-                    continue;
-
-                LoadPlugin(pluginPath);
+                if (IsPlugin(pluginPath))
+                    LoadPlugin(pluginPath);
             }
         }
 
@@ -210,8 +211,7 @@ namespace SharpPluginLoader.Core
                 return;
             }
 
-            Log.Info($"Loading plugin {pluginPath}");
-            Log.Debug($"assembly context: {AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!.Name}");
+            Log.Debug($"Attempting to load {pluginPath}");
 
             var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
             var relPath = Path.GetRelativePath(".", pluginPath);
@@ -226,7 +226,8 @@ namespace SharpPluginLoader.Core
                     return;
                 }
             }
-            
+
+            Log.Debug($"Creating ALC for assembly {pluginPath}");
             var context = new PluginLoadContext(pluginPath);
             Assembly? assembly;
 
@@ -269,6 +270,8 @@ namespace SharpPluginLoader.Core
                 context.Unload();
                 return;
             }
+
+            Log.Info($"Loading plugin {pluginPath}");
 
             if (Activator.CreateInstance(pluginType) is not IPlugin plugin)
             {

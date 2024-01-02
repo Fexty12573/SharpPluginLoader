@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
 using SharpPluginLoader.Core;
@@ -17,7 +14,6 @@ using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
-using static SharpPluginLoader.Core.Components.CollisionComponent;
 
 namespace PlayerAnimationViewer
 {
@@ -25,9 +21,6 @@ namespace PlayerAnimationViewer
     {
         public string Name => "Player Animation Viewer";
         public string Author => "Fexty";
-
-        private Config? _config;
-        private string _shellPath = "";
 
         #region Entity Picker
         private Model? _selectedModel;
@@ -122,8 +115,6 @@ namespace PlayerAnimationViewer
 
         public void OnUpdate(float deltaTime)
         {
-            _config ??= ConfigManager.GetConfig<Config>(this);
-
             if (Monster.SingletonInstance == 0)
                 return;
 
@@ -218,14 +209,6 @@ namespace PlayerAnimationViewer
 
         public void OnImGuiRender()
         {
-            ImGui.InputText("Shell Path", ref _shellPath, 260);
-            if (ImGui.Button("Dump Shell"))
-            {
-                var shell = ResourceManager.GetResource<ShellParam>(_shellPath, MtDti.Find("rShellParam")!);
-                if (shell is not null)
-                    LogProperties(shell);
-            }
-
             if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
             {
                 var entities = GetEntityList();
@@ -698,7 +681,7 @@ namespace PlayerAnimationViewer
 
                             if (_addKeyframeParam is not null)
                             {
-                                var props = _timlPlayer.ObjectList?.FindObject(_addKeyframeParam->Dti)?.GetProperties();
+                                var props = _timlPlayer.ObjectList?.FindObject(_addKeyframeParam->Dti!)?.GetProperties();
                                 Ensure.NotNull(props);
 
                                 if (ImGui.BeginCombo("Member", props.FindProperty(_addKeyframeParamMember->Hash)?.HashName ?? "None"))

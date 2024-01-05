@@ -50,6 +50,7 @@ private:
 
     void late_init_d3d11(D3DModule* d3dmodule);
     void late_init_d3d12(D3DModule* d3dmodule, IDXGISwapChain* swap_chain);
+    void create_frame_contexts(D3DModule* d3dmodule, IDXGISwapChain3* sc3);
 
     static CpuMesh load_mesh(const std::string& path);
     static void load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out);
@@ -96,6 +97,8 @@ private:
     std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_top{};
     std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_bottom{};
 
+    bool m_is_initialized = false;
+
     #pragma region D3D11
 
     Mesh11 m_d3d11_cylinder{};
@@ -134,7 +137,8 @@ private:
 
     ComPtr<ID3D12CommandAllocator> m_d3d12_command_allocator = nullptr;
     ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
-    FrameContext* m_d3d12_frame_contexts;
+    std::unique_ptr<FrameContext[]> m_d3d12_frame_contexts;
+    u32 m_d3d12_back_buffer_count = 0;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_rtv_heap = nullptr;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_dsv_heap = nullptr;
 

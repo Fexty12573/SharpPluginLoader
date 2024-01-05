@@ -23,12 +23,14 @@ void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
 }
 
 void PrimitiveRenderingModule::shutdown() {
+    dlog::debug("[PrimitiveRenderingModule] Shutting down");
     if (m_d3d12_frame_contexts) {
-        delete[] m_d3d12_frame_contexts;
+        m_d3d12_frame_contexts.reset();
     }
 }
 
 void PrimitiveRenderingModule::late_init(D3DModule* d3dmodule, IDXGISwapChain* swap_chain) {
+    dlog::debug("[PrimitiveRenderingModule] Late init");
     if (D3DModule::is_d3d12()) {
         late_init_d3d12(d3dmodule, swap_chain);
     } else {
@@ -567,6 +569,10 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
 }
 
 void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
+    if (m_is_initialized) {
+        return;
+    }
+
     load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Sphere.obj", m_d3d11_sphere);
     load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Cube.obj", m_d3d11_cube);
     load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Hemisphere.obj", m_d3d11_hemisphere_top);
@@ -721,9 +727,16 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         &blend_desc,
         m_d3d11_blend_state.GetAddressOf()
     ));
+
+    m_is_initialized = true;
 }
 
 void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapChain* swap_chain) {
+    if (m_is_initialized) {
+        create_frame_contexts(d3dmodule, (IDXGISwapChain3*)swap_chain);
+        return;
+    }
+
     load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Sphere.obj", m_d3d12_sphere);
     load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cube.obj", m_d3d12_cube);
     load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Hemisphere.obj", m_d3d12_hemisphere_top);
@@ -1019,9 +1032,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     HandleResult(m_d3d12_command_list->Close());
 
     // Backbuffers
-    const u32 buffer_count = swap_chain_desc.BufferCount;
-
-    m_d3d12_frame_contexts = new FrameContext[buffer_count];
+    const u32 buffer_count = m_d3d12_back_buffer_count = swap_chain_desc.BufferCount;
 
     descriptor_heap_desc.NumDescriptors = buffer_count;
     descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -1033,10 +1044,20 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         IID_PPV_ARGS(m_d3d12_rtv_heap.GetAddressOf())
     ));
 
+    create_frame_contexts(d3dmodule, sc3);
+
+    m_is_initialized = true;
+}
+
+void PrimitiveRenderingModule::create_frame_contexts(D3DModule* d3dmodule, IDXGISwapChain3* sc3) {
+    dlog::debug("[PrimitiveRenderingModule] Creating frame contexts");
+
+    m_d3d12_frame_contexts = std::make_unique<FrameContext[]>(m_d3d12_back_buffer_count);
+
     const u32 rtv_descriptor_size = d3dmodule->m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_rtv_heap->GetCPUDescriptorHandleForHeapStart();
 
-    for (u32 i = 0; i < buffer_count; i++) {
+    for (u32 i = 0; i < m_d3d12_back_buffer_count; i++) {
         HandleResult(sc3->GetBuffer(i, IID_PPV_ARGS(m_d3d12_frame_contexts[i].RenderTarget.GetAddressOf())));
 
         HandleResult(m_d3d12_frame_contexts[i].RenderTarget->SetName(L"SPL: Render Target"));

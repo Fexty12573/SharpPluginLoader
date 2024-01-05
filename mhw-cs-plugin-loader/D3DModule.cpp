@@ -600,6 +600,7 @@ UINT64 D3DModule::d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fen
 
 HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
+    const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
 
     dlog::debug("ResizeBuffers called, resetting...");
 
@@ -609,6 +610,8 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
     } else {
         self->d3d11_deinitialize_imgui();
     }
+
+    prm->shutdown();
 
     return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
 }
@@ -655,6 +658,9 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT D3DModule::my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-    ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
-    return CallWindowProc(NativePluginFramework::get_module<D3DModule>()->m_game_window_proc, hwnd, msg, wparam, lparam);
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    if (self->m_is_initialized) {
+        ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+    }
+    return CallWindowProc(self->m_game_window_proc, hwnd, msg, wparam, lparam);
 }

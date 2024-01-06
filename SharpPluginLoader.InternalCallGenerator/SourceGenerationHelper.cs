@@ -41,7 +41,7 @@ public static class SourceGenerationHelper
                                     public class {{WideStringAttributeName}} : System.Attribute;
                                     """;
 
-    private static IMethodSymbol _currentMethodSymbol;
+    private static IMethodSymbol? _currentMethodSymbol;
 
     public static string GenerateSource(List<InternalCallMethod> internalCalls, SourceProductionContext context)
     {
@@ -137,6 +137,7 @@ public static class SourceGenerationHelper
                 if (!isLast)
                     methodSb.Append(", ");
 
+                // Convert the parameter
                 string invokeParamName;
                 switch (conversion)
                 {
@@ -188,8 +189,24 @@ public static class SourceGenerationHelper
                         pinStatements.Add($"fixed(byte* {invokeParamName} = b__{param.Name})");
                         methodInvokeParams.Add(invokeParamName);
                         break;
+                    case TypeConversionKind.Span:
+                        invokeParamName = $"t__{param.Name}";
+                        pinStatements.Add($"fixed({typeName} {invokeParamName} = {param.Name})");
+                        methodInvokeParams.Add(invokeParamName);
+                        break;
+                    case TypeConversionKind.Memory:
+                        invokeParamName = $"({typeName})h__{param.Name}.Pointer";
+                        methodBodySb.AppendLine($"using var h__{param.Name} = {param.Name}.Pin();");
+                        methodInvokeParams.Add(invokeParamName);
+                        break;
+                    case TypeConversionKind.List:
+                        invokeParamName = $"t__{param.Name}";
+                        pinStatements.Add($"fixed({typeName} {invokeParamName} = CollectionsMarshal.AsSpan({param.Name}))");
+                        methodInvokeParams.Add(invokeParamName);
+                        break;
                     case TypeConversionKind.None:
                     default:
+                        // No conversion needed
                         methodInvokeParams.Add(param.Name);
                         break;
                 }
@@ -317,9 +334,27 @@ public static class SourceGenerationHelper
                         : ("byte*", TypeConversionKind.String);
                 }
 
-                if (namedType.IsGenericType || !namedType.IsValueType)
+                if (namedType.IsGenericType)
                 {
-                    ReportError(context, "ICG001", "Generic types and reference types are not supported");
+                    switch (namedType.ConstructUnboundGenericType().ToDisplayString())
+                    {
+                        case "System.ReadOnlySpan<>":
+                        case "System.Span<>":
+                            var (spanType, _) = TransformType(namedType.TypeArguments[0], context);
+                            return (spanType + "*", TypeConversionKind.Span);
+                        case "System.ReadOnlyMemory<>":
+                        case "System.Memory<>":
+                            var (memoryType, _) = TransformType(namedType.TypeArguments[0], context);
+                            return (memoryType + "*", TypeConversionKind.Memory);
+                        case "System.Collections.Generic.List<>":
+                            var (listType, _) = TransformType(namedType.TypeArguments[0], context);
+                            return (listType + "*", TypeConversionKind.List);
+                    }
+                }
+
+                if (!namedType.IsValueType)
+                {
+                    ReportError(context, "ICG001A", "Reference types are not supported");
                     return (null, TypeConversionKind.None);
                 }
 
@@ -360,7 +395,7 @@ public static class SourceGenerationHelper
                 
                 if (namedType.IsGenericType || !namedType.IsValueType)
                 {
-                    ReportError(context, "ICG001", "Generic types and reference types are not supported");
+                    ReportError(context, "ICG001B", "Generic and reference return types are not supported");
                     return (null, TypeConversionKind.None);
                 }
                 
@@ -436,7 +471,7 @@ public static class SourceGenerationHelper
                     DiagnosticSeverity.Error,
                     true
                 ),
-                (method ?? _currentMethodSymbol).Locations[0]
+                (method ?? _currentMethodSymbol)!.Locations[0]
             )
         );
     }
@@ -448,5 +483,8 @@ internal enum TypeConversionKind
     Array = 1,
     RefOut = 2,
     String = 3,
-    WideString = 4
+    WideString = 4,
+    Span = 5,
+    List = 6,
+    Memory = 7
 }

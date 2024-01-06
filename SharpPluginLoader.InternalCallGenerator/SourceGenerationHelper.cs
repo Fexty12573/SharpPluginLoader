@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SharpPluginLoader.InternalCallGenerator;
 
@@ -96,8 +99,10 @@ public static class SourceGenerationHelper
             else if (method.ReturnsByRefReadonly)
                 retModifier = "ref readonly ";
             
+            var unsafeModifier = IsMethodDeclaredUnsafe(method) ? "unsafe " : "";
+            
             // Start method generation
-            methodSb.Append($"public static partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
+            methodSb.Append($"public static {unsafeModifier}partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
 
             if (!method.ReturnsVoid)
                 methodBodySb.AppendLine($"{transformedReturnType.typeName} __result = default;");
@@ -241,6 +246,21 @@ public static class SourceGenerationHelper
         sb.AppendLine("}");
         
         return sb.ToString();
+    }
+
+    private static bool IsMethodDeclaredUnsafe(IMethodSymbol method)
+    {
+        var syntax = method.DeclaringSyntaxReferences.First().GetSyntax() as MethodDeclarationSyntax;
+        if (syntax is null)
+            return false;
+
+        foreach (var modifier in syntax.Modifiers)
+        {
+            if (modifier.IsKind(SyntaxKind.UnsafeKeyword))
+                return true;
+        }
+
+        return false;
     }
 
     private static TransformedType TransformParameter(IParameterSymbol param, SourceProductionContext context)

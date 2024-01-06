@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,8 +16,10 @@ public static class SourceGenerationHelper
     public const string GeneratorNamespace = "SharpPluginLoader.InternalCallGenerator";
     public const string AttributeName = "InternalCallAttribute";
     public const string OptionsEnumName = "InternalCallOptions";
+    public const string WideStringAttributeName = "WideStringAttribute";
     public const string FullAttributeName = $"{GeneratorNamespace}.{AttributeName}";
     public const string FullOptionsEnumName = $"{GeneratorNamespace}.{OptionsEnumName}";
+    public const string FullWideStringAttributeName = $"{GeneratorNamespace}.{WideStringAttributeName}";
     public const string Attribute = $$"""
                                     namespace {{GeneratorNamespace}};
                                     
@@ -33,7 +36,12 @@ public static class SourceGenerationHelper
                                     {
                                         public InternalCallOptions Options { get; } = options;
                                     }
+                                    
+                                    [System.AttributeUsage(System.AttributeTargets.Parameter | System.AttributeTargets.ReturnValue)]
+                                    public class {{WideStringAttributeName}} : System.Attribute;
                                     """;
+
+    private static IMethodSymbol _currentMethodSymbol;
 
     public static string GenerateSource(List<InternalCallMethod> internalCalls, SourceProductionContext context)
     {
@@ -50,6 +58,7 @@ public static class SourceGenerationHelper
         List<string> gcHandles = []; // Used to store the gc handles
 
         sb.AppendLine("using System;");
+        sb.AppendLine("using System.Text;");
         sb.AppendLine("using System.Runtime.InteropServices;");
         sb.AppendLine("using System.Runtime.CompilerServices;");
         sb.AppendLine("using System.Collections.Generic;");
@@ -84,6 +93,8 @@ public static class SourceGenerationHelper
         // - string
         foreach (var (method, isUnsafe) in internalCalls)
         {
+            _currentMethodSymbol = method;
+
             var transformedReturnType = TransformReturn(method, context);
             if (transformedReturnType.typeName is null)
                 continue;
@@ -166,7 +177,17 @@ public static class SourceGenerationHelper
                         }
                         break;
                     case TypeConversionKind.String:
-                        throw new NotImplementedException();
+                        invokeParamName = $"t__{param.Name}";
+                        methodBodySb.AppendLine($"byte[] b__{param.Name} = [..Encoding.UTF8.GetBytes({param.Name}), 0];");
+                        pinStatements.Add($"fixed(byte* {invokeParamName} = b__{param.Name})");
+                        methodInvokeParams.Add(invokeParamName);
+                        break;
+                    case TypeConversionKind.WideString:
+                        invokeParamName = $"t__{param.Name}";
+                        methodBodySb.AppendLine($"byte[] b__{param.Name} = [..Encoding.Unicode.GetBytes({param.Name}), 0, 0];");
+                        pinStatements.Add($"fixed(byte* {invokeParamName} = b__{param.Name})");
+                        methodInvokeParams.Add(invokeParamName);
+                        break;
                     case TypeConversionKind.None:
                     default:
                         methodInvokeParams.Add(param.Name);
@@ -200,7 +221,11 @@ public static class SourceGenerationHelper
                         methodBodySb.AppendLine("return ref *__result;");
                         break;
                     case TypeConversionKind.String:
-                        throw new NotImplementedException();
+                        methodBodySb.AppendLine("return MemoryUtil.ReadString(__result, Encoding.UTF8);");
+                        break;
+                    case TypeConversionKind.WideString:
+                        methodBodySb.AppendLine("return MemoryUtil.ReadString(__result, Encoding.Unicode);");
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -225,7 +250,12 @@ public static class SourceGenerationHelper
 
             // Add entry to upload method
             var fieldType = fieldTypeSb.ToString();
-            uploadMethodSb.AppendLine($"_{method.Name}Ptr = ({fieldType})icalls[\"{method.Name}\"];");
+            uploadMethodSb.AppendLine($"""
+                                       if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
+                                           _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
+                                       else
+                                           Log.Error("Could not find InternalCall for method {method.Name}");
+                                       """);
             
             // Clear reused string builders and lists
             methodBodySb.Clear();
@@ -280,6 +310,13 @@ public static class SourceGenerationHelper
                     ? (typeName + "**", TypeConversionKind.RefOut) // ref/out pointers are represented as pointer to pointer
                     : (typeName + "*", TypeConversionKind.None);
             case INamedTypeSymbol namedType:
+                if (namedType.SpecialType == SpecialType.System_String)
+                {
+                    return HasWideStringAttribute(param)
+                        ? ("byte*", TypeConversionKind.WideString)
+                        : ("byte*", TypeConversionKind.String);
+                }
+
                 if (namedType.IsGenericType || !namedType.IsValueType)
                 {
                     ReportError(context, "ICG001", "Generic types and reference types are not supported");
@@ -314,6 +351,13 @@ public static class SourceGenerationHelper
                     ? (typeName + "**", TypeConversionKind.RefOut) 
                     : (typeName + "*", TypeConversionKind.None);
             case INamedTypeSymbol namedType:
+                if (namedType.SpecialType == SpecialType.System_String)
+                {
+                    return HasWideStringAttribute(method) 
+                        ? ("byte*", TypeConversionKind.WideString) 
+                        : ("byte*", TypeConversionKind.String);
+                }
+                
                 if (namedType.IsGenericType || !namedType.IsValueType)
                 {
                     ReportError(context, "ICG001", "Generic types and reference types are not supported");
@@ -358,7 +402,29 @@ public static class SourceGenerationHelper
         }
     }
 
-    private static void ReportError(SourceProductionContext context, string id, string message)
+    private static bool HasWideStringAttribute(IParameterSymbol parameter)
+    {
+        foreach (var attribute in parameter.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == FullWideStringAttributeName)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasWideStringAttribute(IMethodSymbol method)
+    {
+        foreach (var attribute in method.GetReturnTypeAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == FullWideStringAttributeName)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void ReportError(SourceProductionContext context, string id, string message, IMethodSymbol? method = null)
     {
         context.ReportDiagnostic(
             Diagnostic.Create(
@@ -370,7 +436,7 @@ public static class SourceGenerationHelper
                     DiagnosticSeverity.Error,
                     true
                 ),
-                null
+                (method ?? _currentMethodSymbol).Locations[0]
             )
         );
     }
@@ -381,5 +447,6 @@ internal enum TypeConversionKind
     None = 0,
     Array = 1,
     RefOut = 2,
-    String = 3
+    String = 3,
+    WideString = 4
 }

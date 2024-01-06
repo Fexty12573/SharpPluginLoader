@@ -73,7 +73,7 @@ public class InternalCallSourceGenerator : IIncrementalGenerator
                 ad => SymbolEqualityComparer.Default.Equals(ad.AttributeClass, icallAttribute));
             var isUnsafe = attributeData?.ConstructorArguments
                 .Any(tc => tc.Type?.ToDisplayString() == SourceGenerationHelper.FullOptionsEnumName 
-                           && tc.Value is not null 
+                           && tc.Value is not null
                            && (int)tc.Value == 1) ?? false;
             methodsToGenerate.Add(new InternalCallMethod(methodSymbol, isUnsafe));
         }

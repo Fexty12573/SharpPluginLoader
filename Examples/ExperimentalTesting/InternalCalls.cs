@@ -4,8 +4,14 @@ using SharpPluginLoader.Core;
 
 namespace ExperimentalTesting;
 
+public struct HasRefTypes
+{
+    public string str;
+    public MtVector2 vec;
+}
+
 [InternalCallManager]
-public unsafe partial class InternalCalls
+public partial class InternalCalls
 {
     // Test with simple primitive types
     [InternalCall]
@@ -13,15 +19,15 @@ public unsafe partial class InternalCalls
 
     // Test with single pointer type
     [InternalCall]
-    public static partial void TestPointers(double* values);
+    public static unsafe partial void TestPointers(double* values);
 
     // Test with mixed unmanaged types
     [InternalCall]
-    public static partial char ProcessData(byte* data, int length, ref ushort dataId);
+    public static unsafe partial char ProcessData(byte* data, int length, ref ushort dataId);
 
     // Test with array and pointer types
     [InternalCall]
-    public static partial void TransformCoordinates(float[] coords, MtVector3* transformMatrix);
+    public static unsafe partial void TransformCoordinates(float[] coords, MtVector3* transformMatrix);
 
     // Test with InternalCallOptions and ref parameter
     [InternalCall(InternalCallOptions.Unsafe)]
@@ -29,7 +35,7 @@ public unsafe partial class InternalCalls
 
     // Test with no return value and primitive parameters
     [InternalCall]
-    public static partial void LogMessage(int level, char* message);
+    public static unsafe partial void LogMessage(int level, char* message);
 
     // Test with complex struct return type and primitive parameters
     [InternalCall]
@@ -37,7 +43,7 @@ public unsafe partial class InternalCalls
 
     // Test with pointer to struct and primitive types
     [InternalCall]
-    public static partial MtVector2* CreateVector(int x, int y);
+    public static unsafe partial MtVector2* CreateVector(int x, int y);
 
     // Test with multiple ref and out parameters
     [InternalCall]
@@ -45,5 +51,34 @@ public unsafe partial class InternalCalls
 
     // Test with mixed array, pointer, and primitive types
     [InternalCall]
-    public static partial void ProcessBuffers(byte[] inputBuffer, float* outputBuffer, int bufferSize);
+    public static unsafe partial void ProcessBuffers(byte[] inputBuffer, float* outputBuffer, int bufferSize);
+
+    // Test with strings
+    [InternalCall]
+    public static partial MtVector2 Parse(string str);
+
+    [InternalCall]
+    [return: WideString]
+    public static partial string Format(MtVector2 vec, [WideString] string str);
+
+    [InternalCall]
+    public static partial void EnumTest(PropType type);
+
+    [InternalCall]
+    public static partial void StructTest(HasRefTypes type);
+
+    [InternalCall]
+    public static partial void SpanTest(Span<byte> span);
+
+    [InternalCall]
+    public static partial void ReadOnlySpanTest(ReadOnlySpan<byte> span);
+
+    [InternalCall]
+    public static partial void MemoryTest(Memory<byte> memory);
+    
+    [InternalCall]
+    public static partial void ReadOnlyMemoryTest(ReadOnlyMemory<byte> memory);
+
+    [InternalCall]
+    public static partial void ListTest(List<byte> list);
 }

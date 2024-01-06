@@ -1,4 +1,9 @@
-﻿using SharpPluginLoader.Core;
+﻿using System.Collections;
+using System.Collections.Specialized;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Experimental;
 using SharpPluginLoader.Core.Resources;
@@ -13,14 +18,18 @@ namespace ExperimentalTesting
         public delegate void ReleaseResourceDelegate(MtObject resourceMgr, Resource resource);
         private MarshallingHook<CreateShinyDropDelegate> _createShinyDropHook = null!;
         private MarshallingHook<ReleaseResourceDelegate> _releaseResourceHook = null!;
-
-        public void CreateShinyDropHook(MtObject a, int b, int c, nint d, long e, uint f)
+        private int _intRef = 0;
+        public ref int GetIntRef()
+        {
+            return ref _intRef;
+        }
+        public unsafe void CreateShinyDropHook(MtObject a, int b, int c, nint d, long e, uint f)
         {
             Log.Info($"CreateShinyDropHook: {a},{b},{c},{d},{e},{f}");
             _createShinyDropHook.Original(a, b, c, d, e, f);
         }
 
-        public void ReleaseResourceHook(MtObject resourceMgr, Resource resource)
+        public unsafe void ReleaseResourceHook(MtObject resourceMgr, Resource resource)
         {
             Log.Info($"Releasing Resource: {resource.FilePath}.{resource.FileExtension}" + 
                      (resource.Get<int>(0x5C) == 1 ? " | Unloading..." : ""));

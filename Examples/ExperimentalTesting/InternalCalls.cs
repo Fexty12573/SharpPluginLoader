@@ -14,7 +14,7 @@ public struct HasRefTypes
 public partial class InternalCalls
 {
     // Test with simple primitive types
-    [InternalCall]
+    [InternalCall(InternalCallOptions.Unsafe)]
     public static partial long Sum(long a, long b);
 
     // Test with single pointer type
@@ -35,7 +35,7 @@ public partial class InternalCalls
 
     // Test with no return value and primitive parameters
     [InternalCall]
-    public static unsafe partial void LogMessage(int level, char* message);
+    public static unsafe partial void LogMessage(int level, [WideString] string message);
 
     // Test with complex struct return type and primitive parameters
     [InternalCall]

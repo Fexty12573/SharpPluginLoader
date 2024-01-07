@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PreloadTesting", "Examples\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpPluginLoader.InternalCallGenerator", "SharpPluginLoader.InternalCallGenerator\SharpPluginLoader.InternalCallGenerator.csproj", "{CBD13575-CA0C-4EB5-821D-847A6EE5581F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExperimentalTesting.Native", "Examples\ExperimentalTesting.Native\ExperimentalTesting.Native.vcxproj", "{E3BA4F2C-E79F-486E-8051-0835D8057C7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -339,6 +341,30 @@ Global
 		{CBD13575-CA0C-4EB5-821D-847A6EE5581F}.RelWithDebInfo|x64.Build.0 = Release|Any CPU
 		{CBD13575-CA0C-4EB5-821D-847A6EE5581F}.RelWithDebInfo|x86.ActiveCfg = Release|Any CPU
 		{CBD13575-CA0C-4EB5-821D-847A6EE5581F}.RelWithDebInfo|x86.Build.0 = Release|Any CPU
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|Any CPU.Build.0 = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|x64.ActiveCfg = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|x64.Build.0 = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|x86.ActiveCfg = Debug|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Debug|x86.Build.0 = Debug|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|Any CPU.ActiveCfg = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|Any CPU.Build.0 = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|x64.ActiveCfg = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|x64.Build.0 = Debug|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|x86.ActiveCfg = Debug|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.MinSizeRel|x86.Build.0 = Debug|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|Any CPU.ActiveCfg = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|Any CPU.Build.0 = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|x64.ActiveCfg = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|x64.Build.0 = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|x86.ActiveCfg = Release|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.Release|x86.Build.0 = Release|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|Any CPU.ActiveCfg = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|Any CPU.Build.0 = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|x64.ActiveCfg = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D}.RelWithDebInfo|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -356,6 +382,7 @@ Global
 		{444FF57A-C89D-403C-ABFB-2CC6BA1D9FCE} = {93226706-71AC-41BC-A457-21D3CAA8C751}
 		{C37E5763-6EBE-45CE-A903-DEF1AEA64FEA} = {93226706-71AC-41BC-A457-21D3CAA8C751}
 		{CBD13575-CA0C-4EB5-821D-847A6EE5581F} = {22614599-FA47-4E69-8DBB-A183F0A4AE25}
+		{E3BA4F2C-E79F-486E-8051-0835D8057C7D} = {93226706-71AC-41BC-A457-21D3CAA8C751}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {623F8CBC-2C3B-488D-B7BB-0140A8201BB7}

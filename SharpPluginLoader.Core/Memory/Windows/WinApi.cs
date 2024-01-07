@@ -19,6 +19,16 @@ namespace SharpPluginLoader.Core.Memory.Windows
         [LibraryImport("kernel32.dll")]
         public static partial ulong VirtualQuery(nint lpAddress, out MemoryBasicInformation lpBuffer, ulong dwLength);
 
+        [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryW")]
+        public static partial nint LoadLibrary([MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
+
+        [LibraryImport("kernel32.dll", EntryPoint = "FreeLibrary")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static partial bool FreeLibrary(nint hModule);
+
+        [LibraryImport("kernel32.dll", EntryPoint = "GetProcAddress")]
+        public static partial nint GetProcAddress(nint hModule, [MarshalAs(UnmanagedType.LPStr)] string lpProcName);
+
         public static bool IsManagedAssembly(string path)
         {
             using var stream = File.OpenRead(path);

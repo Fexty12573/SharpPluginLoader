@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace SharpPluginLoader.Core.Memory
 {
@@ -250,6 +251,64 @@ namespace SharpPluginLoader.Core.Memory
         {
             NativeMemory.Free(address);
         }
+
+        #endregion
+
+        #region Strings
+
+        /// <summary>
+        /// Gets the length of a null-terminated string at a given address.
+        /// </summary>
+        /// <param name="address">The address of the string</param>
+        /// <returns>The length of the string</returns>
+        /// <remarks>
+        /// This method counts the number of bytes, not the number of characters.
+        /// </remarks>
+        public static int StringLength(nint address)
+        {
+            var ptr = (byte*)address;
+            var length = 0;
+
+            while (*ptr != 0)
+            {
+                ptr++;
+                length++;
+            }
+
+            return length;
+        }
+
+        /// <summary>
+        /// Reads a null-terminated string from a given address.
+        /// </summary>
+        /// <param name="address">The address of the string</param>
+        /// <param name="encoding">The encoding to use, or UTF8 if no encoding is given</param>
+        /// <returns>The string read</returns>
+        public static string ReadString(nint address, Encoding? encoding = null)
+        {
+            var length = StringLength(address);
+            return (encoding ?? Encoding.UTF8).GetString((byte*)address, length);
+        }
+
+        #region Mirror Methods for long
+
+        /// <inheritdoc cref="StringLength(nint)"/>
+        public static int StringLength(long address) => StringLength((nint)address);
+
+        /// <inheritdoc cref="ReadString(nint,Encoding)"/>
+        public static string ReadString(long address, Encoding? encoding = null) => ReadString((nint)address, encoding);
+
+        #endregion
+
+        #region Mirror Methods for byte*
+
+        /// <inheritdoc cref="StringLength(nint)"/>
+        public static int StringLength(byte* address) => StringLength((nint)address);
+
+        /// <inheritdoc cref="ReadString(nint,Encoding)"/>
+        public static string ReadString(byte* address, Encoding? encoding = null) => ReadString((nint)address, encoding);
+
+        #endregion
 
         #endregion
 

@@ -11,6 +11,15 @@ namespace SharpPluginLoader.Core
         public string Name => Marshal.PtrToStringAnsi(_fieldName) ?? string.Empty;
     }
 
+    /// <summary>
+    /// This attribute is used to mark a class as an internal call manager.
+    /// There can only be one internal call manager per plugin.
+    ///
+    /// The internal call manager is where the plugin keeps all of its internal calls.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class InternalCallManagerAttribute : Attribute;
+
     internal static class InternalCallManager
     {
         public static unsafe void UploadInternalCalls(InternalCall* internalCalls, uint internalCallsCount)

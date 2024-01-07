@@ -271,7 +271,7 @@ public static class SourceGenerationHelper
                                        if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
                                            _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
                                        else
-                                           Log.Error("Could not find InternalCall for method {method.Name}");
+                                           Log.Warn("Could not find InternalCall for method {method.Name}");
                                        """);
             
             // Clear reused string builders and lists

@@ -2,10 +2,9 @@
 #include <cstdint>
 #include <Windows.h>
 
-struct InternalCall {
-    const char* Name;
-    void* Function;
-};
+#include "SPL/InternalCall.h"
+
+namespace SPLNative = SharpPluginLoader::Native;
 
 int64_t sum(int64_t a, int64_t b) {
     return a + b;
@@ -21,11 +20,11 @@ void log_message(int level, const wchar_t* message) {
     MessageBoxW(nullptr, message, buf, MB_OK);
 }
 
-extern "C" __declspec(dllexport) int get_internal_call_count() {
+SPL_INTERNAL_CALL int get_internal_call_count() {
     return 3;
 }
 
-extern "C" __declspec(dllexport) void collect_internal_calls(InternalCall * icalls) {
+SPL_INTERNAL_CALL void collect_internal_calls(SPLNative::InternalCall* icalls) {
     icalls[0] = { "Sum", (void*)sum };
     icalls[1] = { "ModifyValue", (void*)modify_value };
     icalls[2] = { "LogMessage", (void*)log_message };

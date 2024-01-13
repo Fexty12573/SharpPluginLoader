@@ -153,10 +153,10 @@ namespace SharpPluginLoader.Core
     [StructLayout(LayoutKind.Explicit, Size = 0x10)]
     public struct ActionList
     {
-        [FieldOffset(0x8)] public nint Actions;
-        [FieldOffset(0x0)] public int Count;
+        [FieldOffset(0x0)] public nint Actions;
+        [FieldOffset(0x8)] public int Count;
 
-        public unsafe MtObject this[int index]
+        public readonly unsafe MtObject this[int index]
         {
             get
             {

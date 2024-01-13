@@ -111,36 +111,4 @@ namespace SharpPluginLoader.Core.Entities
         HeavyBowgun = 13,
         None = 0xFF
     }
-
-    internal unsafe struct ShellCreationParams
-    {
-        public fixed float Values[74];
-
-        private T* As<T>(long offset = 0) where T : unmanaged
-        {
-            fixed (float* ptr = Values)
-                return (T*)((nint)ptr + offset);
-        }
-
-        public ShellCreationParams(MtVector3 target, MtVector3 origin)
-        {
-            Values[0] = origin.X;
-            Values[1] = origin.Y;
-            Values[2] = origin.Z;
-            Values[3] = 0f;
-
-            *As<bool>(4 * 4) = true;
-            var values = As<float>(0x40);
-            values[0] = target.X;
-            values[1] = target.Y;
-            values[2] = target.Z;
-            values[3] = 0f;
-            *As<bool>(0x50) = true;
-
-            var ivals = As<int>(0xA0);
-            ivals[0] = 0x12;
-            ivals[1] = -1;
-            ivals[2] = -1;
-        }
-    }
 }

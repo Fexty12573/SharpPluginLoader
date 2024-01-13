@@ -22,18 +22,6 @@
 	  <NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Remove="FASM\**" />
-	  <EmbeddedResource Remove="FASM\**" />
-	  <None Remove="FASM\**" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM-LICENSE.TXT" Link="FASM\FASM-LICENSE.TXT" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" Link="FASM\FASM.DLL" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Update="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASMX64.DLL" Link="FASM\FASMX64.DLL" />
 	  <None Update="NativeAction.tt">
 	    <Generator>TextTemplatingFileGenerator</Generator>
 	    <LastGenOutput>NativeAction.cs</LastGenOutput>
@@ -44,16 +32,7 @@
 	  </None>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
-	</ItemGroup>
-	<ItemGroup>
 	  <NativeLibs Remove="Hook.cs" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Remove="C:\Users\Fexty\.nuget\packages\reloaded.assembler\1.0.14\build\FASM.DLL" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
@@ -137,5 +116,7 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Timer.cs" />
 	</ItemGroup>
-
+	<ItemGroup>
+	  <NativeLibs Remove="Area.cs" />
+	</ItemGroup>
 </Project>

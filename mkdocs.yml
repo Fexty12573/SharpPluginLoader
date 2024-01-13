@@ -49,6 +49,7 @@ nav:
     - Calling Native Functions: Development/CallingNativeFuncs.md
     - Rendering with ImGui: Development/ImGui.md
     - Rendering: Development/Rendering.md
+    - Native Components: Development/NativeComponents.md
   - API Reference:
     - API/index.md
   - Examples:

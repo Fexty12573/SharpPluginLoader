@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>12.0</LangVersion>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<Title>SharpPluginLoader InternalCall Generator</Title>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<Nullable>enable</Nullable>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Fexty,Ando</Authors>
+		<Company />
+		<Description>A source generator to generate InternalCalls for plugins</Description>
+		<PackageProjectUrl>https://fexty12573.github.io/SharpPluginLoader/</PackageProjectUrl>
+		<PackageReadmeFile>$(ProjectDir)README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/Fexty12573/SharpPluginLoader</RepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="F:\source\repos\mhw-cs-plugin-loader\SharpPluginLoader.InternalCallGenerator\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>

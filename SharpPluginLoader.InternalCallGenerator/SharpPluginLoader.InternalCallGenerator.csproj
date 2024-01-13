@@ -4,11 +4,18 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>12.0</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Title>InternalCall Generator</Title>
+		<Title>SharpPluginLoader InternalCall Generator</Title>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<IsRoslynComponent>true</IsRoslynComponent>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Fexty,Ando</Authors>
+		<Company />
+		<Description>A source generator to generate InternalCalls for plugins</Description>
+		<PackageProjectUrl>https://fexty12573.github.io/SharpPluginLoader/</PackageProjectUrl>
+		<PackageReadmeFile>$(ProjectDir)README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/Fexty12573/SharpPluginLoader</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -21,6 +28,10 @@
 
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="F:\source\repos\mhw-cs-plugin-loader\SharpPluginLoader.InternalCallGenerator\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 </Project>

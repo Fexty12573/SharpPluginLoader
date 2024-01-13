@@ -503,6 +503,8 @@ void D3DModule::title_menu_ready_hook(void* gui) {
     std::thread t(&D3DModule::common_initialize, self);
     self->m_title_menu_ready_hook.call(gui);
     t.join();
+
+    self->m_title_menu_ready_hook = {};
 }
 
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {

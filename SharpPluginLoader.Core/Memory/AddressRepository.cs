@@ -26,7 +26,7 @@ namespace SharpPluginLoader.Core.Memory
 
 
             var gameVersion = GetGameRevision(addressRecords);
-            Log.Debug($"[Core] Attempting to initalize address repository for game revision: {gameVersion}");
+            Log.Debug($"[Core] Attempting to initialize address repository for game revision: {gameVersion}");
             var addressRecordFileHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(addressRecordsString)));
 
             if (File.Exists(AddressCachePath))

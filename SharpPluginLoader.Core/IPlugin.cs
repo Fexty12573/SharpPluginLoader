@@ -155,7 +155,7 @@ namespace SharpPluginLoader.Core
         public PluginData Initialize();
 
         /// <summary>
-        /// Gets called after the game has initalized it's singletons. This is you initalize anything in your plugin
+        /// Gets called after the game has initialized it's singletons. This is you initialize anything in your plugin
         /// that uses the game state (e.g. reading pointers, accessing singletons, etc).
         /// 
         /// Default event, always called once per plugin [re]load.
@@ -165,7 +165,7 @@ namespace SharpPluginLoader.Core
 
         #region Pre-Main Events
         /// <summary>
-        /// Called before any of the game's code runs (including static initalizers).
+        /// Called before any of the game's code runs (including static initializers).
         /// This is only used for special cases, and is not applicable to most plugins.
         /// This will NOT be called during hot-reloading.
         /// </summary>

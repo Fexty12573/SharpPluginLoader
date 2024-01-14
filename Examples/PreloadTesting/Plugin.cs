@@ -10,8 +10,8 @@ namespace PreloadTesting
     {
         public string Name => "Preload Testing";
 
-        private delegate void StaticInitalizerMtObjectDTI();
-        private Hook<StaticInitalizerMtObjectDTI> _staticInitalizerMtObjectDTIHook = null!;
+        private delegate void StaticinitializerMtObjectDTI();
+        private Hook<StaticinitializerMtObjectDTI> _staticinitializerMtObjectDTIHook = null!;
 
         public PluginData Initialize()
         {
@@ -23,10 +23,10 @@ namespace PreloadTesting
             };
         }
 
-        private unsafe void StaticInitalizerMtObjectDTIHook()
+        private unsafe void StaticinitializerMtObjectDTIHook()
         {
-            Log.Debug("PreloadTesting->StaticInitalizerMtObjectDTIHook called!");
-            _staticInitalizerMtObjectDTIHook.Original();
+            Log.Debug("PreloadTesting->StaticinitializerMtObjectDTIHook called!");
+            _staticinitializerMtObjectDTIHook.Original();
             return;
         }
 
@@ -35,7 +35,7 @@ namespace PreloadTesting
             Log.Debug("PreloadTesting->OnPreMain called!");
 
             // Hook a static DTI initializer just to test/verify that we running before that.
-            _staticInitalizerMtObjectDTIHook = Hook.Create<StaticInitalizerMtObjectDTI>(0x14020C1B0, StaticInitalizerMtObjectDTIHook);
+            _staticinitializerMtObjectDTIHook = Hook.Create<StaticinitializerMtObjectDTI>(0x14020C1B0, StaticinitializerMtObjectDTIHook);
         }
 
         public void OnWinMain()

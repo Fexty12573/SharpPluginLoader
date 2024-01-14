@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpPluginLoader.Bootstrapper", "SharpPluginLoader.Bootstrapper\SharpPluginLoader.Bootstrapper.csproj", "{26472E80-B4EE-483C-B40E-B63CA483623A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpPluginLoader.Core", "SharpPluginLoader.Core\SharpPluginLoader.Core.csproj", "{E1916F12-EA12-46DE-9E73-3F7FEE5C8C16}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1E8AD45C-9F95-4FA1-AC7D-01A88750751D} = {1E8AD45C-9F95-4FA1-AC7D-01A88750751D}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChunkBuilder", "ChunkBuilder\ChunkBuilder.csproj", "{1E8AD45C-9F95-4FA1-AC7D-01A88750751D}"
 EndProject
@@ -37,7 +40,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpPluginLoader.InternalC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExperimentalTesting.Native", "Examples\ExperimentalTesting.Native\ExperimentalTesting.Native.vcxproj", "{E3BA4F2C-E79F-486E-8051-0835D8057C7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DtiHierarchyVisualizer", "Examples\DtiHierarchyVisualizer\DtiHierarchyVisualizer.csproj", "{803FDF24-F0D1-4643-B595-13FEEE59BE32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DtiHierarchyVisualizer", "Examples\DtiHierarchyVisualizer\DtiHierarchyVisualizer.csproj", "{803FDF24-F0D1-4643-B595-13FEEE59BE32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

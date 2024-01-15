@@ -1,5 +1,10 @@
 [
     {
+        "Name": "Core::GetGameBuildRevision",
+        "Pattern": "48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00",
+        "Offset": 0
+    },
+    {
         "Name": "AnimationLayerComponent:RegisterLmt",
         "Pattern": "48 8b 81 60 04 00 00 48 85 c0 74 08 48 8b c8 e9 ? ? ? ? 48 8b 89 68 04 00 00 48 85 c9 ? ? ? ? ? ? c3",
         "Offset": 0

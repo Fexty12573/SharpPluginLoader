@@ -18,10 +18,10 @@ public MarshallingHook()
 
 ## Methods
 
-### **Create&lt;TFunction&gt;(TFunction, Int64)**
+### **Create&lt;TFunction&gt;(Int64, TFunction)**
 
 ```csharp
-public static MarshallingHook<TFunction> Create<TFunction>(TFunction hook, long functionAddress)
+public static MarshallingHook<TFunction> Create<TFunction>(long functionAddress, TFunction hook)
 ```
 
 #### Type Parameters
@@ -30,9 +30,9 @@ public static MarshallingHook<TFunction> Create<TFunction>(TFunction hook, long 
 
 #### Parameters
 
-`hook` TFunction<br>
-
 `functionAddress` [Int64](https://docs.microsoft.com/en-us/dotnet/api/System.Int64)<br>
+
+`hook` TFunction<br>
 
 #### Returns
 

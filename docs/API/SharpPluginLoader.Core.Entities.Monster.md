@@ -164,7 +164,7 @@ public ActionController ActionController { get; }
 
 #### Property Value
 
-[ActionController](./SharpPluginLoader.Core.ActionController.md)<br>
+[ActionController](./SharpPluginLoader.Core.Actions.ActionController.md)<br>
 
 ### **Position**
 

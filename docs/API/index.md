@@ -1,12 +1,6 @@
-# SharpPluginLoader.Core
-
 ## SharpPluginLoader.Core
 
-[ActionController](./SharpPluginLoader.Core.ActionController.md)
-
-[ActionInfo](./SharpPluginLoader.Core.ActionInfo.md)
-
-[ActionList](./SharpPluginLoader.Core.ActionList.md)
+[Area](./SharpPluginLoader.Core.Area.md)
 
 [CameraSystem](./SharpPluginLoader.Core.CameraSystem.md)
 
@@ -15,6 +9,8 @@
 [Ensure](./SharpPluginLoader.Core.Ensure.md)
 
 [Gui](./SharpPluginLoader.Core.Gui.md)
+
+[InternalCallManagerAttribute](./SharpPluginLoader.Core.InternalCallManagerAttribute.md)
 
 [IPlugin](./SharpPluginLoader.Core.IPlugin.md)
 
@@ -122,11 +118,23 @@
 
 [SpanExtensions](./SharpPluginLoader.Core.SpanExtensions.md)
 
+[Stage](./SharpPluginLoader.Core.Stage.md)
+
 [TextColor](./SharpPluginLoader.Core.TextColor.md)
 
 [Timer](./SharpPluginLoader.Core.Timer.md)
 
 [Utility](./SharpPluginLoader.Core.Utility.md)
+
+## SharpPluginLoader.Core.Actions
+
+[Action](./SharpPluginLoader.Core.Actions.Action.md)
+
+[ActionController](./SharpPluginLoader.Core.Actions.ActionController.md)
+
+[ActionInfo](./SharpPluginLoader.Core.Actions.ActionInfo.md)
+
+[ActionList](./SharpPluginLoader.Core.Actions.ActionList.md)
 
 ## SharpPluginLoader.Core.Collision
 

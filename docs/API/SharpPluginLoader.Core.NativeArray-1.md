@@ -118,6 +118,22 @@ The newly allocated native array
 Warning: The memory allocated by this method is not automatically freed. You must call [NativeArray&lt;T&gt;.Dispose()](./SharpPluginLoader.Core.NativeArray-1.md#dispose) when you are done with the array.
  Alternatively, use a using statement to ensure that the array is disposed.
 
+### **Slice(Int32, Int32)**
+
+```csharp
+NativeArray<T> Slice(int start, int newLength)
+```
+
+#### Parameters
+
+`start` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+
+`newLength` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+
+#### Returns
+
+[NativeArray&lt;T&gt;](./SharpPluginLoader.Core.NativeArray-1.md)<br>
+
 ### **AsSpan()**
 
 Creates a span over the native array.

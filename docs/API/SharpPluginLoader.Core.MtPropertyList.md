@@ -3,7 +3,7 @@
 Namespace: SharpPluginLoader.Core
 
 ```csharp
-public class MtPropertyList : MtObject, System.Collections.Generic.IEnumerable`1[[SharpPluginLoader.Core.MtProperty, SharpPluginLoader.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Collections.IEnumerable
+public class MtPropertyList : MtObject, System.Collections.Generic.IEnumerable`1[[SharpPluginLoader.Core.MtProperty, SharpPluginLoader.Core, Version=0.0.2.0, Culture=neutral, PublicKeyToken=null]], System.Collections.IEnumerable
 ```
 
 Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/System.Object) → [NativeWrapper](./SharpPluginLoader.Core.NativeWrapper.md) → [MtObject](./SharpPluginLoader.Core.MtObject.md) → [MtPropertyList](./SharpPluginLoader.Core.MtPropertyList.md)<br>

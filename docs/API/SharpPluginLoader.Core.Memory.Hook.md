@@ -10,12 +10,12 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/System.Object) 
 
 ## Methods
 
-### **Create&lt;TFunction&gt;(TFunction, Int64)**
+### **Create&lt;TFunction&gt;(Int64, TFunction)**
 
 Creates a new native function hook.
 
 ```csharp
-public static Hook<TFunction> Create<TFunction>(TFunction hook, long address)
+public static Hook<TFunction> Create<TFunction>(long address, TFunction hook)
 ```
 
 #### Type Parameters
@@ -25,11 +25,11 @@ The type of the function to hook
 
 #### Parameters
 
-`hook` TFunction<br>
-The hook function
-
 `address` [Int64](https://docs.microsoft.com/en-us/dotnet/api/System.Int64)<br>
 The address of the function to hook
+
+`hook` TFunction<br>
+The hook function
 
 #### Returns
 

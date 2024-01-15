@@ -34,7 +34,7 @@ public ActionController ActionController { get; }
 
 #### Property Value
 
-[ActionController](./SharpPluginLoader.Core.ActionController.md)<br>
+[ActionController](./SharpPluginLoader.Core.Actions.ActionController.md)<br>
 
 ### **Position**
 
@@ -264,6 +264,44 @@ The effect to create
 
 [InvalidOperationException](https://docs.microsoft.com/en-us/dotnet/api/System.InvalidOperationException)<br>
 
+### **CreateShell(Int32, Int32, MtVector3, Nullable&lt;MtVector3&gt;)**
+
+Spawns a shell on the entity
+
+```csharp
+public void CreateShell(int shllIndex, int shlpIndex, MtVector3 target, Nullable<MtVector3> origin)
+```
+
+#### Parameters
+
+`shllIndex` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+The index of the shll in the entities shll list
+
+`shlpIndex` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+The index of the shlp in the shll
+
+`target` [MtVector3](./SharpPluginLoader.Core.MtTypes.MtVector3.md)<br>
+The position the shell should travel towards
+
+`origin` [Nullable&lt;MtVector3&gt;](https://docs.microsoft.com/en-us/dotnet/api/System.Nullable-1)<br>
+The origin of the shell (or null for the entity itself)
+
+### **CreateShell(Int32, Int32)**
+
+Spawns a shell on the entity
+
+```csharp
+public void CreateShell(int shllIndex, int shlpIndex)
+```
+
+#### Parameters
+
+`shllIndex` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+The index of the shll in the entities shll list
+
+`shlpIndex` [Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+The index of the shlp in the shll
+
 ### **CreateShell(UInt32, MtVector3, Nullable&lt;MtVector3&gt;)**
 
 Spawns a shell on the entity
@@ -275,7 +313,7 @@ public void CreateShell(uint index, MtVector3 target, Nullable<MtVector3> origin
 #### Parameters
 
 `index` [UInt32](https://docs.microsoft.com/en-us/dotnet/api/System.UInt32)<br>
-The index of the shell in the monsters shell list (shll)
+The index of the shell in the entities shell list (shll)
 
 `target` [MtVector3](./SharpPluginLoader.Core.MtTypes.MtVector3.md)<br>
 The position the shell should travel towards
@@ -297,7 +335,7 @@ public void CreateShell(ShellParamList shll, uint index, MtVector3 target, Nulla
 The shll file to take the shell from
 
 `index` [UInt32](https://docs.microsoft.com/en-us/dotnet/api/System.UInt32)<br>
-The index of the shell in the monsters shell list (shll)
+The index of the shell in the entities shell list (shll)
 
 `target` [MtVector3](./SharpPluginLoader.Core.MtTypes.MtVector3.md)<br>
 The position the shell should travel towards

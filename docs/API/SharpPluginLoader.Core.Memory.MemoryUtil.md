@@ -470,6 +470,109 @@ public static void Free(Void* address)
 `address` [Void*](https://docs.microsoft.com/en-us/dotnet/api/System.Void*)<br>
 The address of the block to free
 
+### **StringLength(IntPtr)**
+
+Gets the length of a null-terminated string at a given address.
+
+```csharp
+public static int StringLength(nint address)
+```
+
+#### Parameters
+
+`address` [IntPtr](https://docs.microsoft.com/en-us/dotnet/api/System.IntPtr)<br>
+The address of the string
+
+#### Returns
+
+[Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+The length of the string
+
+**Remarks:**
+
+This method counts the number of bytes, not the number of characters.
+
+### **ReadString(IntPtr, Encoding)**
+
+Reads a null-terminated string from a given address.
+
+```csharp
+public static string ReadString(nint address, Encoding encoding)
+```
+
+#### Parameters
+
+`address` [IntPtr](https://docs.microsoft.com/en-us/dotnet/api/System.IntPtr)<br>
+The address of the string
+
+`encoding` [Encoding](https://docs.microsoft.com/en-us/dotnet/api/System.Text.Encoding)<br>
+The encoding to use, or UTF8 if no encoding is given
+
+#### Returns
+
+[String](https://docs.microsoft.com/en-us/dotnet/api/System.String)<br>
+The string read
+
+### **StringLength(Int64)**
+
+```csharp
+public static int StringLength(long address)
+```
+
+#### Parameters
+
+`address` [Int64](https://docs.microsoft.com/en-us/dotnet/api/System.Int64)<br>
+
+#### Returns
+
+[Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+
+### **ReadString(Int64, Encoding)**
+
+```csharp
+public static string ReadString(long address, Encoding encoding)
+```
+
+#### Parameters
+
+`address` [Int64](https://docs.microsoft.com/en-us/dotnet/api/System.Int64)<br>
+
+`encoding` [Encoding](https://docs.microsoft.com/en-us/dotnet/api/System.Text.Encoding)<br>
+
+#### Returns
+
+[String](https://docs.microsoft.com/en-us/dotnet/api/System.String)<br>
+
+### **StringLength(Byte*)**
+
+```csharp
+public static int StringLength(Byte* address)
+```
+
+#### Parameters
+
+`address` [Byte*](https://docs.microsoft.com/en-us/dotnet/api/System.Byte*)<br>
+
+#### Returns
+
+[Int32](https://docs.microsoft.com/en-us/dotnet/api/System.Int32)<br>
+
+### **ReadString(Byte*, Encoding)**
+
+```csharp
+public static string ReadString(Byte* address, Encoding encoding)
+```
+
+#### Parameters
+
+`address` [Byte*](https://docs.microsoft.com/en-us/dotnet/api/System.Byte*)<br>
+
+`encoding` [Encoding](https://docs.microsoft.com/en-us/dotnet/api/System.Text.Encoding)<br>
+
+#### Returns
+
+[String](https://docs.microsoft.com/en-us/dotnet/api/System.String)<br>
+
 ### **AsSpan&lt;T&gt;(IntPtr, Int32)**
 
 Creates a span around a native array from a given address and count.

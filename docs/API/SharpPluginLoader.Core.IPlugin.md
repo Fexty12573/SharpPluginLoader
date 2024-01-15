@@ -52,7 +52,7 @@ The filled out PluginData
 
 ### **OnLoad()**
 
-Gets called after the game has initalized it's singletons. This is you initalize anything in your plugin
+Gets called after the game has initialized it's singletons. This is you initialize anything in your plugin
  that uses the game state (e.g. reading pointers, accessing singletons, etc).
  
  Default event, always called once per plugin [re]load.
@@ -63,7 +63,7 @@ void OnLoad()
 
 ### **OnPreMain()**
 
-Called before any of the game's code runs (including static initalizers).
+Called before any of the game's code runs (including static initializers).
  This is only used for special cases, and is not applicable to most plugins.
  This will NOT be called during hot-reloading.
 
@@ -326,7 +326,7 @@ The actionId parameter can be modified to change the executed action
 Gets called when a monster gets flinched.
 
 ```csharp
-void OnMonsterFlinch(Monster monster, Int32& actionId)
+bool OnMonsterFlinch(Monster monster, Int32& actionId)
 ```
 
 #### Parameters
@@ -336,6 +336,11 @@ The monster getting flinched
 
 `actionId` [Int32&](https://docs.microsoft.com/en-us/dotnet/api/System.Int32&)<br>
 The flinch action it will perform
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/System.Boolean)<br>
+False to cancel the flinch
 
 ### **OnMonsterEnrage(Monster)**
 
@@ -402,7 +407,7 @@ void OnPlayerAction(Player player, ActionInfo& action)
 `player` [Player](./SharpPluginLoader.Core.Entities.Player.md)<br>
 The player doing the action
 
-`action` [ActionInfo&](./SharpPluginLoader.Core.ActionInfo.md)<br>
+`action` [ActionInfo&](./SharpPluginLoader.Core.Actions.ActionInfo.md)<br>
 The action to be executed
 
 **Remarks:**
@@ -445,7 +450,7 @@ void OnEntityAction(Entity entity, ActionInfo& action)
 `entity` [Entity](./SharpPluginLoader.Core.Entities.Entity.md)<br>
 The entity doing the action
 
-`action` [ActionInfo&](./SharpPluginLoader.Core.ActionInfo.md)<br>
+`action` [ActionInfo&](./SharpPluginLoader.Core.Actions.ActionInfo.md)<br>
 The action to be executed
 
 **Remarks:**

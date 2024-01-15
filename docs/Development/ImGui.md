@@ -12,7 +12,7 @@ public PluginData Inititalize()
 {
     return new PluginData
     {
-        OnRender = true
+        OnImGuiRender = true
     };
 }
 
@@ -20,7 +20,7 @@ public void OnLoad()
 {
 }
 
-public void OnRender()
+public void OnImGuiRender()
 {
     // Render your UI here
 }
@@ -33,7 +33,7 @@ using ImGuiNET;
 
 // ...
 
-public void OnRender()
+public void OnImGuiRender()
 {
     ImGui.Text("Hello World!");
     if (ImGui.Button("Click me!"))
@@ -42,10 +42,29 @@ public void OnRender()
     }
 }
 ```
-
-By default all your ImGui Draw-calls will be rendered to a main window. You can create your own windows by using the `ImGui.Begin` and `ImGui.End` methods.
+By default all your ImGui Draw-calls will be contained in a collapsing header inside the main SPL ImGui window. You can disable this by setting `ImGuiWrappedInTreeNode` to false in your `PluginData` object.
 ```csharp
-public void OnRender()
+public PluginData Inititalize()
+{
+    return new PluginData
+    {
+        OnImGuiRender = true,
+        ImGuiWrappedInTreeNode = false
+    };
+}
+```
+
+If you want your UI to be contained in its own window, you can instead subscribe to the `OnImGuiFreeRender` event. This event is called after the main ImGui window has been rendered, and is where you can render your own ImGui windows.
+```csharp
+public PluginData Inititalize()
+{
+    return new PluginData
+    {
+        OnImGuiFreeRender = true
+    };
+}
+
+public void OnImGuiFreeRender()
 {
     ImGui.Begin("My Window");
     ImGui.Text("Hello World!");

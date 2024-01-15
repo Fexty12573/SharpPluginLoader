@@ -199,10 +199,15 @@ namespace SharpPluginLoader.Core.Entities
         private static void MonsterFlinchHook(nint instance, nint ai)
         {
             var monster = new Monster(MemoryUtil.Read<nint>(ai + 0x138));
+            var shouldFlinch = true;
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterFlinch))
-                plugin.OnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938));
+            {
+                if (!plugin.OnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938)))
+                    shouldFlinch = false;
+            }
 
-            _monsterFlinchHook.Original(instance, ai);
+            if (shouldFlinch)
+                _monsterFlinchHook.Original(instance, ai);
         }
 
         private static bool EnrageHook(nint instance)

@@ -299,7 +299,8 @@ namespace SharpPluginLoader.Core
         /// </summary>
         /// <param name="monster">The monster getting flinched</param>
         /// <param name="actionId">The flinch action it will perform</param>
-        public void OnMonsterFlinch(Monster monster, ref int actionId) => throw new MissingEventException();
+        /// <returns>False to cancel the flinch</returns>
+        public bool OnMonsterFlinch(Monster monster, ref int actionId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a monster gets enraged.

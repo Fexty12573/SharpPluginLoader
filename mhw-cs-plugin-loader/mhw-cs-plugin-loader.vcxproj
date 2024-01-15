@@ -163,6 +163,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GuiModule.cpp" />
     <ClCompile Include="ImGuiModule.cpp" />
+    <ClCompile Include="LoaderConfig.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="FileSystemItem.h" />
     <ClInclude Include="HResultHandler.h" />
     <ClInclude Include="ImGuiModule.h" />
+    <ClInclude Include="LoaderConfig.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="NativeModule.h" />
     <ClInclude Include="NativePluginFramework.h" />

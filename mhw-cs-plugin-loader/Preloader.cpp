@@ -14,6 +14,7 @@
 #include "CoreClr.h"
 #include "Log.h"
 #include "Preloader.h"
+#include "LoaderConfig.h"
 #include "utility/game_functions.h"
 
 #pragma intrinsic(_ReturnAddress)
@@ -124,7 +125,11 @@ void hookedGetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime) {
 // binaries by detecting the first call to the hooked function _after_
 // the executable is unpacked in memory.
 void initialize_preloader() {
-    OpenConsole();
+    auto& loaderConfig = preloader::LoaderConfig::Instance();
+    if (loaderConfig.GetLogCmd())
+    {
+        OpenConsole();
+    }
 
     // Override the process security token that that the singleton instantiaion
     // happens, causing GetSystemTimeAsFileTime to be called pre-CRT init.

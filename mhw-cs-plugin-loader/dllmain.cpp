@@ -5,12 +5,17 @@
 #include <windows.h>
 
 #include "Preloader.h"
+#include "LoaderConfig.h"
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
         // Only load the the mod loader DLL if winmm.dll has been loaded into the correct process.
         if (wil::GetModuleFileNameW<std::wstring>().contains(L"MonsterHunterWorld.exe")) {
-            initialize_preloader();
+            auto& loaderConfig = preloader::LoaderConfig::Instance();
+            if (loaderConfig.GetEnablePluginLoader())
+            {
+                initialize_preloader();
+            }
         }
     }
 

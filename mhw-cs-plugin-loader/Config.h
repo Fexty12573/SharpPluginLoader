@@ -81,8 +81,4 @@ constexpr inline auto SPL_CORE_ASSEMBLY_NAME = L"SharpPluginLoader.Core"sv;
 // The path to the loader core assembly
 constexpr inline auto SPL_CORE_ASSEMBLY = detail::concat<SPL_LOADER_DIR, SPL_CORE_ASSEMBLY_FILE_NAME>;
 
-
-namespace detail {
-
-}
 }

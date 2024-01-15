@@ -1,9 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
-using SharpPluginLoader.Core.MtTypes;
 
-namespace SharpPluginLoader.Core
+namespace SharpPluginLoader.Core.Actions
 {
     /// <summary>
     /// Represents an instance of the cActionController class.

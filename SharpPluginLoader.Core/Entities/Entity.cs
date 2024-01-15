@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Components;
+﻿using SharpPluginLoader.Core.Actions;
+using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
 using SharpPluginLoader.Core.MtTypes;

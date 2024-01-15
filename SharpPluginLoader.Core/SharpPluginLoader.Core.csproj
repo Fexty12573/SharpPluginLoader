@@ -7,6 +7,17 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageId>SharpPluginLoader.Core</PackageId>
+		<Title>SharpPluginLoader</Title>
+		<Version>0.0.2</Version>
+		<Authors>Fexty, Ando</Authors>
+		<Product>SharpPluginLoader.Core</Product>
+		<Description>A C# Plugin loader and framework for Monster Hunter World</Description>
+		<PackageProjectUrl>https://fexty12573.github.io/SharpPluginLoader/</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/Fexty12573/SharpPluginLoader</RepositoryUrl>
+		<FileVersion>0.0.2</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -118,5 +129,11 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <NativeLibs Remove="Area.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>

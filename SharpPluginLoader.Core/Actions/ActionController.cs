@@ -155,14 +155,14 @@ namespace SharpPluginLoader.Core.Actions
         [FieldOffset(0x0)] public nint Actions;
         [FieldOffset(0x8)] public int Count;
 
-        public readonly unsafe MtObject this[int index]
+        public readonly unsafe Action this[int index]
         {
             get
             {
                 if (index < 0 || index >= Count)
                     throw new IndexOutOfRangeException();
 
-                return new MtObject(((nint*)Actions)[index]);
+                return new Action(((nint*)Actions)[index]);
             }
             set
             {

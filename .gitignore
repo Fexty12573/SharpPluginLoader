@@ -369,3 +369,6 @@ vcpkg_installed/
 
 # Generated files from package-release.bat
 release-files/
+
+# Compiled Chunks
+Assets/*.bin

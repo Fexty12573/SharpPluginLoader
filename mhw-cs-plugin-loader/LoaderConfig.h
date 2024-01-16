@@ -24,12 +24,12 @@ namespace preloader
         LoaderConfig(const LoaderConfig&) = delete;
         LoaderConfig& operator = (const LoaderConfig&) = delete;
 
-        static LoaderConfig& Instance();
+        static LoaderConfig& get();
 
-        inline bool GetLogFile() const { return this->config.log_file; }
-        inline bool GetLogCmd() const { return this->config.log_cmd; }
-        inline std::string GetLogLevel() const { return this->config.log_level; }
-        inline bool GetOutputEveryPath() const { return this->config.output_every_path; }
-        inline bool GetEnablePluginLoader() const { return this->config.enable_plugin_loader; }
+        inline bool get_log_file() const { return this->config.log_file; }
+        inline bool get_log_cmd() const { return this->config.log_cmd; }
+        inline std::string get_log_level() const { return this->config.log_level; }
+        inline bool get_output_every_path() const { return this->config.output_every_path; }
+        inline bool get_enable_plugin_loader() const { return this->config.enable_plugin_loader; }
     };
 } // namespace preloader

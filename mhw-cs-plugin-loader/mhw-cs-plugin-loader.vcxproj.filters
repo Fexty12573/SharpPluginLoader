@@ -199,5 +199,6 @@
     <None Include="Shaders\PrimitiveRenderingVS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include=".clang-tidy" />
   </ItemGroup>
 </Project>

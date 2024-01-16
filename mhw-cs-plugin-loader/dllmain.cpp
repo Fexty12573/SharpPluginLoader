@@ -11,8 +11,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
         // Only load the the mod loader DLL if winmm.dll has been loaded into the correct process.
         if (wil::GetModuleFileNameW<std::wstring>().contains(L"MonsterHunterWorld.exe")) {
-            auto& loaderConfig = preloader::LoaderConfig::Instance();
-            if (loaderConfig.GetEnablePluginLoader())
+            auto& loader_config = preloader::LoaderConfig::get();
+            if (loader_config.get_enable_plugin_loader())
             {
                 initialize_preloader();
             }

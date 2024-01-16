@@ -28,7 +28,7 @@ namespace preloader
         j.at("enablePluginLoader").get_to(c.enable_plugin_loader);
     }
 
-    LoaderConfig& LoaderConfig::Instance()
+    LoaderConfig& LoaderConfig::get()
     {
         static LoaderConfig instance;
         return instance;

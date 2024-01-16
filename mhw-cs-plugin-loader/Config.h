@@ -44,6 +44,8 @@ constexpr inline auto SPL_LOG_FILE_NAME = L"SharpPluginLoader.log"sv;
 // The path to the log file
 constexpr inline auto SPL_LOG_FILE = detail::concat<SPL_LOADER_DIR, SPL_LOG_FILE_NAME>;
 
+// The path of the loader config file
+constexpr inline auto SPL_LOADER_CONFIG_FILE = L"loader-config.json";
 
 // The name of the loader config file
 constexpr inline auto SPL_RUNTIME_CONFIG_FILE_NAME = L"SharpPluginLoader.runtimeconfig.json"sv;

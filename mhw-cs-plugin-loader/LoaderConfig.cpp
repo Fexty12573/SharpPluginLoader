@@ -3,12 +3,11 @@
 #include <filesystem>
 #include <fstream>
 
+#include "Config.h"
 
 namespace preloader
 {
     using json = nlohmann::json;
-
-    const std::string config_name("loader-config.json");
 
     void to_json(json& j, const ConfigFile& c) {
         j = json{
@@ -37,9 +36,9 @@ namespace preloader
     LoaderConfig::LoaderConfig()
     {
         // Attempt to load file from disk
-        if (std::filesystem::exists(config_name))
+        if (std::filesystem::exists(config::SPL_LOADER_CONFIG_FILE))
         {
-            std::ifstream file(config_name);
+            std::ifstream file(config::SPL_LOADER_CONFIG_FILE);
             json data = json::parse(file);
             this->config = data.get<ConfigFile>();
             file.close();
@@ -56,7 +55,7 @@ namespace preloader
                 .enable_plugin_loader = true,
             };
 
-            std::ofstream file(config_name);
+            std::ofstream file(config::SPL_LOADER_CONFIG_FILE);
             if (file.is_open())
             {
                 json data = this->config;

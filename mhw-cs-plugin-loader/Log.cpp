@@ -1,5 +1,6 @@
 #include "Log.h"
 #include "Config.h"
+#include "LoaderConfig.h"
 
 #include <chrono>
 #include <fstream>
@@ -27,11 +28,10 @@ static loader::LogLevel to_loader_level(LogLevel level) {
 
 static void log_raw(LogLevel level, const void* msg, size_t msg_length, const void* time_msg, size_t time_msg_length, OutputFunc write) {
     if (!s_console) {
-        nlohmann::json config;
-        std::ifstream("loader-config.json") >> config;
+        auto& loader_config = preloader::LoaderConfig::get();
 
-        const auto log_level = config.value("logLevel", "INFO");
-        s_log_to_cmd = config.value("logcmd", true);
+        const auto log_level = loader_config.get_log_level();
+        s_log_to_cmd = loader_config.get_log_cmd();
 
         if (log_level == "DEBUG") {
             s_console_log_level = loader::DEBUG;

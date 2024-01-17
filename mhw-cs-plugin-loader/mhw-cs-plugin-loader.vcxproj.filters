@@ -90,6 +90,9 @@
     <ClCompile Include="Preloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LoaderConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">
@@ -176,6 +179,9 @@
     <ClInclude Include="Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LoaderConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">
@@ -193,5 +199,6 @@
     <None Include="Shaders\PrimitiveRenderingVS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include=".clang-tidy" />
   </ItemGroup>
 </Project>

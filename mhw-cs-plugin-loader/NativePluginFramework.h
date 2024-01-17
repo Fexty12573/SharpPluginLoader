@@ -28,9 +28,9 @@ public:
 
     explicit NativePluginFramework(CoreClr* coreclr);
 
-    void TriggerOnPreMain();
-    void TriggerOnWinMain();
-    void TriggerOnMhMainCtor();
+    void trigger_on_pre_main();
+    void trigger_on_win_main();
+    void trigger_on_mh_main_ctor();
 
 private:
     std::vector<std::shared_ptr<NativeModule>> m_modules;

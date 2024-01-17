@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+  </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
     <VcpkgUseMD>true</VcpkgUseMD>
@@ -163,6 +166,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GuiModule.cpp" />
     <ClCompile Include="ImGuiModule.cpp" />
+    <ClCompile Include="LoaderConfig.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
@@ -191,6 +195,7 @@
     <ClInclude Include="FileSystemItem.h" />
     <ClInclude Include="HResultHandler.h" />
     <ClInclude Include="ImGuiModule.h" />
+    <ClInclude Include="LoaderConfig.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="NativeModule.h" />
     <ClInclude Include="NativePluginFramework.h" />
@@ -203,6 +208,7 @@
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include="..\vcpkg.json" />
+    <None Include=".clang-tidy" />
     <None Include="SharpPluginLoader.runtimeconfig.json" />
   </ItemGroup>
   <ItemGroup>

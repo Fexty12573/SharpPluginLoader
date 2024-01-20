@@ -155,21 +155,22 @@ namespace SharpPluginLoader.Core.Actions
         [FieldOffset(0x0)] public nint Actions;
         [FieldOffset(0x8)] public int Count;
 
-        public readonly unsafe Action this[int index]
+        public readonly unsafe Action? this[int index]
         {
             get
             {
                 if (index < 0 || index >= Count)
                     throw new IndexOutOfRangeException();
 
-                return new Action(((nint*)Actions)[index]);
+                var action = ((nint*)Actions)[index];
+                return action == 0 ? null : new Action(action);
             }
             set
             {
                 if (index < 0 || index >= Count)
                     throw new IndexOutOfRangeException();
 
-                ((nint*)Actions)[index] = value.Instance;
+                ((nint*)Actions)[index] = value?.Instance ?? 0;
             }
         }
     }

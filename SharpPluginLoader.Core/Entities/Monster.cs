@@ -191,7 +191,7 @@ namespace SharpPluginLoader.Core.Entities
             var monster = new Monster(instance);
             if (monster.Is("uEnemy"))
             {
-                foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterCreate))
+                foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterInitialized))
                     plugin.OnMonsterInitialized(monster);
             }
         }

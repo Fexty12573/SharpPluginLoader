@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Actions;
 using SharpPluginLoader.Core.Components;
@@ -50,10 +51,11 @@ namespace SharpPluginLoader.Core
             AppDomain.CurrentDomain.UnhandledException += (_, args) =>
             {
                 var e = (Exception)args.ExceptionObject;
-                Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{e.StackTrace}");
+                Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{new StackTrace(e).Format()}");
                 if (e.InnerException is not null)
                 {
-                    Log.Error($"[Core] Inner exception: {e.InnerException.GetType().Name}: {e.InnerException.Message}, Stacktrace:\n{e.InnerException.StackTrace}");
+                    Log.Error($"[Core] Inner exception: {e.InnerException.GetType().Name}: " +
+                              $"{e.InnerException.Message}, Stacktrace:\n{new StackTrace(e.InnerException).Format()}");
                 }
             };
 

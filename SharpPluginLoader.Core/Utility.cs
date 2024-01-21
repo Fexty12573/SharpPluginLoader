@@ -1,4 +1,6 @@
-﻿using SharpPluginLoader.Core.Entities;
+﻿using System.Diagnostics;
+using System.Text;
+using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
@@ -59,6 +61,25 @@ namespace SharpPluginLoader.Core
         {
             var namePtr = GetMonsterNameFunc.Invoke(monsterType);
             return namePtr != 0 ? new string((sbyte*)namePtr) : "Unknown";
+        }
+
+        internal static string Format(this StackTrace st)
+        {
+            StringBuilder sb = new(1024);
+
+            foreach (var frame in st.GetFrames())
+            {
+                var method = frame.GetMethod();
+                if (method is null)
+                {
+                    sb.AppendLine($"    at {frame.GetNativeOffset()} (Native)");
+                    continue;
+                }
+
+                sb.AppendLine($"    at {method.Name} ({frame.GetFileName()}:{frame.GetFileLineNumber()}:{frame.GetFileColumnNumber()})");
+            }
+
+            return sb.ToString();
         }
     }
 }

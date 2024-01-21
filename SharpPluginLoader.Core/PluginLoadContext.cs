@@ -14,12 +14,23 @@ namespace SharpPluginLoader.Core
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        protected override Assembly? Load(AssemblyName assemblyName)
         {
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             Log.Debug($"[{assemblyName}] Resolved Path: {assemblyPath}");
             var assembly = assemblyPath != null ? CustomLoadFromAssemblyPath(assemblyPath) : null;
-            return assembly ?? CurrentLoadContext.LoadFromAssemblyName(assemblyName);
+            if (assembly is not null)
+                return assembly;
+
+            try
+            {
+                assembly = CurrentLoadContext.LoadFromAssemblyName(assemblyName);
+                return assembly;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private Assembly CustomLoadFromAssemblyPath(string assemblyPath)

@@ -32,18 +32,24 @@ public static class SourceGenerationHelper
                                     }
 
                                     [System.AttributeUsage(System.AttributeTargets.Method)]
-                                    public class {{AttributeName}}) : System.Attribute
+                                    public class {{AttributeName}}(InternalCallOptions options = InternalCallOptions.None) : System.Attribute
                                     {
-                                        public InternalCallOptions Options;
-                                        public long Address;
-                                        public string? Pattern;
-                                        public int Offset;
-                                        public bool Cache;
+                                        public InternalCallOptions {{OptionsPropertyName}} = options;
+                                        public long {{AddressPropertyName}};
+                                        public string? {{PatternPropertyName}};
+                                        public int {{OffsetPropertyName}};
+                                        public bool {{CachePropertyName}} = true;
                                     }
                                     
                                     [System.AttributeUsage(System.AttributeTargets.Parameter | System.AttributeTargets.ReturnValue)]
                                     public class {{WideStringAttributeName}} : System.Attribute;
                                     """;
+
+    public const string OptionsPropertyName = "Options";
+    public const string AddressPropertyName = "Address";
+    public const string PatternPropertyName = "Pattern";
+    public const string OffsetPropertyName = "Offset";
+    public const string CachePropertyName = "Cache";
 
     private static IMethodSymbol? _currentMethodSymbol;
 

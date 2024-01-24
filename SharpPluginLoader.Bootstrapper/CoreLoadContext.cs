@@ -18,7 +18,7 @@ namespace SharpPluginLoader.Bootstrapper
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        protected override Assembly? Load(AssemblyName assemblyName)
         {
             EntryPoint.Log(EntryPoint.LogLevel.Debug, $"[Bootstrapper] Loading {assemblyName.Name}");
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
@@ -30,8 +30,15 @@ namespace SharpPluginLoader.Bootstrapper
             if (assembly != null)
                 return assembly;
 
-            assembly = Default.LoadFromAssemblyName(assemblyName);
-            return assembly;
+            try
+            {
+                assembly = Default.LoadFromAssemblyName(assemblyName);
+                return assembly;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -42,7 +49,7 @@ namespace SharpPluginLoader.Bootstrapper
         public Assembly LoadNoLock(AssemblyName assemblyName)
         {
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-            if (assemblyPath == null) 
+            if (assemblyPath == null)
                 return Default.LoadFromAssemblyName(assemblyName);
 
             var bytes = File.ReadAllBytes(assemblyPath);

@@ -32,9 +32,13 @@ public static class SourceGenerationHelper
                                     }
 
                                     [System.AttributeUsage(System.AttributeTargets.Method)]
-                                    public class {{AttributeName}}(InternalCallOptions options = InternalCallOptions.None) : System.Attribute
+                                    public class {{AttributeName}}) : System.Attribute
                                     {
-                                        public InternalCallOptions Options { get; } = options;
+                                        public InternalCallOptions Options;
+                                        public long Address;
+                                        public string? Pattern;
+                                        public int Offset;
+                                        public bool Cache;
                                     }
                                     
                                     [System.AttributeUsage(System.AttributeTargets.Parameter | System.AttributeTargets.ReturnValue)]

@@ -136,4 +136,7 @@
 	    <PackagePath>\</PackagePath>
 	  </None>
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="SingletonManager.cs" />
+	</ItemGroup>
 </Project>

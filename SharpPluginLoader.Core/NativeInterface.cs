@@ -71,6 +71,7 @@ namespace SharpPluginLoader.Core
                 AddressRepository.Initialize();
 
                 Task.WaitAll([
+                    Task.Run(SingletonManager.Initialize),
                     Task.Run(Gui.Initialize),
                     Task.Run(Quest.Initialize),
                     Task.Run(ResourceManager.Initialize),
@@ -123,6 +124,8 @@ namespace SharpPluginLoader.Core
 
         public static void TriggerOnMhMainCtor()
         {
+            SingletonManager.MapSingletons();
+
             PluginManager.Instance.InvokeOnLoad();
         }
 

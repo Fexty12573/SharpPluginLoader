@@ -333,5 +333,10 @@
         "Name": "SaveData:SelectSlot",
         "Pattern": "89 91 A0 00 00 00 48 8B 0D ?? ?? ?? ?? E9",
         "Offset": 0
+    },
+    {
+        "Name": "cSystem:Ctor",
+        "Pattern": "48 83 C1 08 FF 15 ?? ?? ?? ?? 48 8B C3 C6 43 30 01 48 83 C4 20 5B C3",
+        "Offset": -19
     }
 ]

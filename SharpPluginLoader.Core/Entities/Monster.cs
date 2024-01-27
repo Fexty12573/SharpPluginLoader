@@ -137,6 +137,11 @@ namespace SharpPluginLoader.Core.Entities
             base.CreateShell(index, target, origin);
         }
 
+        public override string ToString()
+        {
+            return $"{Name} @ 0x{Instance:X}";
+        }
+
         /// <summary>
         /// Gets the human readable name of the given monster id
         /// </summary>

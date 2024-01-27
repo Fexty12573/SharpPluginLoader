@@ -87,8 +87,8 @@ namespace SharpPluginLoader.Core.Entities
         /// </summary>
         public bool Frozen
         {
-            get => (Get<uint>(0x14) & 1) == 1;
-            set => Set(0x14, Get<uint>(0x14) & 0xFFFFFFFE | (value ? 1u : 0u));
+            get => (Get<uint>(0x14) & 1) == 0;
+            set => Set(0x14, Get<uint>(0x14) & 0xFFFFFFFE | (value ? 0u : 1u));
         }
 
         /// <summary>

@@ -61,5 +61,11 @@
         {
             ((delegate* unmanaged<nint, bool, void>)GetVirtualFunction(0))(Instance, free);
         }
+
+        public override string ToString()
+        {
+            var dti = GetDti();
+            return dti is null ? $"0x{Instance:X}" : $"{dti.Name} @ 0x{Instance:X}";
+        }
     }
 }

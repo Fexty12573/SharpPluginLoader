@@ -83,15 +83,6 @@ namespace SharpPluginLoader.Core.Entities
         public ref uint DifficultyIndex => ref MemoryUtil.GetRef<uint>(AiData + 0x8AC);
 
         /// <summary>
-        /// Freezes the monster and pauses all ai processing
-        /// </summary>
-        public bool Frozen
-        {
-            get => (Get<uint>(0x14) & 1) == 0;
-            set => Set(0x14, Get<uint>(0x14) & 0xFFFFFFFE | (value ? 0u : 1u));
-        }
-
-        /// <summary>
         /// Forces the monster to do a given action. This will interrupt the current action.
         /// </summary>
         /// <param name="id">The id of the action to execute</param>

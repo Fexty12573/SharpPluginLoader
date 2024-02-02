@@ -12,11 +12,23 @@
 #include <dti/sMhCamera.h>
 
 #include "ChunkModule.h"
+#include "LoaderConfig.h"
 #include "NativePluginFramework.h"
 
 PrimitiveRenderingModule::PrimitiveRenderingModule() = default;
 
 void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
+    if (!preloader::LoaderConfig::get().get_primitive_rendering_enabled()) {
+        auto disabled = [](void*, void*) {
+            dlog::warn("Primitive rendering is disabled");
+        };
+
+        coreclr->add_internal_call("RenderSphere", &disabled);
+        coreclr->add_internal_call("RenderObb", &disabled);
+        coreclr->add_internal_call("RenderCapsule", &disabled);
+        return;
+    }
+
     coreclr->add_internal_call("RenderSphere", render_sphere_api);
     coreclr->add_internal_call("RenderObb", render_obb_api);
     coreclr->add_internal_call("RenderCapsule", render_capsule_api);

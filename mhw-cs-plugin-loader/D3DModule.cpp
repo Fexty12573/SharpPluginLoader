@@ -18,8 +18,14 @@
 #include <thread>
 
 #include "ChunkModule.h"
+#include "LoaderConfig.h"
 
 void D3DModule::initialize(CoreClr* coreclr) {
+    if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
+        dlog::debug("Skipping D3D module initialization because imgui rendering is disabled");
+        return;
+    }
+
     // Directory for delay loaded DLLs
     AddDllDirectory(TEXT("nativePC/plugins/CSharp/Loader"));
 
@@ -507,6 +513,11 @@ void D3DModule::title_menu_ready_hook(void* gui) {
     self->m_title_menu_ready_hook = {};
 }
 
+template<typename T, typename F, typename ...Args>
+auto invoke_if(const std::optional<std::shared_ptr<T>>& opt, F func, Args&&... args) {
+    return opt.and_then(std::bind(func, std::forward<Args>(args)...));
+}
+
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
@@ -516,7 +527,7 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     }
 
     self->m_is_inside_present = true;
-
+    
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
         prm->late_init(self.get(), swap_chain);

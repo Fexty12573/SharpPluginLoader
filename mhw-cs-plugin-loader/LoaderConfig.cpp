@@ -15,7 +15,11 @@ namespace preloader
             {"logcmd", c.LogCmd},
             {"logLevel", c.LogLevel},
             {"outputEveryPath", c.OutputEveryPath},
-            {"enablePluginLoader", c.EnablePluginLoader}
+            {"enablePluginLoader", c.EnablePluginLoader},
+            {"SPL", {
+                {"ImGuiRenderingEnabled", c.ImGuiRenderingEnabled},
+                {"PrimitiveRenderingEnabled", c.PrimitiveRenderingEnabled}
+            }}
         };
     }
 
@@ -25,6 +29,15 @@ namespace preloader
         j.at("logLevel").get_to(c.LogLevel);
         j.at("outputEveryPath").get_to(c.OutputEveryPath);
         j.at("enablePluginLoader").get_to(c.EnablePluginLoader);
+
+        if (j.contains("SPL")) {
+            j.at("SPL").at("ImGuiRenderingEnabled").get_to(c.ImGuiRenderingEnabled);
+            j.at("SPL").at("PrimitiveRenderingEnabled").get_to(c.PrimitiveRenderingEnabled);
+        }
+        else {
+            c.ImGuiRenderingEnabled = true;
+            c.PrimitiveRenderingEnabled = true;
+        }
     }
 
     LoaderConfig& LoaderConfig::get()

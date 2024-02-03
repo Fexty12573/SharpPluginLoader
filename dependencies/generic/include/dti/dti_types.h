@@ -124,11 +124,11 @@ struct vector3
     vector3& limit(float length) { return lensq() > (length * length) ? set_length(length) : *this; }
     float* data() { return &x; }
 };
-struct vector4
+struct alignas(16) vector4
 {
     f32 x, y, z, w;
 };
-struct quaternion
+struct alignas(16) quaternion
 {
     union {
         f32 x, y, z, w;
@@ -396,7 +396,8 @@ union MtPoint
 };
 struct MtLineSegment
 {
-    MtVector3 p0, p1;
+    alignas(16) MtVector3 p0;
+    alignas(16) MtVector3 p1;
 };
 struct MtHalf4
 {

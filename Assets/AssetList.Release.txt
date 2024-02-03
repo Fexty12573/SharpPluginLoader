@@ -20,3 +20,6 @@ $(AssetDir)/Common/BottomHemisphere.obj
 $(AssetDir)/Common/Cylinder.obj
 $(ShaderDir)/PrimitiveRenderingVS.hlsl
 $(ShaderDir)/PrimitiveRenderingPS.hlsl
+$(ShaderDir)/LineRenderingVS.hlsl
+$(ShaderDir)/LineRenderingGS.hlsl
+$(ShaderDir)/LineRenderingPS.hlsl

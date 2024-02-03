@@ -62,6 +62,22 @@ namespace SharpPluginLoader.Core.Rendering
             {
                 if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
                 {
+                    if (ImGui.BeginMenuBar())
+                    {
+                        if (ImGui.BeginMenu("Options"))
+                        {
+                            ImGui.Checkbox("Draw Primitives as Wireframe",
+                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.DrawPrimitivesAsWireframe));
+
+                            ImGui.SliderFloat("Line Thickness",
+                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.LineThickness),
+                                                                                              1.0f, 10.0f);
+
+                            ImGui.EndMenu();
+                        }
+                        ImGui.EndMenuBar();
+                    }
+
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
                     {
                         if (plugin.PluginData.ImGuiWrappedInTreeNode)
@@ -105,6 +121,12 @@ namespace SharpPluginLoader.Core.Rendering
         {
             ImGui.DestroyContext();
             Log.Debug("Renderer.Shutdown");
+        }
+
+        [UnmanagedCallersOnly]
+        public static unsafe void SetRenderingOptions(RenderingOptionPointers* pointers)
+        {
+            _renderingOptionPointers = *pointers;
         }
 
         private static void SetupImGuiStyle()
@@ -216,5 +238,13 @@ namespace SharpPluginLoader.Core.Rendering
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static bool _showMenu = false;
         private static bool _showDemo = false;
+        private static RenderingOptionPointers _renderingOptionPointers;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct RenderingOptionPointers
+    {
+        public float* LineThickness;
+        public bool* DrawPrimitivesAsWireframe;
     }
 }

@@ -668,12 +668,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         // Set up line vertex buffer
         const D3D12_RANGE range{
             0,
-            sizeof(LineVertex) * m_lines.size()
+            sizeof(LineVertex) * m_lines.size() * 2
         };
 
         LineVertex* data = nullptr;
         HandleResult(m_d3d12_line_vertex_buffer->Map(0, &range, (void**)&data));
 
+        i = 0;
         for (const auto& line : m_lines) {
             data[i++] = LineVertex{
                 .Position = { line.line.p0.x, line.line.p0.y, line.line.p0.z, 1.0f },
@@ -868,6 +869,7 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     rasterizer_desc.FrontCounterClockwise = false;
     rasterizer_desc.DepthBias = 0;
     rasterizer_desc.DepthClipEnable = false;
+    rasterizer_desc.MultisampleEnable = true;
 
     HandleResult(d3dmodule->m_d3d11_device->CreateRasterizerState(
         &rasterizer_desc,
@@ -1076,6 +1078,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     rasterizer_desc.CullMode = D3D12_CULL_MODE_NONE;
     rasterizer_desc.FrontCounterClockwise = false;
     rasterizer_desc.DepthClipEnable = false;
+    rasterizer_desc.MultisampleEnable = true;
 
     // Depth Stencil State
     D3D12_DEPTH_STENCIL_DESC depth_stencil_desc{};

@@ -13,7 +13,7 @@ namespace SharpPluginLoader.Core.Rendering
         public static bool DemoShown => _showDemo;
 
         [UnmanagedCallersOnly]
-        public static nint Initialize()
+        internal static nint Initialize()
         {
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
@@ -35,14 +35,14 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        public static void Render()
+        internal static void Render()
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
                 plugin.OnRender();
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe nint ImGuiRender()
+        internal static unsafe nint ImGuiRender()
         {
             if (Input.IsPressed(Key.F9))
                 _showMenu = !_showMenu;
@@ -117,14 +117,14 @@ namespace SharpPluginLoader.Core.Rendering
             return (nint)ImGui.GetDrawData().NativePtr;
         }
 
-        private static void Shutdown()
+        internal static void Shutdown()
         {
             ImGui.DestroyContext();
             Log.Debug("Renderer.Shutdown");
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe void SetRenderingOptions(RenderingOptionPointers* pointers)
+        internal static unsafe void SetRenderingOptions(RenderingOptionPointers* pointers)
         {
             _renderingOptionPointers = *pointers;
         }

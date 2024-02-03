@@ -7,8 +7,11 @@ using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.Rendering
 {
-    internal static class Renderer
+    public static class Renderer
     {
+        public static bool MenuShown => _showMenu;
+        public static bool DemoShown => _showDemo;
+
         [UnmanagedCallersOnly]
         public static nint Initialize()
         {

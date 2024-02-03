@@ -60,7 +60,7 @@ namespace SharpPluginLoader.Core.Rendering
             ImGui.NewFrame();
             if (_showMenu)
             {
-                if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
+                if (ImGui.Begin("SharpPluginLoader", ref _showMenu, ImGuiWindowFlags.MenuBar))
                 {
                     if (ImGui.BeginMenuBar())
                     {

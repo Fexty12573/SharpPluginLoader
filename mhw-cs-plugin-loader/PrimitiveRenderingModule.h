@@ -24,6 +24,7 @@ public:
     void render_sphere(const MtSphere& sphere, MtVector4 color);
     void render_obb(const MtOBB& obb, MtVector4 color);
     void render_capsule(const MtCapsule& capsule, MtVector4 color);
+    void render_line(const MtLineSegment& line, MtVector4 color);
 
     void render_primitives_for_d3d11(ID3D11DeviceContext* context);
     void render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue);
@@ -59,6 +60,7 @@ private:
     static void render_sphere_api(const MtSphere* sphere, const MtVector4* color);
     static void render_obb_api(const MtOBB* obb, const MtVector4* color);
     static void render_capsule_api(const MtCapsule* capsule, const MtVector4* color);
+    static void render_line_api(const MtLineSegment* line, const MtVector4* color);
 
     static DirectX::XMMATRIX XMMatrixAdd(DirectX::FXMMATRIX M1, DirectX::CXMMATRIX M2) {
         DirectX::XMMATRIX m;
@@ -86,18 +88,29 @@ private:
         ComPtr<ID3D12Resource> RenderTarget = nullptr;
         D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptor = { 0 };
     };
+    struct alignas(256) LineParams {
+        float Thickness;
+    };
+    struct LineVertex {
+        DirectX::XMFLOAT4 Position;
+        DirectX::XMFLOAT4 Color;
+    };
 
     static constexpr u32 MAX_INSTANCES = 128;
+    static constexpr u32 MAX_LINES = 256;
 
     std::vector<primitives::Sphere> m_spheres;
     std::vector<primitives::OBB> m_cubes;
     std::vector<primitives::Capsule> m_capsules;
+    std::vector<primitives::Line> m_lines;
 
     std::array<Instance, MAX_INSTANCES> m_instances{};
     std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_top{};
     std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_bottom{};
 
     bool m_is_initialized = false;
+    float m_line_thickness = 3.0f;
+    bool m_draw_primitives_as_lines = true;
 
     #pragma region D3D11
 
@@ -135,6 +148,11 @@ private:
     ComPtr<ID3D12RootSignature> m_d3d12_root_signature = nullptr;
     ComPtr<ID3D12PipelineState> m_d3d12_pipeline_state = nullptr;
 
+    ComPtr<ID3D12RootSignature> m_d3d12_line_root_signature = nullptr;
+    ComPtr<ID3D12PipelineState> m_d3d12_line_pipeline_state = nullptr;
+    ComPtr<ID3D12Resource> m_d3d12_line_vertex_buffer = nullptr;
+    ComPtr<ID3D12Resource> m_d3d12_line_params_buffer = nullptr;
+
     ComPtr<ID3D12CommandAllocator> m_d3d12_command_allocator = nullptr;
     ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
     std::unique_ptr<FrameContext[]> m_d3d12_frame_contexts;
@@ -148,6 +166,7 @@ private:
     D3D12_VERTEX_BUFFER_VIEW m_d3d12_htop_transform_buffer_view{};
     D3D12_VERTEX_BUFFER_VIEW m_d3d12_hbottom_transform_buffer_view{};
     D3D12_VERTEX_BUFFER_VIEW m_d3d12_transform_buffer_view{};
+    D3D12_VERTEX_BUFFER_VIEW m_d3d12_line_vertex_buffer_view{};
 
     #pragma endregion
 };

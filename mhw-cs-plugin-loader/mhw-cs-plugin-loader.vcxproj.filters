@@ -200,5 +200,14 @@
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include=".clang-tidy" />
+    <None Include="Shaders\LineRenderingVS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\LineRenderingPS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\LineRenderingGS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

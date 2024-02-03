@@ -88,7 +88,10 @@ void PrimitiveRenderingModule::render_line(const MtLineSegment& line, MtVector4 
 void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* context) {
     using namespace DirectX;
 
-    if (m_spheres.empty() && m_cubes.empty() && m_capsules.empty()) {
+    if (m_spheres.empty() && 
+        m_cubes.empty() && 
+        m_capsules.empty() &&
+        m_lines.empty()) {
         return;
     }
 
@@ -96,7 +99,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     ComPtr<ID3D11RenderTargetView> rtv;
     context->OMGetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    context->IASetPrimitiveTopology(
+        m_draw_primitives_as_lines ? D3D11_PRIMITIVE_TOPOLOGY_LINELIST : D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+    );
     context->IASetInputLayout(m_d3d11_input_layout.Get());
     context->VSSetShader(m_d3d11_vertex_shader.Get(), nullptr, 0);
     context->PSSetShader(m_d3d11_pixel_shader.Get(), nullptr, 0);
@@ -327,9 +332,58 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         );
     }
 
+    // Lines --------------------------------
+    if (!m_lines.empty()) {
+        context->IASetInputLayout(m_d3d11_line_input_layout.Get());
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+        context->VSSetShader(m_d3d11_line_vertex_shader.Get(), nullptr, 0);
+        context->GSSetShader(m_d3d11_line_geometry_shader.Get(), nullptr, 0);
+        context->PSSetShader(m_d3d11_line_pixel_shader.Get(), nullptr, 0);
+
+        HandleResult(context->Map(m_d3d11_line_params_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        const auto params = (LineParams*)msr.pData;
+        params->Thickness = m_line_thickness;
+        context->Unmap(m_d3d11_line_params_buffer.Get(), 0);
+        
+        const std::array constant_buffers = {
+            m_d3d11_viewproj_buffer.Get(),
+            m_d3d11_line_params_buffer.Get()
+        };
+
+        context->GSSetConstantBuffers(0, (u32)constant_buffers.size(), constant_buffers.data());
+
+        HandleResult(context->Map(m_d3d11_line_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        auto data = (LineVertex*)msr.pData;
+
+        i = 0;
+        for (const auto& line : m_lines) {
+            data[i++] = {
+                .Position = { line.line.p0.x, line.line.p0.y, line.line.p0.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+            data[i++] = {
+                .Position = { line.line.p1.x, line.line.p1.y, line.line.p1.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+        }
+
+        context->Unmap(m_d3d11_line_vertex_buffer.Get(), 0);
+
+        constexpr u32 stride = sizeof(LineVertex);
+        constexpr u32 offset = 0;
+        context->IASetVertexBuffers(0, 1, m_d3d11_line_vertex_buffer.GetAddressOf(), &stride, &offset);
+
+        context->DrawInstanced(
+            2,
+            (u32)m_lines.size(), 0, 0
+        );
+    }
+
     m_spheres.clear();
     m_cubes.clear();
     m_capsules.clear();
+    m_lines.clear();
 }
 
 void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue) {
@@ -680,6 +734,10 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
 
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_viewproj_buffer.GetAddressOf()));
 
+    // Create Line Params Constant Buffer
+    bd.ByteWidth = sizeof LineParams;
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_line_params_buffer.GetAddressOf()));
+
     bd.ByteWidth = sizeof Instance * MAX_INSTANCES;
     bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -689,6 +747,15 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_htop_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_hbottom_transform_buffer.GetAddressOf()));
+    
+    // Create Line Vertex Buffer
+    bd.ByteWidth = sizeof LineVertex * MAX_LINES * 2;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bd.StructureByteStride = sizeof LineVertex;
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_line_vertex_buffer.GetAddressOf()));
 
     ComPtr<ID3DBlob> vs_blob;
     ComPtr<ID3DBlob> ps_blob;
@@ -730,6 +797,39 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         m_d3d11_pixel_shader.GetAddressOf()
     ));
 
+    vs_blob.Reset();
+    ps_blob.Reset();
+    ComPtr<ID3DBlob> gs_blob;
+
+    const auto& line_vs = chunk->get_file("/Resources/LineRenderingVS.hlsl");
+    const auto& line_gs = chunk->get_file("/Resources/LineRenderingGS.hlsl");
+    const auto& line_ps = chunk->get_file("/Resources/LineRenderingPS.hlsl");
+
+    load(line_vs, "vs_5_0", vs_blob);
+    load(line_gs, "gs_5_0", gs_blob);
+    load(line_ps, "ps_5_0", ps_blob);
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateVertexShader(
+        vs_blob->GetBufferPointer(),
+        vs_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_vertex_shader.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateGeometryShader(
+        gs_blob->GetBufferPointer(),
+        gs_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_geometry_shader.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d11_device->CreatePixelShader(
+        ps_blob->GetBufferPointer(),
+        ps_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_pixel_shader.GetAddressOf()
+    ));
+
     constexpr D3D11_INPUT_ELEMENT_DESC input_element_desc[] = {
         // Per Vertex (Buffer 1)
         {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -747,6 +847,19 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         vs_blob->GetBufferPointer(),
         vs_blob->GetBufferSize(),
         m_d3d11_input_layout.GetAddressOf()
+    ));
+
+    constexpr D3D11_INPUT_ELEMENT_DESC line_input_element_desc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateInputLayout(
+        line_input_element_desc,
+        _countof(line_input_element_desc),
+        vs_blob->GetBufferPointer(),
+        vs_blob->GetBufferSize(),
+        m_d3d11_line_input_layout.GetAddressOf()
     ));
 
     D3D11_RASTERIZER_DESC rasterizer_desc{};

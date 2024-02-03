@@ -132,6 +132,13 @@ private:
     ComPtr<ID3D11DepthStencilView> m_d3d11_depth_stencil_view = nullptr;
     ComPtr<ID3D11BlendState> m_d3d11_blend_state = nullptr;
 
+    ComPtr<ID3D11Buffer> m_d3d11_line_vertex_buffer = nullptr;
+    ComPtr<ID3D11Buffer> m_d3d11_line_params_buffer = nullptr;
+    ComPtr<ID3D11VertexShader> m_d3d11_line_vertex_shader = nullptr;
+    ComPtr<ID3D11GeometryShader> m_d3d11_line_geometry_shader = nullptr;
+    ComPtr<ID3D11PixelShader> m_d3d11_line_pixel_shader = nullptr;
+    ComPtr<ID3D11InputLayout> m_d3d11_line_input_layout = nullptr;
+
     #pragma endregion
     #pragma region D3D12
 

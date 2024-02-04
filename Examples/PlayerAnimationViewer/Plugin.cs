@@ -94,7 +94,6 @@ namespace PlayerAnimationViewer
             {
                 OnUpdate = true,
                 OnImGuiRender = true,
-                OnRender = true,
                 OnEntityAnimation = true,
                 OnMonsterAction = true
             };
@@ -146,65 +145,6 @@ namespace PlayerAnimationViewer
             var actionController = player.ActionController;
             if (Input.IsPressed(Button.Circle))
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
-        }
-
-        public void OnRender()
-        {
-            if (_selectedModel is null)
-                return;
-            if (!GetEntityList().Contains(_selectedModel))
-            {
-                _selectedModel = null;
-                return;
-            }
-
-            var entity = _selectedModel.Is("uMhModel") ? _selectedModel.As<Entity>() : null;
-            var colComponent = entity?.CollisionComponent;
-            if (colComponent is null)
-                return;
-
-            foreach (var node in colComponent.Nodes)
-            {
-                if (!node.IsActive)
-                    continue;
-
-                foreach (var geometry in node.Geometries)
-                {
-                    if (geometry.Geom is null) continue;
-
-                    MtVector4 color;
-                    if (node.IsActive)
-                    {
-                        color = geometry.Geom.Type switch
-                        {
-                            GeometryType.Sphere => new MtVector4(1, 0, 0, 0.25f),
-                            GeometryType.Capsule => new MtVector4(0, 1, 0, 0.25f),
-                            GeometryType.Obb => new MtVector4(0, 0, 1, 0.25f),
-                            _ => new MtVector4(1, 1, 1, 0.25f)
-                        };
-
-                        if (node.Get<nint>(0x90) == 0) // AttackParam
-                            color = new MtVector4(0f, 0.165f, 0.431f, 0.25f);
-                    }
-                    else
-                    {
-                        color = new MtVector4(0.5f, 0.5f, 0.5f, 0.1f);
-                    }
-
-                    switch (geometry.Geom.Type)
-                    {
-                        case GeometryType.Sphere:
-                            Primitives.RenderSphere(geometry.Geom.Get<MtSphere>(0x20), color);
-                            break;
-                        case GeometryType.Capsule:
-                            Primitives.RenderCapsule(geometry.Geom.Get<MtCapsule>(0x20), color);
-                            break;
-                        case GeometryType.Obb:
-                            Primitives.RenderObb(geometry.Geom.Get<MtObb>(0x20), color);
-                            break;
-                    }
-                }
-            }
         }
 
         public void OnImGuiRender()
@@ -268,7 +208,15 @@ namespace PlayerAnimationViewer
 
                 ImGui.NewLine();
 
-                ImGui.Text($"Current Animation: {_selectedModel.CurrentAnimation}");
+                var currentAnim = _selectedModel.CurrentAnimation;
+                ImGui.Text($"Current Animation: {currentAnim}");
+                if (_selectedAnimLayer is not null)
+                {
+                    var motionLists = new NativeArray<nint>(_selectedAnimLayer.Instance + 0xE120, 16);
+                    var lmtPtr = motionLists[(int)currentAnim.Lmt];
+                    ImGui.Text($"LMT {currentAnim.Lmt} <-> {MemoryUtil.ReadString(lmtPtr + 0xC)}");
+                }
+
                 if (_selectedModel.Is("uCharacterModel"))
                 {
                     var entity = _selectedModel.As<Entity>();

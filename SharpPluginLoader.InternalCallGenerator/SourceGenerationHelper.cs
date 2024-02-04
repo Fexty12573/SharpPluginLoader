@@ -88,8 +88,8 @@ public static class SourceGenerationHelper
         // Generate start of upload method
         uploadMethodSb.Append("""
                               
-                              public static void UploadInternalCalls(System.Collections.Generic.Dictionary<string, nint> icalls,
-                                    System.Collections.Generic.Dictionary<string, nint> addressCache)
+                              public static void UploadInternalCalls(System.Collections.Generic.IDictionary<string, nint> icalls,
+                                    System.Collections.Generic.IDictionary<string, nint> addressCache)
                               {
                               
                               """);

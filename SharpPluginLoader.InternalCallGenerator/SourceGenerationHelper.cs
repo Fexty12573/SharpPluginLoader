@@ -67,6 +67,8 @@ public static class SourceGenerationHelper
         List<string> pinStatements = []; // Used to store variables that need to be pinned
         List<string> gcHandles = []; // Used to store the gc handles
 
+        var containingNamespace = internalCalls[0].Method.ContainingNamespace.ToDisplayString();
+
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Text;");
         sb.AppendLine("using System.Runtime.InteropServices;");
@@ -76,7 +78,7 @@ public static class SourceGenerationHelper
         sb.AppendLine("using SharpPluginLoader.Core.Memory;");
         sb.Append($$"""
                   
-                  namespace {{internalCalls[0].Method.ContainingNamespace.ToDisplayString()}};
+                  namespace {{containingNamespace}};
 
                   public static unsafe partial class InternalCalls
                   {
@@ -86,7 +88,8 @@ public static class SourceGenerationHelper
         // Generate start of upload method
         uploadMethodSb.Append("""
                               
-                              public static void UploadInternalCalls(System.Collections.Generic.Dictionary<string, nint> icalls)
+                              public static void UploadInternalCalls(System.Collections.Generic.Dictionary<string, nint> icalls,
+                                    System.Collections.Generic.Dictionary<string, nint> addressCache)
                               {
                               
                               """);
@@ -101,9 +104,20 @@ public static class SourceGenerationHelper
         // - Array types where the element type is a primitive type or a pointer type
         // - ref/out types
         // - string
-        foreach (var (method, isUnsafe) in internalCalls)
+        foreach (var icall in internalCalls)
         {
+            var method = icall.Method;
+            var isUnsafe = icall.IsUnsafe;
+
             _currentMethodSymbol = method;
+
+            if (icall.Address != 0)
+            {
+                if (icall.Pattern is not null)
+                {
+                    ReportWarning(context, "ICG007", "Both address and pattern are specified, using address");
+                }
+            }
 
             var transformedReturnType = TransformReturn(method, context);
             if (transformedReturnType.typeName is null)
@@ -277,12 +291,47 @@ public static class SourceGenerationHelper
 
             // Add entry to upload method
             var fieldType = fieldTypeSb.ToString();
-            uploadMethodSb.AppendLine($"""
-                                       if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
-                                           _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
-                                       else
-                                           Log.Warn("Could not find InternalCall for method {method.Name}");
-                                       """);
+            if (icall.Address != 0)
+            {
+                uploadMethodSb.AppendLine($"_{method.Name}Ptr = ({fieldType})0x{icall.Address:X};");
+            }
+            else if (icall.Pattern is not null)
+            {
+                uploadMethodSb.AppendLine(icall.Cache
+                    ? $$"""
+                        if (addressCache.TryGetValue("{{containingNamespace}}:{{method.Name}}", out var {{method.Name}}Ptr))
+                        {
+                            _{{method.Name}}Ptr = ({{fieldType}}){{method.Name}}Ptr;
+                        }
+                        else
+                        {
+                            var {{method.Name}}_scanResults = PatternScanner.Scan(Pattern.FromString("{{icall.Pattern}}"));
+                            if ({{method.Name}}_scanResults.Count == 0)
+                                Log.Warn("Could not find pattern for method {{method.Name}}");
+                            else
+                            {
+                                _{{method.Name}}Ptr = ({{fieldType}})({{method.Name}}_scanResults[0] + {{icall.Offset}});
+                                addressCache["{{containingNamespace}}:{{method.Name}}"] = (nint)_{{method.Name}}Ptr;
+                            }
+                        }
+                        """
+                    : $"""
+                       var {method.Name}_scanResults = PatternScanner.Scan(Pattern.FromString("{icall.Pattern}"));
+                       if ({method.Name}_scanResults.Count == 0)
+                           Log.Warn("Could not find pattern for method {method.Name}");
+                       else
+                           _{method.Name}Ptr = ({fieldType})({method.Name}_scanResults[0] + {icall.Offset});
+                       """);
+            }
+            else
+            {
+                uploadMethodSb.AppendLine($"""
+                                           if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
+                                               _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
+                                           else
+                                               Log.Warn("Could not find InternalCall for method {method.Name}");
+                                           """);
+            }
             
             // Clear reused string builders and lists
             methodBodySb.Clear();
@@ -479,6 +528,23 @@ public static class SourceGenerationHelper
                     message,
                     "InternalCallGenerator",
                     DiagnosticSeverity.Error,
+                    true
+                ),
+                (method ?? _currentMethodSymbol)!.Locations[0]
+            )
+        );
+    }
+
+    private static void ReportWarning(SourceProductionContext context, string id, string message, IMethodSymbol? method = null)
+    {
+        context.ReportDiagnostic(
+            Diagnostic.Create(
+                new DiagnosticDescriptor(
+                    id,
+                    "InternalCallGenerator",
+                    message,
+                    "InternalCallGenerator",
+                    DiagnosticSeverity.Warning,
                     true
                 ),
                 (method ?? _currentMethodSymbol)!.Locations[0]

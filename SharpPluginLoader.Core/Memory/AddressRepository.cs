@@ -24,8 +24,10 @@ namespace SharpPluginLoader.Core.Memory
             var addressRecords = JsonSerializer.Deserialize<AddressRecordJson[]>(addressRecordsString, SerializerOptions)
               ?? throw new Exception("Failed to deserialize address records");
 
+            var gameVersion = InternalCalls.GetGameRevision();
+            if (string.IsNullOrEmpty(gameVersion))
+                throw new Exception("Failed to get game revision");
 
-            var gameVersion = GetGameRevision(addressRecords);
             Log.Debug($"[Core] Attempting to initialize address repository for game revision: {gameVersion}");
             var addressRecordFileHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(addressRecordsString)));
 

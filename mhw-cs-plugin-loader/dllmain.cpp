@@ -1,4 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
 #include <wil/resource.h>
 #include <wil/stl.h>
 #include <wil/win32_helpers.h>

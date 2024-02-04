@@ -55,8 +55,13 @@ namespace ExperimentalTesting
         {
             ImGui.InputText("Message", ref _str, 512);
             ImGui.SameLine();
-            if (ImGui.Button("Log"))
-                InternalCalls.LogMessage(1, _str);
+            if (ImGui.Button("Display Fatal Error"))
+                InternalCalls.DisplayFatalErrorMessage(_str);
+
+            ImGui.InputInt("HRESULT", ref _value);
+            ImGui.SameLine();
+            if (ImGui.Button("Display Error"))
+                InternalCalls.D3DCheckResult(_value, "SPL: Test Error message");
 
             ImGui.Separator();
 

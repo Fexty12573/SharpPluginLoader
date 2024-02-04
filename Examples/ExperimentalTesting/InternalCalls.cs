@@ -82,32 +82,12 @@ public partial class InternalCalls
     [InternalCall]
     public static partial void ListTest(List<byte> list);
 
-    [InternalCall(Pattern = "AB CD EF 90")]
-    public static partial void PatternTest();
+    [InternalCall(Address = 0x142552c10)]
+    public static partial void D3DCheckResult(int result, string message);
 
-    [InternalCall(Pattern = "AB CD EF 90", Offset = -23)]
-    public static partial void PatternWithOffsetTest();
+    [InternalCall(Pattern = "48 89 5C 24 18 57 48 83 EC 20 8B D9 48 89 6C 24 30", Offset = -8)]
+    public static partial void D3DCheckResultPattern(int result, string message);
 
-    [InternalCall(Pattern = "AB CD EF 90", Cache = true)]
-    public static partial void PatternWithCacheTest();
-
-    [InternalCall(Pattern = "AB CD EF 90", Offset = -23, Cache = true)]
-    public static partial void PatternWithOffsetAndCacheTest();
-
-    [InternalCall(Address = 0x1234567890)]
-    public static partial void AddressTest();
-
-    [InternalCall(Address = 0x1234567890, Pattern = "AB CD EF 90")]
-    public static partial void AddressAndPatternTest();
-
-    [InternalCall(Address = 0x1234567890, Pattern = "AB CD EF 90", Offset = -23)]
-    public static partial void AddressPatternAndOffsetTest();
-
-    [InternalCall(InternalCallOptions.Unsafe, Address = 0x1234567890)]
-    public static partial void UnsafeAddressTest();
-
-    public static void X(IDictionary<string, nint> dict)
-    {
-        dict["test"] = 0x12345890;
-    }
+    [InternalCall(Pattern = "74 41 41 B9 00 08 00 00 48 C7 44 24 20 00 00 00 00", Offset = -15, Cache = true)]
+    public static partial void DisplayFatalErrorMessage(string message);
 }

@@ -134,32 +134,6 @@ namespace SharpPluginLoader.Core.Memory
             File.WriteAllText(PluginCachePath, cacheJson);
         }
 
-        private static unsafe string GetGameRevision(AddressRecordJson[] records)
-        {
-            // TODO: It's weird to scan for this here.
-            // If we get an update, we _probably_ won't be able to get to this point
-            // due to hardcoded addresses in the native core.
-            // This should AOB scanned in native and exposed as an icall.
-
-            var gameBuildRevisionJsonRecord = records.FirstOrDefault(r => r.Name == "Core::GetGameBuildRevision")
-                ?? throw new Exception("Failed to get Core::GetGameBuildRevision from address records");
-
-            var addressRecord = new AddressRecord(gameBuildRevisionJsonRecord.Pattern, gameBuildRevisionJsonRecord.Offset)
-                ?? throw new Exception("Failed scan for Core::GetGameBuildRevision");
-
-
-            // We unfortunately can't call this function directly, as it uses CRT functions
-            // that might not have been initialized yet. Instead, we just parse the offset
-            // in the instruction to the constant.
-            // var getGameBuildRevision = new NativeFunction<nint>(addressRecord.Address);
-            var constantOffset = Memory.MemoryUtil.Read<UInt32>(addressRecord.Address+7);
-            var constantBase = addressRecord.Address + 11;
-            var gameVersionPtr = MemoryUtil.Read<nint>(constantBase + constantOffset);
-            var gameVersion = MemoryUtil.ReadString(gameVersionPtr);
-
-            return gameVersion;
-        }
-
         public static nint Get(string name)
         {
            if (Records.TryGetValue(name, out var record)) 

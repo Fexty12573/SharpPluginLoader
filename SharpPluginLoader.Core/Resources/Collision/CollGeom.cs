@@ -10,7 +10,7 @@ namespace SharpPluginLoader.Core.Resources.Collision;
 
 public class CollGeomResource : Resource
 {
-    public CollGeomResource(nint instance) : base(instance) { }
+    public CollGeomResource(nint instance) : base(instance, true) { }
     public CollGeomResource() { }
 
     public PointerArray<CollGeom> Geometries => new(Get<nint>(0xC0), Get<int>(0xB0));

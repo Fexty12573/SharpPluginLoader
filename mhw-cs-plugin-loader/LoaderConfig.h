@@ -9,6 +9,10 @@ namespace preloader
         std::string LogLevel;
         bool OutputEveryPath;
         bool EnablePluginLoader;
+        struct {
+            bool ImGuiRenderingEnabled;
+            bool PrimitiveRenderingEnabled;
+        };
     };
     void to_json(nlohmann::json& j, const ConfigFile& c);
     void from_json(const nlohmann::json& j, ConfigFile& c);
@@ -31,5 +35,7 @@ namespace preloader
         inline std::string get_log_level() const { return this->config.LogLevel; }
         inline bool get_output_every_path() const { return this->config.OutputEveryPath; }
         inline bool get_enable_plugin_loader() const { return this->config.EnablePluginLoader; }
+        inline bool get_imgui_rendering_enabled() const { return this->config.ImGuiRenderingEnabled; }
+        inline bool get_primitive_rendering_enabled() const { return this->config.PrimitiveRenderingEnabled; }
     };
 } // namespace preloader

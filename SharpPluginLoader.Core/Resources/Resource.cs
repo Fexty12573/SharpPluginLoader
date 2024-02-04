@@ -8,9 +8,23 @@ namespace SharpPluginLoader.Core.Resources
     /// </summary>
     public class Resource : MtObject
     {
-        public Resource(nint instance) : base(instance) => AddRef();
-        public Resource() { }
-        ~Resource() => Release();
+        public Resource(nint instance, bool weakRef = false) : base(instance)
+        {
+            _isWeakRef = weakRef;
+            if (!_isWeakRef)
+                AddRef();
+        }
+
+        public Resource()
+        {
+            _isWeakRef = true;
+        }
+
+        ~Resource()
+        {
+            if (!_isWeakRef)
+                Release();
+        }
 
         /// <summary>
         /// Increments the reference count of this resource.
@@ -64,6 +78,13 @@ namespace SharpPluginLoader.Core.Resources
         {
             return new NativeFunction<nint, nint, bool>(GetVirtualFunction(11)).Invoke(Instance, stream.Instance);
         }
+
+        public T GetWeakRef<T>() where T : Resource, new()
+        {
+            return new T { Instance = Instance };
+        }
+
+        private readonly bool _isWeakRef;
 
         private static readonly NativeAction<nint, nint> AddRefFunc = new(AddressRepository.Get("ResourceManager:AddRef"));
         private static readonly NativeAction<nint, nint> ReleaseFunc = new(AddressRepository.Get("ResourceManager:Release"));

@@ -106,4 +106,45 @@ public static class Primitives
     {
         InternalCalls.RenderCapsule(MemoryUtil.AddressOf(ref capsule), MemoryUtil.AddressOf(ref color));
     }
+
+    /// <summary>
+    /// Renders a line at the given start and end position with the given color.
+    /// </summary>
+    /// <param name="start">The start position of the line.</param>
+    /// <param name="end">The end position of the line.</param>
+    /// <param name="color">The color of the line.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderLine(MtVector3 start, MtVector3 end, MtColor color)
+    {
+        var line = new MtLineSegment { Point1 = start, Point2 = end };
+        var color4 = (MtVector4)color;
+        InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color4));
+    }
+
+    /// <inheritdoc cref="RenderLine(MtVector3,MtVector3,MtColor)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderLine(MtVector3 start, MtVector3 end, MtVector4 color)
+    {
+        var line = new MtLineSegment { Point1 = start, Point2 = end };
+        InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color));
+    }
+
+    /// <summary>
+    /// Renders a line with the given color.
+    /// </summary>
+    /// <param name="line">The line to render.</param>
+    /// <param name="color">The color of the line.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderLine(MtLineSegment line, MtColor color)
+    {
+        var color4 = (MtVector4)color;
+        InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color4));
+    }
+
+    /// <inheritdoc cref="RenderLine(MtLineSegment,MtColor)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderLine(MtLineSegment line, MtVector4 color)
+    {
+        InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color));
+    }
 }

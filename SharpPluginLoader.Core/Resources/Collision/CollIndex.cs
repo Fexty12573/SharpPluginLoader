@@ -10,7 +10,7 @@ namespace SharpPluginLoader.Core.Resources.Collision;
 
 public class CollIndexResource : Resource
 {
-    public CollIndexResource(nint instance) : base(instance) { }
+    public CollIndexResource(nint instance) : base(instance, true) { }
     public CollIndexResource() { }
 
     public unsafe Span<CollIndex> Indices => new(GetPtr(0xA8), Get<int>(0xB0));
@@ -27,5 +27,5 @@ public unsafe struct CollIndex
     [FieldOffset(0x3C)] public uint UniqueId;
     [FieldOffset(0x40)] public MtString* NamePtr;
 
-    public string Name => NamePtr != null ? NamePtr->GetString(Encoding.Unicode) : "";
+    public string Name => NamePtr != null ? NamePtr->GetString(Encoding.UTF8) : "";
 }

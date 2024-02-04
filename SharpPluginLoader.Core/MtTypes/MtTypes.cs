@@ -166,11 +166,11 @@ namespace SharpPluginLoader.Core.MtTypes
         public MtVector3 Direction;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit, Size = 0x20)]
     public struct MtLineSegment
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
+        [FieldOffset(0x00)] public MtVector3 Point1;
+        [FieldOffset(0x10)] public MtVector3 Point2;
     }
 
     [StructLayout(LayoutKind.Sequential)]

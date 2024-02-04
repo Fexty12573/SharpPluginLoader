@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SharpPluginLoader.Core.Models;
+﻿using SharpPluginLoader.Core.Models;
+using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core.Components;
 
@@ -16,6 +12,14 @@ public partial class CollisionComponent : Component
     /// Gets the <see cref="Node"/>s of this <see cref="CollisionComponent"/>.
     /// </summary>
     public MtArray<Node> Nodes => GetInlineObject<MtArray<Node>>(0x150);
+
+    /// <summary>
+    /// Gets the <see cref="ObjCollision"/> resources of this <see cref="CollisionComponent"/>.
+    /// </summary>
+    public NativeArray<nint> Resources => new(Instance + 0xD0, 8);
+
+    /// <inheritdoc cref="Resources"/>
+    public ObjCollision[] Collisions => Resources.Where(x => x != 0).Select(x => new ObjCollision(x)).ToArray();
 
     /// <summary>
     /// Gets the owner of this <see cref="CollisionComponent"/>.

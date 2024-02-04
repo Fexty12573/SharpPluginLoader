@@ -7,10 +7,13 @@ using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.Rendering
 {
-    internal static class Renderer
+    public static class Renderer
     {
+        public static bool MenuShown => _showMenu;
+        public static bool DemoShown => _showDemo;
+
         [UnmanagedCallersOnly]
-        public static nint Initialize()
+        internal static nint Initialize()
         {
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
@@ -32,14 +35,14 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        public static void Render()
+        internal static void Render()
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
                 plugin.OnRender();
         }
 
         [UnmanagedCallersOnly]
-        public static unsafe nint ImGuiRender()
+        internal static unsafe nint ImGuiRender()
         {
             if (Input.IsPressed(Key.F9))
                 _showMenu = !_showMenu;
@@ -57,8 +60,24 @@ namespace SharpPluginLoader.Core.Rendering
             ImGui.NewFrame();
             if (_showMenu)
             {
-                if (ImGui.Begin("SharpPluginLoader", ref _showMenu))
+                if (ImGui.Begin("SharpPluginLoader", ref _showMenu, ImGuiWindowFlags.MenuBar))
                 {
+                    if (ImGui.BeginMenuBar())
+                    {
+                        if (ImGui.BeginMenu("Options"))
+                        {
+                            ImGui.Checkbox("Draw Primitives as Wireframe",
+                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.DrawPrimitivesAsWireframe));
+
+                            ImGui.SliderFloat("Line Thickness",
+                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.LineThickness),
+                                                                                              1.0f, 10.0f);
+
+                            ImGui.EndMenu();
+                        }
+                        ImGui.EndMenuBar();
+                    }
+
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
                     {
                         if (plugin.PluginData.ImGuiWrappedInTreeNode)
@@ -98,10 +117,16 @@ namespace SharpPluginLoader.Core.Rendering
             return (nint)ImGui.GetDrawData().NativePtr;
         }
 
-        private static void Shutdown()
+        internal static void Shutdown()
         {
             ImGui.DestroyContext();
             Log.Debug("Renderer.Shutdown");
+        }
+
+        [UnmanagedCallersOnly]
+        internal static unsafe void SetRenderingOptions(RenderingOptionPointers* pointers)
+        {
+            _renderingOptionPointers = *pointers;
         }
 
         private static void SetupImGuiStyle()
@@ -213,5 +238,13 @@ namespace SharpPluginLoader.Core.Rendering
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static bool _showMenu = false;
         private static bool _showDemo = false;
+        private static RenderingOptionPointers _renderingOptionPointers;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct RenderingOptionPointers
+    {
+        public float* LineThickness;
+        public bool* DrawPrimitivesAsWireframe;
     }
 }

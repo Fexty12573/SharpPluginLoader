@@ -43,6 +43,15 @@ namespace SharpPluginLoader.Core.Models
         public MtVector3 Forward => Rotation * MtVector3.Forward;
 
         /// <summary>
+        /// Freezes the model and pauses all processing
+        /// </summary>
+        public bool Frozen
+        {
+            get => (Get<uint>(0x14) & 1) == 0;
+            set => Set(0x14, Get<uint>(0x14) & 0xFFFFFFFE | (value ? 0u : 1u));
+        }
+
+        /// <summary>
         /// Teleports the model to the given position
         /// </summary>
         /// <remarks>Use this function if you need to move a model and ignore walls.</remarks>
@@ -133,6 +142,11 @@ namespace SharpPluginLoader.Core.Models
         /// The model's animation component
         /// </summary>
         public AnimationLayerComponent? AnimationLayer => GetObject<AnimationLayerComponent>(0x468);
+
+        /// <summary>
+        /// The model's component manager
+        /// </summary>
+        public ComponentManager ComponentManager => GetInlineObject<ComponentManager>(0x70);
 
         /// <summary>
         /// The model's motion lists.

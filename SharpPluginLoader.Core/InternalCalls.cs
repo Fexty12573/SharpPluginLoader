@@ -34,6 +34,7 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<nint, nint, void> RenderSpherePtr;
         public static delegate* unmanaged<nint, nint, void> RenderObbPtr;
         public static delegate* unmanaged<nint, nint, void> RenderCapsulePtr;
+        public static delegate* unmanaged<nint, nint, void> RenderLinePtr;
 #pragma warning restore CS0649
 
         public static void TestInternalCall() => TestInternalCallPtr();
@@ -99,5 +100,7 @@ namespace SharpPluginLoader.Core
         public static void RenderObb(nint obbPtr, nint colorPtr) => RenderObbPtr(obbPtr, colorPtr);
 
         public static void RenderCapsule(nint capsulePtr, nint colorPtr) => RenderCapsulePtr(capsulePtr, colorPtr);
+
+        public static void RenderLine(nint linePtr, nint colorPtr) => RenderLinePtr(linePtr, colorPtr);
     }
 }

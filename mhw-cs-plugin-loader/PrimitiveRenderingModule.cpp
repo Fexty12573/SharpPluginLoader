@@ -11,15 +11,46 @@
 #include <tiny_obj_loader.h>
 #include <dti/sMhCamera.h>
 
+#include "Config.h"
 #include "ChunkModule.h"
+#include "LoaderConfig.h"
 #include "NativePluginFramework.h"
 
 PrimitiveRenderingModule::PrimitiveRenderingModule() = default;
 
 void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
+    if (!preloader::LoaderConfig::get().get_primitive_rendering_enabled()) {
+        auto disabled = [](void*, void*) {
+            dlog::warn("Primitive rendering is disabled");
+        };
+
+        coreclr->add_internal_call("RenderSphere", &disabled);
+        coreclr->add_internal_call("RenderObb", &disabled);
+        coreclr->add_internal_call("RenderCapsule", &disabled);
+        coreclr->add_internal_call("RenderLine", &disabled);
+        return;
+    }
+
     coreclr->add_internal_call("RenderSphere", render_sphere_api);
     coreclr->add_internal_call("RenderObb", render_obb_api);
     coreclr->add_internal_call("RenderCapsule", render_capsule_api);
+    coreclr->add_internal_call("RenderLine", render_line_api);
+
+    struct RenderingOptionPointers {
+        float* LineThickness;
+        bool* DrawPrimitivesAsLines;
+    } rendering_option_pointers = {
+        &m_line_thickness,
+        &m_draw_primitives_as_lines
+    };
+
+    const auto set_rendering_options = coreclr->get_method<void(RenderingOptionPointers*)>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Renderer",
+        L"SetRenderingOptions"
+    );
+
+    set_rendering_options(&rendering_option_pointers);
 }
 
 void PrimitiveRenderingModule::shutdown() {
@@ -50,10 +81,17 @@ void PrimitiveRenderingModule::render_capsule(const MtCapsule& capsule, MtVector
     m_capsules.emplace_back(capsule, color);
 }
 
+void PrimitiveRenderingModule::render_line(const MtLineSegment& line, MtVector4 color) {
+    m_lines.emplace_back(line, color);
+}
+
 void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* context) {
     using namespace DirectX;
 
-    if (m_spheres.empty() && m_cubes.empty() && m_capsules.empty()) {
+    if (m_spheres.empty() && 
+        m_cubes.empty() && 
+        m_capsules.empty() &&
+        m_lines.empty()) {
         return;
     }
 
@@ -61,7 +99,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     ComPtr<ID3D11RenderTargetView> rtv;
     context->OMGetRenderTargets(1, rtv.GetAddressOf(), nullptr);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    context->IASetPrimitiveTopology(
+        m_draw_primitives_as_lines ? D3D11_PRIMITIVE_TOPOLOGY_LINELIST : D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+    );
     context->IASetInputLayout(m_d3d11_input_layout.Get());
     context->VSSetShader(m_d3d11_vertex_shader.Get(), nullptr, 0);
     context->PSSetShader(m_d3d11_pixel_shader.Get(), nullptr, 0);
@@ -292,15 +332,67 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         );
     }
 
+    // Lines --------------------------------
+    if (!m_lines.empty()) {
+        context->IASetInputLayout(m_d3d11_line_input_layout.Get());
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+        context->VSSetShader(m_d3d11_line_vertex_shader.Get(), nullptr, 0);
+        context->GSSetShader(m_d3d11_line_geometry_shader.Get(), nullptr, 0);
+        context->PSSetShader(m_d3d11_line_pixel_shader.Get(), nullptr, 0);
+
+        HandleResult(context->Map(m_d3d11_line_params_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        const auto params = (LineParams*)msr.pData;
+        params->Thickness = m_line_thickness;
+        context->Unmap(m_d3d11_line_params_buffer.Get(), 0);
+        
+        const std::array constant_buffers = {
+            m_d3d11_viewproj_buffer.Get(),
+            m_d3d11_line_params_buffer.Get()
+        };
+
+        context->GSSetConstantBuffers(0, (u32)constant_buffers.size(), constant_buffers.data());
+
+        HandleResult(context->Map(m_d3d11_line_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        auto data = (LineVertex*)msr.pData;
+
+        i = 0;
+        for (const auto& line : m_lines) {
+            data[i++] = {
+                .Position = { line.line.p0.x, line.line.p0.y, line.line.p0.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+            data[i++] = {
+                .Position = { line.line.p1.x, line.line.p1.y, line.line.p1.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+        }
+
+        context->Unmap(m_d3d11_line_vertex_buffer.Get(), 0);
+
+        constexpr u32 stride = sizeof(LineVertex);
+        constexpr u32 offset = 0;
+        context->IASetVertexBuffers(0, 1, m_d3d11_line_vertex_buffer.GetAddressOf(), &stride, &offset);
+
+        context->DrawInstanced(
+            2,
+            (u32)m_lines.size(), 0, 0
+        );
+    }
+
     m_spheres.clear();
     m_cubes.clear();
     m_capsules.clear();
+    m_lines.clear();
 }
 
 void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue) {
     using namespace DirectX;
 
-    if (m_spheres.empty() && m_cubes.empty() && m_capsules.empty()) {
+    if (m_spheres.empty() && 
+        m_cubes.empty() &&
+        m_capsules.empty() &&
+        m_lines.empty()) {
         return;
     }
 
@@ -334,7 +426,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         nullptr
     );
 
-    m_d3d12_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+    m_d3d12_command_list->IASetPrimitiveTopology(
+        m_draw_primitives_as_lines ? D3D_PRIMITIVE_TOPOLOGY_LINELIST : D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+    );
 
     // Store VP data
     const auto camera = sMhCamera::get();
@@ -554,6 +648,58 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         );
     }
 
+    // Lines --------------------------------
+    if (!m_lines.empty()) {
+        // Set up line pipeline state
+        m_d3d12_command_list->SetPipelineState(m_d3d12_line_pipeline_state.Get());
+        m_d3d12_command_list->SetGraphicsRootSignature(m_d3d12_line_root_signature.Get());
+
+        // Bind ViewProj buffer
+        m_d3d12_command_list->SetGraphicsRootConstantBufferView(0, m_d3d12_viewproj_buffer->GetGPUVirtualAddress());
+
+        // Set up line params buffer
+        LineParams* line_params = nullptr;
+        HandleResult(m_d3d12_line_params_buffer->Map(0, nullptr, (void**)&line_params));
+        line_params->Thickness = m_line_thickness;
+        m_d3d12_line_params_buffer->Unmap(0, nullptr);
+
+        m_d3d12_command_list->SetGraphicsRootConstantBufferView(1, m_d3d12_line_params_buffer->GetGPUVirtualAddress());
+
+        // Set up line vertex buffer
+        const D3D12_RANGE range{
+            0,
+            sizeof(LineVertex) * m_lines.size() * 2
+        };
+
+        LineVertex* data = nullptr;
+        HandleResult(m_d3d12_line_vertex_buffer->Map(0, &range, (void**)&data));
+
+        i = 0;
+        for (const auto& line : m_lines) {
+            data[i++] = LineVertex{
+                .Position = { line.line.p0.x, line.line.p0.y, line.line.p0.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+            data[i++] = LineVertex{
+                .Position = { line.line.p1.x, line.line.p1.y, line.line.p1.z, 1.0f },
+                .Color = { line.color.r, line.color.g, line.color.b, line.color.a }
+            };
+        }
+
+        m_d3d12_line_vertex_buffer->Unmap(0, nullptr);
+
+        views[0] = m_d3d12_line_vertex_buffer_view;
+
+        m_d3d12_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+        m_d3d12_command_list->IASetVertexBuffers(0, 1, views.data());
+        m_d3d12_command_list->DrawInstanced(
+            2,
+            (u32)m_lines.size(), 0, 0
+        );
+
+        m_lines.clear();
+    }
+
     // Close command list
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -589,6 +735,10 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
 
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_viewproj_buffer.GetAddressOf()));
 
+    // Create Line Params Constant Buffer
+    bd.ByteWidth = sizeof LineParams;
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_line_params_buffer.GetAddressOf()));
+
     bd.ByteWidth = sizeof Instance * MAX_INSTANCES;
     bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -598,6 +748,15 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_htop_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_hbottom_transform_buffer.GetAddressOf()));
+    
+    // Create Line Vertex Buffer
+    bd.ByteWidth = sizeof LineVertex * MAX_LINES * 2;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bd.StructureByteStride = sizeof LineVertex;
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_line_vertex_buffer.GetAddressOf()));
 
     ComPtr<ID3DBlob> vs_blob;
     ComPtr<ID3DBlob> ps_blob;
@@ -639,6 +798,39 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         m_d3d11_pixel_shader.GetAddressOf()
     ));
 
+    vs_blob.Reset();
+    ps_blob.Reset();
+    ComPtr<ID3DBlob> gs_blob;
+
+    const auto& line_vs = chunk->get_file("/Resources/LineRenderingVS.hlsl");
+    const auto& line_gs = chunk->get_file("/Resources/LineRenderingGS.hlsl");
+    const auto& line_ps = chunk->get_file("/Resources/LineRenderingPS.hlsl");
+
+    load(line_vs, "vs_5_0", vs_blob);
+    load(line_gs, "gs_5_0", gs_blob);
+    load(line_ps, "ps_5_0", ps_blob);
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateVertexShader(
+        vs_blob->GetBufferPointer(),
+        vs_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_vertex_shader.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateGeometryShader(
+        gs_blob->GetBufferPointer(),
+        gs_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_geometry_shader.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d11_device->CreatePixelShader(
+        ps_blob->GetBufferPointer(),
+        ps_blob->GetBufferSize(),
+        nullptr,
+        m_d3d11_line_pixel_shader.GetAddressOf()
+    ));
+
     constexpr D3D11_INPUT_ELEMENT_DESC input_element_desc[] = {
         // Per Vertex (Buffer 1)
         {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -658,12 +850,26 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         m_d3d11_input_layout.GetAddressOf()
     ));
 
+    constexpr D3D11_INPUT_ELEMENT_DESC line_input_element_desc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    HandleResult(d3dmodule->m_d3d11_device->CreateInputLayout(
+        line_input_element_desc,
+        _countof(line_input_element_desc),
+        vs_blob->GetBufferPointer(),
+        vs_blob->GetBufferSize(),
+        m_d3d11_line_input_layout.GetAddressOf()
+    ));
+
     D3D11_RASTERIZER_DESC rasterizer_desc{};
     rasterizer_desc.FillMode = D3D11_FILL_SOLID;
     rasterizer_desc.CullMode = D3D11_CULL_NONE;
     rasterizer_desc.FrontCounterClockwise = false;
     rasterizer_desc.DepthBias = 0;
     rasterizer_desc.DepthClipEnable = false;
+    rasterizer_desc.MultisampleEnable = true;
 
     HandleResult(d3dmodule->m_d3d11_device->CreateRasterizerState(
         &rasterizer_desc,
@@ -743,6 +949,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/BottomHemisphere.obj", m_d3d12_hemisphere_bottom);
     load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cylinder.obj", m_d3d12_cylinder);
 
+    // Mesh Root Signature ----------------------------------------------
     CD3DX12_ROOT_PARAMETER root_parameters[3]{};
 
     // ViewProj Constant Buffer
@@ -787,6 +994,41 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         IID_PPV_ARGS(m_d3d12_root_signature.GetAddressOf())
     ));
 
+    // Line Root Signature ----------------------------------------------
+    memset(root_parameters, 0, sizeof root_parameters);
+
+    // ViewProj Constant Buffer
+    root_parameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
+
+    // Line Params Constant Buffer
+    root_parameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_GEOMETRY);
+
+    root_signature_desc.Init(
+        2,
+        root_parameters,
+        0,
+        nullptr,
+        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+    );
+
+    signature_blob.Reset();
+    error_blob.Reset();
+
+    HandleResult(serialize_root_signature(
+        &root_signature_desc,
+        D3D_ROOT_SIGNATURE_VERSION_1,
+        signature_blob.GetAddressOf(),
+        error_blob.GetAddressOf()
+    ));
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateRootSignature(
+        0,
+        signature_blob->GetBufferPointer(),
+        signature_blob->GetBufferSize(),
+        IID_PPV_ARGS(m_d3d12_line_root_signature.GetAddressOf())
+    ));
+
+    // Mesh Pipeline State ----------------------------------------------
     ComPtr<ID3DBlob> vs_blob;
     ComPtr<ID3DBlob> ps_blob;
 
@@ -836,6 +1078,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     rasterizer_desc.CullMode = D3D12_CULL_MODE_NONE;
     rasterizer_desc.FrontCounterClockwise = false;
     rasterizer_desc.DepthClipEnable = false;
+    rasterizer_desc.MultisampleEnable = true;
 
     // Depth Stencil State
     D3D12_DEPTH_STENCIL_DESC depth_stencil_desc{};
@@ -883,6 +1126,47 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     HandleResult(d3dmodule->m_d3d12_device->CreateGraphicsPipelineState(
         &pso_desc,
         IID_PPV_ARGS(m_d3d12_pipeline_state.GetAddressOf())
+    ));
+
+    // Line Pipeline State ----------------------------------------------
+    vs_blob.Reset();
+    ps_blob.Reset();
+    ComPtr<ID3DBlob> gs_blob;
+
+    const auto& line_vs = chunk->get_file("/Resources/LineRenderingVS.hlsl");
+    const auto& line_gs = chunk->get_file("/Resources/LineRenderingGS.hlsl");
+    const auto& line_ps = chunk->get_file("/Resources/LineRenderingPS.hlsl");
+
+    load(line_vs, "vs_5_0", vs_blob);
+    load(line_gs, "gs_5_0", gs_blob);
+    load(line_ps, "ps_5_0", ps_blob);
+
+    D3D12_INPUT_ELEMENT_DESC line_input_element_desc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+    };
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC line_pso_desc{};
+    line_pso_desc.pRootSignature = m_d3d12_line_root_signature.Get();
+    line_pso_desc.VS = CD3DX12_SHADER_BYTECODE(vs_blob.Get());
+    line_pso_desc.GS = CD3DX12_SHADER_BYTECODE(gs_blob.Get());
+    line_pso_desc.PS = CD3DX12_SHADER_BYTECODE(ps_blob.Get());
+    line_pso_desc.InputLayout = { line_input_element_desc, _countof(line_input_element_desc) };
+    line_pso_desc.RasterizerState = rasterizer_desc;
+    line_pso_desc.DepthStencilState = depth_stencil_desc;
+    line_pso_desc.BlendState = blend_desc;
+    line_pso_desc.SampleMask = UINT_MAX;
+    line_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+    line_pso_desc.NumRenderTargets = swap_chain_desc.BufferCount;
+    for (u32 i = 0; i < swap_chain_desc.BufferCount; ++i) {
+        line_pso_desc.RTVFormats[i] = swap_chain_desc.BufferDesc.Format;
+    }
+    line_pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    line_pso_desc.SampleDesc.Count = 1;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateGraphicsPipelineState(
+        &line_pso_desc,
+        IID_PPV_ARGS(m_d3d12_line_pipeline_state.GetAddressOf())
     ));
 
     // ViewProj Constant Buffer
@@ -936,6 +1220,30 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         IID_PPV_ARGS(m_d3d12_hbottom_transform_buffer.GetAddressOf())
     ));
 
+    // Line Params Constant Buffer
+    resource_desc.Width = sizeof LineParams;
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_line_params_buffer.GetAddressOf())
+    ));
+
+    // Line Vertex Buffer
+    resource_desc.Width = sizeof LineVertex * MAX_LINES * 2; // 2 vertices per line
+
+    HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &resource_desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_line_vertex_buffer.GetAddressOf())
+    ));
+
     // Create Views
     m_d3d12_transform_buffer_view.BufferLocation = m_d3d12_transform_buffer->GetGPUVirtualAddress();
     m_d3d12_transform_buffer_view.SizeInBytes = sizeof Instance * MAX_INSTANCES;
@@ -948,6 +1256,10 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     m_d3d12_hbottom_transform_buffer_view.BufferLocation = m_d3d12_hbottom_transform_buffer->GetGPUVirtualAddress();
     m_d3d12_hbottom_transform_buffer_view.SizeInBytes = sizeof Instance * MAX_INSTANCES;
     m_d3d12_hbottom_transform_buffer_view.StrideInBytes = sizeof Instance;
+
+    m_d3d12_line_vertex_buffer_view.BufferLocation = m_d3d12_line_vertex_buffer->GetGPUVirtualAddress();
+    m_d3d12_line_vertex_buffer_view.SizeInBytes = sizeof LineVertex * MAX_LINES * 2;
+    m_d3d12_line_vertex_buffer_view.StrideInBytes = sizeof LineVertex;
 
     // Depth Stencil
     // Depth Stencil Descriptor Heap
@@ -1198,4 +1510,8 @@ void PrimitiveRenderingModule::render_obb_api(const MtOBB* obb, const MtVector4*
 
 void PrimitiveRenderingModule::render_capsule_api(const MtCapsule* capsule, const MtVector4* color) {
     NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_capsule(*capsule, *color);
+}
+
+void PrimitiveRenderingModule::render_line_api(const MtLineSegment* line, const MtVector4* color) {
+    NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_line(*line, *color);
 }

@@ -8,7 +8,7 @@ namespace SharpPluginLoader.Core.Resources.Collision;
 
 public class CollNodeResource : Resource
 {
-    public CollNodeResource(nint instance) : base(instance) { }
+    public CollNodeResource(nint instance) : base(instance, true) { }
     public CollNodeResource() { }
 
     public CollNodeType Type => Get<CollNodeType>(0xA8);
@@ -30,6 +30,28 @@ public class CollNode : MtObject
     public ref uint HitCollisionFlags => ref GetRef<uint>(0x38);
 
     public ref uint Attr => ref GetRef<uint>(0x50);
+}
+
+public class CollNodeEm : CollNode
+{
+    public CollNodeEm(nint instance) : base(instance) { }
+    public CollNodeEm() { }
+
+    public ref uint BaseDamageGroup => ref GetRef<uint>(0x60);
+    
+    public ref uint PartsDamageGroup => ref GetRef<uint>(0x70);
+
+    public ref uint BaseDamageGroupForChanged => ref GetRef<uint>(0x80);
+
+    public ref uint PartsDamageGroupForChanged => ref GetRef<uint>(0x90);
+
+    public ref uint EmAttr => ref GetRef<uint>(0x98);
+
+    public ref uint RideParts => ref GetRef<uint>(0xA8);
+
+    public ref uint PartsGroup => ref GetRef<uint>(0xB8);
+
+    public ref uint PartsTag => ref GetRef<uint>(0xC8);
 }
 
 public enum CollNodeType

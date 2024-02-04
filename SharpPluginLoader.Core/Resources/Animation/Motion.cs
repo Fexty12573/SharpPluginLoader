@@ -42,6 +42,18 @@ namespace SharpPluginLoader.Core.Resources.Animation
         public readonly ref Metadata Metadata => ref *_metadata;
 
         public readonly bool HasMetadata => _metadata != null;
+
+        public bool Mirrored
+        {
+            readonly get => (Flags & 0x10000000) != 0;
+            set
+            {
+                if (value)
+                    Flags |= 0x10000000;
+                else
+                    Flags &= ~0x10000000U;
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x30)]

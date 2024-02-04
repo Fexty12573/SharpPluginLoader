@@ -105,4 +105,9 @@ public partial class InternalCalls
 
     [InternalCall(InternalCallOptions.Unsafe, Address = 0x1234567890)]
     public static partial void UnsafeAddressTest();
+
+    public static void X(IDictionary<string, nint> dict)
+    {
+        dict["test"] = 0x12345890;
+    }
 }

@@ -421,7 +421,10 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    if (GetWindowLongPtr(m_game_window, GWLP_WNDPROC) != (LONG_PTR)my_window_proc) {
+        m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    }
+
     m_is_initialized = true;
 
     dlog::debug("Initialized D3D12");
@@ -457,6 +460,8 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
 }
 
 void D3DModule::d3d12_deinitialize_imgui() {
+    dlog::debug("Uninitializing D3D12 ImGui");
+
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     m_d3d12_frame_contexts.clear();
@@ -623,11 +628,14 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
 
     dlog::debug("ResizeBuffers called, resetting...");
 
-    self->m_is_initialized = false;
-    if (self->m_is_d3d12) {
-        self->d3d12_deinitialize_imgui();
-    } else {
-        self->d3d11_deinitialize_imgui();
+    if (self->m_is_initialized) {
+        self->m_is_initialized = false;
+        if (self->m_is_d3d12) {
+            self->d3d12_deinitialize_imgui();
+        }
+        else {
+            self->d3d11_deinitialize_imgui();
+        }
     }
 
     prm->shutdown();

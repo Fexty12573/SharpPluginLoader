@@ -521,6 +521,7 @@ auto invoke_if(const std::optional<std::shared_ptr<T>>& opt, F func, Args&&... a
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+    const auto& config = preloader::LoaderConfig::get();
 
     if (self->m_is_inside_present) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
@@ -530,17 +531,22 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
-        prm->late_init(self.get(), swap_chain);
+
+        if (config.get_primitive_rendering_enabled()) {
+            prm->late_init(self.get(), swap_chain);
+        }
     }
 
     if (!self->m_d3d12_command_queue) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 
-    self->m_core_render();
-
     const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
-    prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
+
+    if (config.get_primitive_rendering_enabled()) {
+        self->m_core_render();
+        prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
+    }
 
     // Start new frame
     ImGui_ImplDX12_NewFrame();
@@ -632,6 +638,7 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
 HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+    const auto& config = preloader::LoaderConfig::get();
 
     if (self->m_is_inside_present) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
@@ -641,12 +648,16 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     if (!self->m_is_initialized) {
         self->d3d11_initialize_imgui(swap_chain);
-        prm->late_init(self.get(), swap_chain);
+        
+        if (config.get_primitive_rendering_enabled()) {
+            prm->late_init(self.get(), swap_chain);
+        }
     }
 
-    self->m_core_render();
-
-    prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
+    if (config.get_primitive_rendering_enabled()) {
+        self->m_core_render();
+        prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
+    }
 
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();

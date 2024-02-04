@@ -85,10 +85,10 @@ namespace SharpPluginLoader.Core.Memory
 
         private static void LoadPluginRecords()
         {
-            using var fs = File.Exists(PluginCachePath) 
-                ? File.OpenRead(PluginCachePath) 
-                : File.Create(PluginCachePath);
+            if (!File.Exists(PluginCachePath))
+                return;
 
+            using var fs = File.OpenRead(PluginCachePath);
             var pluginCache = JsonSerializer.Deserialize<PluginRecordCacheJson>(fs, SerializerOptions)
                 ?? throw new Exception("Failed to deserialize plugin records cache");
 

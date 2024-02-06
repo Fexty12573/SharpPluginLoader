@@ -44,7 +44,8 @@ namespace SharpPluginLoader.Core
             public nint InitializePtr;
         }
 
-        private static readonly Dictionary<int, RetrievedMethod> RetrievedMethods = new();
+        private static readonly Dictionary<int, RetrievedMethod> RetrievedMethods = [];
+        private static readonly List<Delegate> NativeCallbacks = [];
 
         public static void PreInitialize(delegate* unmanaged<int, nint, void> logFunc, nint pointers)
         {
@@ -92,15 +93,28 @@ namespace SharpPluginLoader.Core
 
         public static void GetManagedFunctionPointers(ManagedFunctionPointers* pointers)
         {
-            pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(new ShutdownDelegate(Shutdown));
-            pointers->TriggerOnPreMainPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnPreMainDelegate(TriggerOnPreMain));
-            pointers->TriggerOnWinMainPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnWinMainDelegate(TriggerOnWinMain));
-            pointers->TriggerOnMhMainCtorPtr = Marshal.GetFunctionPointerForDelegate(new TriggerOnMhMainCtorDelegate(TriggerOnMhMainCtor));
-            pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginsDelegate(ReloadPlugins));
-            pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(new ReloadPluginDelegate(ReloadPlugin));
-            pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls));
-            pointers->FindCoreMethodPtr = Marshal.GetFunctionPointerForDelegate(new FindCoreMethodDelegate(FindCoreMethod));
-            pointers->InitializePtr = Marshal.GetFunctionPointerForDelegate(new InitializeDelegate(Initialize));
+            NativeCallbacks.AddRange([
+                new ShutdownDelegate(Shutdown),
+                new TriggerOnPreMainDelegate(TriggerOnPreMain),
+                new TriggerOnWinMainDelegate(TriggerOnWinMain),
+                new TriggerOnMhMainCtorDelegate(TriggerOnMhMainCtor),
+                new ReloadPluginsDelegate(ReloadPlugins),
+                new ReloadPluginDelegate(ReloadPlugin),
+                new UploadInternalCallsDelegate(InternalCallManager.UploadInternalCalls),
+                new FindCoreMethodDelegate(FindCoreMethod),
+                new InitializeDelegate(Initialize)
+            ]);
+
+            pointers->ShutdownPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[0]);
+            pointers->TriggerOnPreMainPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[1]);
+            pointers->TriggerOnWinMainPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[2]);
+            pointers->TriggerOnMhMainCtorPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[3]);
+            pointers->ReloadPluginsPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[4]);
+            pointers->ReloadPluginPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[5]);
+            pointers->UploadInternalCallsPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[6]);
+            pointers->FindCoreMethodPtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[7]);
+            pointers->InitializePtr = Marshal.GetFunctionPointerForDelegate(NativeCallbacks[8]);
+
             Log.Debug("[Core] Retrieved Function pointers");
         }
 

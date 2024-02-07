@@ -53,6 +53,42 @@ namespace SharpPluginLoader.Core.Memory
             return results;
         }
 
+        public static unsafe nint FindFirst(Pattern pattern)
+        {
+            var module = WinApi.GetModuleHandle("MonsterHunterWorld.exe");
+            if (module == 0)
+                return 0;
+
+            var moduleInfo = new ModuleInfo();
+            if (!WinApi.GetModuleInformation(WinApi.GetCurrentProcess(), module, out moduleInfo, (uint)Marshal.SizeOf(moduleInfo)))
+                return 0;
+
+            var addr = module;
+            var endAddr = module + moduleInfo.SizeOfImage;
+            var pat = new Span<Pattern.Byte>(pattern.Bytes);
+
+            while (addr < endAddr)
+            {
+                var memInfo = new MemoryBasicInformation();
+                if (WinApi.VirtualQuery(addr, out memInfo, (ulong)Marshal.SizeOf(memInfo)) == 0
+                    || memInfo.State != Constants.MemCommit
+                    || (memInfo.Protect & Constants.PageGuard) != 0)
+                    break;
+
+                var begin = (byte*)memInfo.BaseAddress;
+                var end = begin + memInfo.RegionSize;
+
+                var found = Search(begin, end, pat);
+
+                if (found != null)
+                    return (nint)found;
+
+                addr = (nint)end;
+            }
+
+            return 0;
+        }
+
         #region Internal
 
         private static unsafe byte* Search(byte* hayStackBegin, byte* hayStackEnd, Span<Pattern.Byte> pattern)

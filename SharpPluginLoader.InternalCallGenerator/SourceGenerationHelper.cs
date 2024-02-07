@@ -305,22 +305,22 @@ public static class SourceGenerationHelper
                         }
                         else
                         {
-                            var {{method.Name}}_scanResults = PatternScanner.Scan(Pattern.FromString("{{icall.Pattern}}"));
-                            if ({{method.Name}}_scanResults.Count == 0)
+                            var {{method.Name}}_scanResult = PatternScanner.FindFirst(Pattern.FromString("{{icall.Pattern}}"));
+                            if ({{method.Name}}_scanResult == 0)
                                 Log.Warn("Could not find pattern for method {{method.Name}}");
                             else
                             {
-                                _{{method.Name}}Ptr = ({{fieldType}})({{method.Name}}_scanResults[0] + {{icall.Offset}});
+                                _{{method.Name}}Ptr = ({{fieldType}})({{method.Name}}_scanResult + {{icall.Offset}});
                                 addressCache["{{containingNamespace}}:{{method.Name}}"] = (nint)_{{method.Name}}Ptr;
                             }
                         }
                         """
                     : $"""
-                       var {method.Name}_scanResults = PatternScanner.Scan(Pattern.FromString("{icall.Pattern}"));
-                       if ({method.Name}_scanResults.Count == 0)
+                       var {method.Name}_scanResult = PatternScanner.FindFirst(Pattern.FromString("{icall.Pattern}"));
+                       if ({method.Name}_scanResult == 0)
                            Log.Warn("Could not find pattern for method {method.Name}");
                        else
-                           _{method.Name}Ptr = ({fieldType})({method.Name}_scanResults[0] + {icall.Offset});
+                           _{method.Name}Ptr = ({fieldType})({method.Name}_scanResult + {icall.Offset});
                        """);
             }
             else

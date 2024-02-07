@@ -26,16 +26,16 @@ SafetyHookInline g_mh_main_ctor_hook{};
 CoreClr* s_coreclr = nullptr;
 NativePluginFramework* s_framework = nullptr;
 
+// The default value that MSVC uses for the IMAGE_LOAD_CONFIG_DIRECTORY64.SecurityCookie.
+const uint64_t MSVC_DEFAULT_SECURITY_COOKIE_VALUE = 0x2B992DDFA232L;
+
 // TODO(Andoryuuta): AOB scan for these.
 namespace preloader::address {
     const uint64_t IMAGE_BASE = 0x140000000;
-    const uint64_t PROCESS_SECURITY_COOKIE = IMAGE_BASE + 0x4bf4be8;
-    const uint64_t SECURITY_COOKIE_INIT_GETTIME_RET = IMAGE_BASE + 0x27422e2;
     const uint64_t SCRT_COMMON_MAIN_SEH = IMAGE_BASE + 0x27414f4;
     const uint64_t WINMAIN = IMAGE_BASE + 0x13a4c00;
 
 }  // namespace preloader::address
-
 
 void open_console() {
     AllocConsole();
@@ -49,6 +49,25 @@ void open_console() {
     // From: https://stackoverflow.com/a/45622802 to deal with UTF8 CP:
     SetConsoleOutputCP(CP_UTF8);
     setvbuf(stdout, nullptr, _IOFBF, 1000);
+}
+
+// Returns pointer to the IMAGE_LOAD_CONFIG_DIRECTORY64.SecurityCookie value.
+uint64_t* get_security_cookie_pointer()
+{
+    auto image_base = (uint64_t)GetModuleHandle(NULL);
+    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER*)image_base;
+    IMAGE_NT_HEADERS* nt_headers = (IMAGE_NT_HEADERS*)(image_base + dos_header->e_lfanew);
+    if (nt_headers->OptionalHeader.NumberOfRvaAndSizes >= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
+    {
+        auto load_config_directory = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG];
+        if (load_config_directory.VirtualAddress != 0 && load_config_directory.Size != 0)
+        {
+            IMAGE_LOAD_CONFIG_DIRECTORY64* load_config = (IMAGE_LOAD_CONFIG_DIRECTORY64*)(image_base + load_config_directory.VirtualAddress);
+            return (uint64_t*)load_config->SecurityCookie;
+        }
+    }
+
+    return nullptr;
 }
 
 // This hooks the __scrt_common_main_seh MSVC function.
@@ -78,17 +97,52 @@ __declspec(noinline) void* hooked_mh_main_ctor(void* this_ptr)
     return result;
 }
 
+
+// Checks if the given address is within the `__security_init_cookie` function (pre-MSVC).
+//
+// In order to verify that we are being called from within `__security_init_cookie`, we:
+//
+// 1. Validate that the return address is within the main .exe image address space.
+// This is needed this cookie setup will happen within various DLLs that are either
+// loaded as imports, or injected (overlays, anti-malware, etc).
+//
+// 2. Iterate backwards from the return address and check for the default cookie value
+// The default cookie value will be directly embedded in one of the instructions prior
+// to the GetSystemTimeAsFileTime call, (e.g. `mov rbx, 2B992DDFA232h`).
+//
+// We iterate (rather than using a fixed offset) for resilency in case the instructions
+// get reordered/shifted across different builds.
+bool is_main_game_security_init_cookie_call(uint64_t return_address) {
+    const auto module = GetModuleHandleA(NULL);
+
+    MODULEINFO module_info;
+    if (!GetModuleInformation(GetCurrentProcess(), module, &module_info, sizeof(module_info))) {
+        dlog::error("GetModuleInformation failed in is_main_game_security_init_cookie_call!");
+        return false;
+    }
+
+    const uint64_t exe_start = (uint64_t)module;
+    const uint64_t exe_end = (uint64_t)module + module_info.SizeOfImage;
+
+    if (return_address > exe_start && return_address < exe_end) {
+        for (size_t i = 0; i < 64; i++)
+        {
+            if (*(uint64_t*)(return_address - i) == MSVC_DEFAULT_SECURITY_COOKIE_VALUE) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // The hooked GetSystemTimeAsFileTime function.
 // This function is called in many places, one of them being the
 // `__security_init_cookie` function that is used to setup the security token(s)
 // before SCRT_COMMON_MAIN_SEH is called.
 void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
 
-    // If we match the return address within the `__security_init_cookie`
-    // then the client has been unpacked and we can hook the other  functions now.
     uint64_t ret_address = (uint64_t)_ReturnAddress();
-    if (ret_address == preloader::address::SECURITY_COOKIE_INIT_GETTIME_RET) {
-
+    if (is_main_game_security_init_cookie_call(ret_address)) {
         g_scrt_common_main_hook = safetyhook::create_inline(
             reinterpret_cast<void*>(preloader::address::SCRT_COMMON_MAIN_SEH),
             reinterpret_cast<void*>(hooked_scrt_common_main)
@@ -129,9 +183,17 @@ void initialize_preloader() {
         open_console();
     }
 
-    // Override the process security token that that the singleton instantiaion
-    // happens, causing GetSystemTimeAsFileTime to be called pre-CRT init.
-    *(uint64_t*)preloader::address::PROCESS_SECURITY_COOKIE = 0x2B992DDFA232L;
+    uint64_t* security_cookie = get_security_cookie_pointer();
+    if (security_cookie == nullptr)
+    {
+        dlog::error("Failed to get security cookie pointer from PE header!");
+        return;
+    }
+
+    // Reset the processes' security cookie to the default value to make the
+    // MSVC startup code to attempt to initalize it to a new value, which will 
+    // cause our hooked GetSystemTimeAsFileTime to be called pre-CRT init.
+    *security_cookie = MSVC_DEFAULT_SECURITY_COOKIE_VALUE;
 
     g_get_system_time_as_file_time_hook = safetyhook::create_inline(
         reinterpret_cast<void*>(GetSystemTimeAsFileTime),

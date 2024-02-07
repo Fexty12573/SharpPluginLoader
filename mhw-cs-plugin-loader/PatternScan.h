@@ -7,18 +7,23 @@
 #include <vector>
 
 struct Pattern {
+    struct Byte {
+        bool IsWildcard = false;
+        u8 Value = 0;
+    };
+
     static Pattern from_string(const std::string& pattern);
 
-    const std::vector<i16>& get_bytes() const {
+    const std::vector<Byte>& get_bytes() const {
         return m_bytes;
     }
 
     Pattern() = delete;
 
 private:
-    explicit Pattern(const std::vector<i16>& bytes) : m_bytes(bytes) {}
+    explicit Pattern(const std::vector<Byte>& bytes) : m_bytes(bytes) {}
 
-    std::vector<i16> m_bytes;
+    std::vector<Byte> m_bytes;
 };
 
 class PatternScanner {

@@ -5,7 +5,7 @@
 #include <Psapi.h>
 
 Pattern Pattern::from_string(const std::string& pattern) {
-    std::vector<i16> bytes;
+    std::vector<Byte> bytes;
     std::stringstream ss{ pattern };
     std::string byte;
 
@@ -17,10 +17,10 @@ Pattern Pattern::from_string(const std::string& pattern) {
         }
 
         if (byte == "?" || byte == "??") {
-            bytes.push_back(-1);
+            bytes.push_back({ true });
         }
         else {
-            bytes.push_back((i16)std::stoi(byte, nullptr, 16));
+            bytes.push_back({ .Value = (u8)std::stoul(byte, nullptr, 16) });
         }
     }
 
@@ -44,8 +44,8 @@ std::vector<uintptr_t> PatternScanner::scan(const Pattern& pattern) {
     const auto end_addr = addr + module_info.SizeOfImage;
     const auto& bytes = pattern.get_bytes();
 
-    const auto predicate = [](u8 byte, i16 pattern_byte) {
-        return pattern_byte == -1 || pattern_byte == byte;
+    const auto predicate = [](u8 byte, Pattern::Byte pattern_byte) {
+        return pattern_byte.IsWildcard || pattern_byte.Value == byte;
     };
 
     while (addr < end_addr) {
@@ -89,8 +89,8 @@ uintptr_t PatternScanner::find_first(const Pattern& pattern) {
     const auto end_addr = addr + module_info.SizeOfImage;
     const auto& bytes = pattern.get_bytes();
 
-    const auto predicate = [](u8 byte, i16 pattern_byte) {
-        return pattern_byte == -1 || pattern_byte == byte;
+    const auto predicate = [](u8 byte, Pattern::Byte pattern_byte) {
+        return pattern_byte.IsWildcard || pattern_byte.Value == byte;
     };
 
     while (addr < end_addr) {

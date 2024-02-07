@@ -26,7 +26,7 @@ namespace SharpPluginLoader.Core.Memory
 
             var addr = module;
             var endAddr = module + moduleInfo.SizeOfImage;
-            var pat = new Span<short>(pattern.Bytes);
+            var pat = new Span<Pattern.Byte>(pattern.Bytes);
 
             while (addr < endAddr)
             {
@@ -55,13 +55,13 @@ namespace SharpPluginLoader.Core.Memory
 
         #region Internal
 
-        private static unsafe byte* Search(byte* hayStackBegin, byte* hayStackEnd, Span<short> pattern)
+        private static unsafe byte* Search(byte* hayStackBegin, byte* hayStackEnd, Span<Pattern.Byte> pattern)
         {
             // Boyer-Moore-Horspool algorithm, and essentially just copied from 
             // the MSVC implementation of std::search.
             var first1 = hayStackBegin;
             var last1 = hayStackEnd;
-            fixed (short* first2 = &pattern[0])
+            fixed (Pattern.Byte* first2 = &pattern[0])
             {
                 var last2 = first2 + pattern.Length;
 
@@ -76,7 +76,7 @@ namespace SharpPluginLoader.Core.Memory
                         if (mid1 == last1)
                             return null;
 
-                        if (*mid2 != -1 && *mid1 != *mid2)
+                        if (!mid2->IsWildcard && *mid1 != mid2->Value)
                             break;
                     }
                 }
@@ -88,25 +88,28 @@ namespace SharpPluginLoader.Core.Memory
 
     public readonly struct Pattern
     {
-        public required short[] Bytes { get; init; }
+        public required Byte[] Bytes { get; init; }
 
         public static Pattern FromString(string pattern)
         {
-            var patternBytes = new List<short>();
+            var patternBytes = new List<Byte>();
             var patternSplit = pattern.Split(' ');
             foreach (var patternByte in patternSplit)
             {
                 if (patternByte is "?" or "??")
                 {
-                    patternBytes.Add(-1);
+                    patternBytes.Add(new Byte(true, 0));
                 }
                 else
                 {
-                    patternBytes.Add(Convert.ToInt16(patternByte, 16));
+                    patternBytes.Add(new Byte(false, Convert.ToByte(patternByte, 16)));
                 }
             }
 
             return new Pattern { Bytes = [.. patternBytes] };
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public record struct Byte(bool IsWildcard, byte Value);
     }
 }

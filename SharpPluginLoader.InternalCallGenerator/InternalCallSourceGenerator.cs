@@ -80,7 +80,7 @@ public class InternalCallSourceGenerator : IIncrementalGenerator
             long address = 0;
             string? pattern = null;
             var offset = 0;
-            var cache = false;
+            var cache = true;
 
             if (attributeData is not null)
             {

@@ -150,7 +150,7 @@ namespace SharpPluginLoader.Core
 
         public static void ReloadPlugin([MarshalAs(UnmanagedType.LPStr)] string pluginName)
         {
-            PluginManager.Instance.ReloadPlugin(pluginName);
+            PluginManager.Instance.ReloadPlugin(pluginName, true);
         }
 
         public static nint FindCoreMethod(string typeName, string methodName)

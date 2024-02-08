@@ -16,6 +16,9 @@
 		<PackageProjectUrl>https://fexty12573.github.io/SharpPluginLoader/</PackageProjectUrl>
 		<PackageReadmeFile>$(ProjectDir)README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/Fexty12573/SharpPluginLoader</RepositoryUrl>
+		<AssemblyVersion></AssemblyVersion>
+		<FileVersion>1.1.0</FileVersion>
+		<Version>1.1.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

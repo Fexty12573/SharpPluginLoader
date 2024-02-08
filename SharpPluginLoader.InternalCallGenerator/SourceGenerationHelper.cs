@@ -43,8 +43,9 @@ public static class SourceGenerationHelper
 
     private static IMethodSymbol? _currentMethodSymbol;
 
-    public static string GenerateSource(List<InternalCallMethod> internalCalls, SourceProductionContext context)
+    public static string GenerateSource(InternalCallCollection internalCallCollection, SourceProductionContext context)
     {
+        var (className, internalCalls) = internalCallCollection;
         if (internalCalls.Count == 0)
             return "";
 
@@ -68,7 +69,7 @@ public static class SourceGenerationHelper
                   
                   namespace {{internalCalls[0].Method.ContainingNamespace.ToDisplayString()}};
 
-                  public static unsafe partial class InternalCalls
+                  public static unsafe partial class {{className}}
                   {
                   
                   """);
@@ -111,9 +112,19 @@ public static class SourceGenerationHelper
                 retModifier = "ref readonly ";
             
             var unsafeModifier = IsMethodDeclaredUnsafe(method) ? "unsafe " : "";
-            
+            var methodAccess = method.DeclaredAccessibility switch
+            {
+                Accessibility.Public => "public",
+                Accessibility.Protected => "protected",
+                Accessibility.Private => "private",
+                Accessibility.Internal => "internal",
+                Accessibility.ProtectedOrInternal => "protected internal",
+                Accessibility.ProtectedAndInternal => "private protected",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
             // Start method generation
-            methodSb.Append($"public static {unsafeModifier}partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
+            methodSb.Append($"{methodAccess} static {unsafeModifier}partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
 
             if (!method.ReturnsVoid)
                 methodBodySb.AppendLine($"{transformedReturnType.typeName} __result = default;");

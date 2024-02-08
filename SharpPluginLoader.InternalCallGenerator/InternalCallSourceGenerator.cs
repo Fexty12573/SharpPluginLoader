@@ -45,7 +45,8 @@ public class InternalCallSourceGenerator : IIncrementalGenerator
         if (methodsToGenerate.Count == 0)
             return;
 
-        var source = SourceGenerationHelper.GenerateSource(methodsToGenerate, context);
+        var className = methodsToGenerate.First().Method.ContainingType.Name;
+        var source = SourceGenerationHelper.GenerateSource(new InternalCallCollection(className, methodsToGenerate), context);
         context.AddSource("InternalCalls.g.cs", SourceText.From(source, Encoding.UTF8));
     }
 

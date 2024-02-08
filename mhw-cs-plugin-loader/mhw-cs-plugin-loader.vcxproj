@@ -117,7 +117,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
@@ -170,6 +170,7 @@
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="NativeModule.cpp" />
     <ClCompile Include="NativePluginFramework.cpp" />
+    <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="Preloader.cpp" />
     <ClCompile Include="PrimitiveRenderingModule.cpp" />
     <ClCompile Include="Timeline.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="NativeModule.h" />
     <ClInclude Include="NativePluginFramework.h" />
+    <ClInclude Include="PatternScan.h" />
     <ClInclude Include="Preloader.h" />
     <ClInclude Include="PrimitiveRenderingModule.h" />
     <ClInclude Include="Primitives.h" />

@@ -59,11 +59,6 @@ The internal call manager is marked using the `[InternalCallManager]` attribute.
 
 This is all the code required on the managed side. Now you can call your native function by doing `InternalCalls.MyImGuiWidget("Test", [3, 4, 5]);`.
 
-Of course you can also bind an internal call to a game function directly:
-```cpp
-icalls[2] = { "SomeGameFunction", (void*)0x1430ae620 };
-```
-
 As you can see the managed function takes a `string` and a `Span<int>` as parameters. This works because the InternalCallGenerator will generate marshalling code for these types behind the scenes. Below is a list of managed types and what they map to on the native end:
 
 | Managed Type | Native Type | Copy Required | Remarks |
@@ -82,3 +77,27 @@ As you can see the managed function takes a `string` and a `Span<int>` as parame
 
 ## Other Languages
 It is also possible to write native components in languages other than C++ such as Rust. The only requirement is that the dll uses the [Microsoft x64 calling convention](https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170) for the two exported functions. This is the default calling convention when compiling C/C++ with MSVC on x64.
+
+# Binding to Game Functions
+It is also possible to bind an internal call to a game function directly. 
+
+The naive way of doing this is to simply cast the function pointer to a `void*` and pass it to the internal call.
+```cpp
+icalls[0] = { "SomeGameFunction", (void*)0x1430ae620 };
+```
+
+However it is also possible to simplify this process by specifying the address directly in the C# code.
+```cs
+[InternalCall(Address = 0x1430ae620)]
+public static partial void SomeGameFunction();
+```
+
+If you want to make this internal call update proof, you can use an AOB instead of a direct address.
+```cs
+[InternalCall(Pattern = "48 8B 05 ? ? ? ? 48 85 C0 74 0A", Offset = -8, Cache = true)]
+public static partial void SomeGameFunction();
+```
+
+The `Pattern` field is a string containing the bytes of the pattern. The `?` character (`??` is also valid) is a wildcard. The `Offset` field is an integer that is added to the result of the pattern scan. The `Cache` field is a boolean that specifies whether the address of this function should be cached or not. Cached addresses are evaluated once and then stored on disk. If the game version changes, the cache is invalidated and the address is re-evaluated. 
+
+It is generally recommended to always mark internal calls that use a pattern with `Cache = true` to avoid unnecessary pattern scans. If you have a lot of internal calls that use patterns, it can result in a significant performance improvement on startup (except for the first time the plugin is loaded after the game has been updated).

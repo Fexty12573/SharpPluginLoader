@@ -50,16 +50,13 @@ void open_console() {
 }
 
 // Returns pointer to the IMAGE_LOAD_CONFIG_DIRECTORY64.SecurityCookie value.
-uint64_t* get_security_cookie_pointer()
-{
+uint64_t* get_security_cookie_pointer() {
     auto image_base = (uint64_t)GetModuleHandle(NULL);
     IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER*)image_base;
     IMAGE_NT_HEADERS* nt_headers = (IMAGE_NT_HEADERS*)(image_base + dos_header->e_lfanew);
-    if (nt_headers->OptionalHeader.NumberOfRvaAndSizes >= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
-    {
+    if (nt_headers->OptionalHeader.NumberOfRvaAndSizes >= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) {
         auto load_config_directory = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG];
-        if (load_config_directory.VirtualAddress != 0 && load_config_directory.Size != 0)
-        {
+        if (load_config_directory.VirtualAddress != 0 && load_config_directory.Size != 0) {
             IMAGE_LOAD_CONFIG_DIRECTORY64* load_config = (IMAGE_LOAD_CONFIG_DIRECTORY64*)(image_base + load_config_directory.VirtualAddress);
             return (uint64_t*)load_config->SecurityCookie;
         }
@@ -70,8 +67,7 @@ uint64_t* get_security_cookie_pointer()
 
 // This hooks the __scrt_common_main_seh MSVC function.
 // This runs before all of the CRT initalization, static initalizers, and WinMain.
-__declspec(noinline) int64_t hooked_scrt_common_main()
-{
+__declspec(noinline) int64_t hooked_scrt_common_main() {
     dlog::info("[Preloader] Initializing CLR / NativePluginFramework");
     s_coreclr = new CoreClr();
     s_framework = new NativePluginFramework(s_coreclr);
@@ -82,14 +78,12 @@ __declspec(noinline) int64_t hooked_scrt_common_main()
     return g_scrt_common_main_hook.call<int64_t>();
 }
 
-__declspec(noinline) int __stdcall hooked_win_main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-{
+__declspec(noinline) int __stdcall hooked_win_main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
     s_framework->trigger_on_win_main();
     return g_win_main_hook.call<int>(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
 }
 
-__declspec(noinline) void* hooked_mh_main_ctor(void* this_ptr)
-{
+__declspec(noinline) void* hooked_mh_main_ctor(void* this_ptr) {
     auto result = g_mh_main_ctor_hook.call<void*>(this_ptr);
     s_framework->trigger_on_mh_main_ctor();
     return result;
@@ -123,8 +117,7 @@ bool is_main_game_security_init_cookie_call(uint64_t return_address) {
     const uint64_t exe_end = (uint64_t)module + module_info.SizeOfImage;
 
     if (return_address > exe_start && return_address < exe_end) {
-        for (size_t i = 0; i < 64; i++)
-        {
+        for (size_t i = 0; i < 64; i++) {
             if (*(uint64_t*)(return_address - i) == MSVC_DEFAULT_SECURITY_COOKIE_VALUE) {
                 return true;
             }
@@ -218,14 +211,12 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
 // the executable is unpacked in memory.
 void initialize_preloader() {
     auto& loader_config = preloader::LoaderConfig::get();
-    if (loader_config.get_log_cmd())
-    {
+    if (loader_config.get_log_cmd()) {
         open_console();
     }
 
     uint64_t* security_cookie = get_security_cookie_pointer();
-    if (security_cookie == nullptr)
-    {
+    if (security_cookie == nullptr) {
         dlog::error("[Preloader] Failed to get security cookie pointer from PE header!");
         return;
     }

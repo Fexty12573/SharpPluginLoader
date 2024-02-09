@@ -13,6 +13,7 @@
 #include "CoreClr.h"
 #include "Log.h"
 #include "Preloader.h"
+#include "PatternScan.h"
 #include "LoaderConfig.h"
 #include "utility/game_functions.h"
 
@@ -28,14 +29,11 @@ NativePluginFramework* s_framework = nullptr;
 
 // The default value that MSVC uses for the IMAGE_LOAD_CONFIG_DIRECTORY64.SecurityCookie.
 const uint64_t MSVC_DEFAULT_SECURITY_COOKIE_VALUE = 0x2B992DDFA232L;
-
-// TODO(Andoryuuta): AOB scan for these.
-namespace preloader::address {
-    const uint64_t IMAGE_BASE = 0x140000000;
-    const uint64_t SCRT_COMMON_MAIN_SEH = IMAGE_BASE + 0x27414f4;
-    const uint64_t WINMAIN = IMAGE_BASE + 0x13a4c00;
-
-}  // namespace preloader::address
+const Pattern SCRT_COMMON_MAIN_PATTERN = Pattern::from_string("48 89 5C 24 08 57 48 83 EC 30 B9 01 00 00 00 E8 ?? ?? ?? ?? 84 C0");
+const Pattern WINMAIN_CALL_PATTERN = Pattern::from_string("E8 ?? ?? ?? ?? 0F B7 D8 E8 ?? ?? ?? ?? 4C 8B C0 44 8B CB 33 D2 48 8D ?? ?? ?? ?? ??");
+const int64_t WINMAIN_CALL_PATTERN_OFFSET = 28;
+const Pattern MHMAIN_CALL_PATTERN = Pattern::from_string("BA 00 00 08 00 48 8B CF E8 ?? ?? ?? ?? 4C 89 3F C7 87 ?? ?? ?? ?? FF FF FF FF");
+const int64_t MHMAIN_CALL_PATTERN_OFFSET = -122;
 
 void open_console() {
     AllocConsole();
@@ -74,10 +72,10 @@ uint64_t* get_security_cookie_pointer()
 // This runs before all of the CRT initalization, static initalizers, and WinMain.
 __declspec(noinline) int64_t hooked_scrt_common_main()
 {
-    dlog::info("Initializing CLR / NativePluginFramework");
+    dlog::info("[Preloader] Initializing CLR / NativePluginFramework");
     s_coreclr = new CoreClr();
     s_framework = new NativePluginFramework(s_coreclr);
-    dlog::info("Initialized");
+    dlog::info("[Preloader] Initialized");
 
     s_framework->trigger_on_pre_main();
 
@@ -117,7 +115,7 @@ bool is_main_game_security_init_cookie_call(uint64_t return_address) {
 
     MODULEINFO module_info;
     if (!GetModuleInformation(GetCurrentProcess(), module, &module_info, sizeof(module_info))) {
-        dlog::error("GetModuleInformation failed in is_main_game_security_init_cookie_call!");
+        dlog::error("[Preloader] GetModuleInformation failed in is_main_game_security_init_cookie_call!");
         return false;
     }
 
@@ -135,26 +133,68 @@ bool is_main_game_security_init_cookie_call(uint64_t return_address) {
     return false;
 }
 
+// Helper function for parsing a x86 relative call instruction.
+uintptr_t resolve_x86_relative_call(uintptr_t call_address) {
+    return (call_address + 5) + *(int32_t*)(call_address + 1);
+}
+
 // The hooked GetSystemTimeAsFileTime function.
 // This function is called in many places, one of them being the
 // `__security_init_cookie` function that is used to setup the security token(s)
 // before SCRT_COMMON_MAIN_SEH is called.
 void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
-
     uint64_t ret_address = (uint64_t)_ReturnAddress();
     if (is_main_game_security_init_cookie_call(ret_address)) {
+        // The game has been unpacked in memory (for steam DRM or possibly Enigma in the future),
+        // start scanning for the core/main functions we want to hook.
+
+        auto pattern_scan_start_time = std::chrono::steady_clock::now();
+
+        const auto scrt_common_main_address = PatternScanner::find_first(SCRT_COMMON_MAIN_PATTERN);
+        if (scrt_common_main_address == 0) {
+            dlog::error("[Preloader] Failed to find __scrt_common_main_seh address");
+            return;
+        }
+        dlog::debug("[Preloader] Resolved address for __scrt_common_main_seh: 0x{:X}", scrt_common_main_address);
+
+        // We parse this one from the call to WinMain rather than searching for the WinMain code itself,
+        // since that has changed drastically in previous patches (e.g. when they removed anti-debug stuff).
+        const auto winmain_call_address = PatternScanner::find_first(WINMAIN_CALL_PATTERN);
+        if (winmain_call_address == 0) {
+            dlog::error("[Preloader] Failed to find WinMain call address");
+            return;
+        }
+        uintptr_t winmain_address = resolve_x86_relative_call(winmain_call_address + WINMAIN_CALL_PATTERN_OFFSET);
+        dlog::debug("[Preloader] Resolved address for WinMain: 0x{:X}", winmain_address);
+
+        const auto mhmain_scan = PatternScanner::find_first(MHMAIN_CALL_PATTERN);
+        if (mhmain_scan == 0) {
+            dlog::error("[Preloader] Failed to find sMhMain::ctor address");
+            return;
+        }
+        uintptr_t mhmain_ctor_address = (mhmain_scan + MHMAIN_CALL_PATTERN_OFFSET);
+        dlog::debug("[Preloader] Resolved address for sMhMain::ctor: 0x{:X}", mhmain_ctor_address);
+
+        // Done scanning, log time for debugging sake.
+        auto pattern_scan_end_time = std::chrono::steady_clock::now();
+        dlog::debug(
+            "[Preloader] Pattern scanning for crtmain/winmain/mhmain took: {}ms",
+            std::chrono::duration_cast<std::chrono::milliseconds> (pattern_scan_start_time - pattern_scan_end_time).count()
+        );
+
+        // Hook the functions.
         g_scrt_common_main_hook = safetyhook::create_inline(
-            reinterpret_cast<void*>(preloader::address::SCRT_COMMON_MAIN_SEH),
+            reinterpret_cast<void*>(scrt_common_main_address),
             reinterpret_cast<void*>(hooked_scrt_common_main)
         );
 
         g_win_main_hook = safetyhook::create_inline(
-            reinterpret_cast<void*>(preloader::address::WINMAIN),
+            reinterpret_cast<void*>(winmain_address),
             reinterpret_cast<void*>(hooked_win_main)
         );
 
         g_mh_main_ctor_hook = safetyhook::create_inline(
-            reinterpret_cast<void*>(MH::sMhMain::ctor),
+            reinterpret_cast<void*>(mhmain_ctor_address),
             reinterpret_cast<void*>(hooked_mh_main_ctor)
         );
 
@@ -186,7 +226,7 @@ void initialize_preloader() {
     uint64_t* security_cookie = get_security_cookie_pointer();
     if (security_cookie == nullptr)
     {
-        dlog::error("Failed to get security cookie pointer from PE header!");
+        dlog::error("[Preloader] Failed to get security cookie pointer from PE header!");
         return;
     }
 

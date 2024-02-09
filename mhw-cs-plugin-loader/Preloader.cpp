@@ -179,7 +179,7 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
         auto pattern_scan_end_time = std::chrono::steady_clock::now();
         dlog::debug(
             "[Preloader] Pattern scanning for crtmain/winmain/mhmain took: {}ms",
-            std::chrono::duration_cast<std::chrono::milliseconds> (pattern_scan_start_time - pattern_scan_end_time).count()
+            std::chrono::duration_cast<std::chrono::milliseconds>(pattern_scan_end_time - pattern_scan_start_time).count()
         );
 
         // Hook the functions.

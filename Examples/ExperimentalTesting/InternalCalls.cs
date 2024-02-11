@@ -90,4 +90,7 @@ public partial class InternalCalls
 
     [InternalCall(Pattern = "74 41 41 B9 00 08 00 00 48 C7 44 24 20 00 00 00 00", Offset = -15, Cache = true)]
     public static partial void DisplayFatalErrorMessage(string message);
+
+    [InternalCall]
+    public static partial void InParameterTest(in MtVector2 vec);
 }

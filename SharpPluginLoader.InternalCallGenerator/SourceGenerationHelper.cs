@@ -188,7 +188,9 @@ public static class SourceGenerationHelper
                     case TypeConversionKind.RefOut:
                         switch (param.RefKind)
                         {
+                            case RefKind.In:
                             case RefKind.Ref:
+                            case RefKind.RefReadOnlyParameter:
                                 invokeParamName = $"t__{param.Name}";
                                 pinStatements.Add($"fixed({typeName} {invokeParamName} = &{param.Name})");
                                 methodInvokeParams.Add(invokeParamName);
@@ -198,14 +200,6 @@ public static class SourceGenerationHelper
                                 invokeParamName = $"t__{param.Name}";
                                 pinStatements.Add($"fixed({typeName} {invokeParamName} = &{param.Name})");
                                 methodInvokeParams.Add(invokeParamName);
-                                break;
-                            case RefKind.In:
-                                ReportError(context, "ICG003", "In parameters are not supported");
-                                methodInvokeParams.Add(param.Name);
-                                break;
-                            case RefKind.RefReadOnlyParameter:
-                                ReportError(context, "ICG004", "Ref readonly parameters are not supported");
-                                methodInvokeParams.Add(param.Name);
                                 break;
                             case RefKind.None:
                             default:
@@ -393,7 +387,7 @@ public static class SourceGenerationHelper
                 return (TransformType(arrayType.ElementType, context).typeName + "*", TypeConversionKind.Array);
             case IPointerTypeSymbol pointerType:
                 var (typeName, _) = TransformType(pointerType.PointedAtType, context);
-                return param.RefKind is RefKind.Ref or RefKind.Out 
+                return param.RefKind is not RefKind.None
                     ? (typeName + "**", TypeConversionKind.RefOut) // ref/out pointers are represented as pointer to pointer
                     : (typeName + "*", TypeConversionKind.None);
             case INamedTypeSymbol namedType:
@@ -429,7 +423,7 @@ public static class SourceGenerationHelper
                 }
 
                 var (type, _) = TransformType(namedType, context);
-                return param.RefKind is RefKind.Ref or RefKind.Out 
+                return param.RefKind is not RefKind.None
                     ? (type + "*", TypeConversionKind.RefOut) // ref/out value types are represented as pointer to value type
                     : (type, TypeConversionKind.None);
             case ITypeParameterSymbol:

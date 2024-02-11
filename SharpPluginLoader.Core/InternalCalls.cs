@@ -24,6 +24,8 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<void> EndTimelineGroupPtr;
         public static delegate* unmanaged<string, float*, int, out int, bool> TimelineTrackPtr;
 
+        public static delegate* unmanaged<string, ref uint, ref int, bool> BitfieldPtr;
+
         public static delegate* unmanaged<string, int, void> NotificationSuccessPtr;
         public static delegate* unmanaged<string, int, void> NotificationErrorPtr;
         public static delegate* unmanaged<string, int, void> NotificationWarningPtr;
@@ -84,6 +86,8 @@ namespace SharpPluginLoader.Core
                 return TimelineTrack(label, ptr, explicitCount == -1 ? keyFrames.Length : explicitCount, out selectedKeyframe);
             }
         }
+
+        public static bool Bitfield(string label, ref uint value, ref int hoveredBit) => BitfieldPtr(label, ref value, ref hoveredBit);
 
         public static void NotificationSuccess(string message, int duration) => NotificationSuccessPtr(message, duration);
 

@@ -96,6 +96,9 @@
     <ClCompile Include="PatternScan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bitfield.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">
@@ -187,6 +190,9 @@
     </ClInclude>
     <ClInclude Include="PatternScan.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bitfield.h">
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

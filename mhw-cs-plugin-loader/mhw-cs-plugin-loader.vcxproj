@@ -158,6 +158,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx12.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp" />
+    <ClCompile Include="Bitfield.cpp" />
     <ClCompile Include="ChunkModule.cpp" />
     <ClCompile Include="CoreClr.cpp" />
     <ClCompile Include="CoreModule.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx12.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="Bitfield.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="ChunkModule.h" />
     <ClInclude Include="Config.h" />

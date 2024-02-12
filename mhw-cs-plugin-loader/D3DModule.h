@@ -32,6 +32,9 @@ private:
     void d3d11_deinitialize_imgui();
     void imgui_load_fonts();
 
+    ComPtr<ID3D11ShaderResourceView> d3d11_load_texture(std::string_view path);
+    ComPtr<ID3D11ShaderResourceView> d3d11_create_static_texture(UINT w, UINT h, DXGI_FORMAT format, const void* data);
+
     static bool is_d3d12();
 
     static void title_menu_ready_hook(void* gui);

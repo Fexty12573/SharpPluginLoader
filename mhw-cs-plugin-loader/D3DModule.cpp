@@ -10,11 +10,15 @@
 #include <Windows.h>
 #include <imgui_impl.h>
 #include <utility/game_functions.h>
+#include <directxtk/DDSTextureLoader.h>
+#include <directxtk12/DDSTextureLoader.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
 
+#include <filesystem>
 #include <thread>
 
 #include "ChunkModule.h"
@@ -502,6 +506,92 @@ void D3DModule::imgui_load_fonts() {
     ImFontAtlas_Build(io.Fonts);
 
     ImFontConfig_destroy(font_cfg);
+}
+
+D3DModule::ComPtr<ID3D11ShaderResourceView> D3DModule::d3d11_load_texture(std::string_view path) {
+    namespace fs = std::filesystem;
+
+    const auto file = fs::path(path);
+    if (!fs::exists(file)) {
+        dlog::error("Failed to load texture: {} does not exist", path);
+        return nullptr;
+    }
+
+    const auto ext = file.extension().string();
+    if (ext == ".dds") {
+        ComPtr<ID3D11Resource> texture;
+        ComPtr<ID3D11ShaderResourceView> srv;
+        DirectX::CreateDDSTextureFromFile(
+            m_d3d11_device,
+            file.c_str(),
+            texture.GetAddressOf(),
+            srv.GetAddressOf()
+        );
+
+        return srv;
+    } else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+        ComPtr<ID3D11Resource> texture;
+        ComPtr<ID3D11ShaderResourceView> srv;
+        /*DirectX::CreateWICTextureFromFile(
+            m_d3d11_device,
+            m_d3d11_device_context,
+            file.c_str(),
+            texture.GetAddressOf(),
+            srv.GetAddressOf()
+        );*/
+
+        return srv;
+    } else {
+        dlog::error("Failed to load texture: unsupported format {}", ext);
+        return nullptr;
+    }
+}
+
+D3DModule::ComPtr<ID3D11ShaderResourceView> D3DModule::d3d11_create_static_texture(UINT w, UINT h, DXGI_FORMAT format, const void* data) {
+    D3D11_TEXTURE2D_DESC desc = {
+        .Width = w,
+        .Height = h,
+        .MipLevels = 1,
+        .ArraySize = 1,
+        .Format = format,
+        .SampleDesc = {
+            .Count = 1,
+            .Quality = 0
+        },
+        .Usage = D3D11_USAGE_DEFAULT,
+        .BindFlags = D3D11_BIND_SHADER_RESOURCE,
+        .CPUAccessFlags = 0,
+        .MiscFlags = 0
+    };
+
+    D3D11_SUBRESOURCE_DATA subres_data = {
+        .pSysMem = data,
+        .SysMemPitch = w * 4,
+        .SysMemSlicePitch = 0
+    };
+
+    ComPtr<ID3D11Texture2D> texture;
+    if (FAILED(m_d3d11_device->CreateTexture2D(&desc, &subres_data, texture.GetAddressOf()))) {
+        dlog::error("Failed to create D3D11 texture");
+        return nullptr;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {
+        .Format = format,
+        .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+        .Texture2D = {
+            .MostDetailedMip = 0,
+            .MipLevels = 1
+        }
+    };
+
+    ComPtr<ID3D11ShaderResourceView> srv;
+    if (FAILED(m_d3d11_device->CreateShaderResourceView(texture.Get(), &srv_desc, srv.GetAddressOf()))) {
+        dlog::error("Failed to create D3D11 shader resource view");
+        return nullptr;
+    }
+
+    return srv;
 }
 
 bool D3DModule::is_d3d12() {

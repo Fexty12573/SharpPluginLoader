@@ -11,6 +11,7 @@
         "directxmath",
         "tinyobjloader",
         "directxtk12",
+        "directxtk",
         "d3dx12",
         {
             "name": "wil",

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +14,7 @@ namespace SharpPluginLoader.Core.Memory
     internal static class AddressRepository
     {
         private const string AddressCachePath = "nativePC/plugins/CSharp/Loader/AddressCache.json";
+        private const string PluginCachePath = "nativePC/plugins/CSharp/Loader/PluginCache.json";
         public static unsafe void Initialize()
         {
             // Load address records JSON from the chunk.
@@ -24,8 +26,13 @@ namespace SharpPluginLoader.Core.Memory
             var addressRecords = JsonSerializer.Deserialize<AddressRecordJson[]>(addressRecordsString, SerializerOptions)
               ?? throw new Exception("Failed to deserialize address records");
 
+            var gameVersion = InternalCalls.GetGameRevision();
+            if (string.IsNullOrEmpty(gameVersion))
+                throw new Exception("Failed to get game revision");
 
-            var gameVersion = GetGameRevision(addressRecords);
+            // Load Plugin Cache
+            LoadPluginRecords();
+
             Log.Debug($"[Core] Attempting to initialize address repository for game revision: {gameVersion}");
             var addressRecordFileHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(addressRecordsString)));
 
@@ -76,30 +83,55 @@ namespace SharpPluginLoader.Core.Memory
             File.WriteAllText(AddressCachePath, cacheJson);
         }
 
-        private static unsafe string GetGameRevision(AddressRecordJson[] records)
+        private static void LoadPluginRecords()
         {
-            // TODO: It's weird to scan for this here.
-            // If we get an update, we _probably_ won't be able to get to this point
-            // due to hardcoded addresses in the native core.
-            // This should AOB scanned in native and exposed as an icall.
+            if (!File.Exists(PluginCachePath))
+                return;
 
-            var gameBuildRevisionJsonRecord = records.FirstOrDefault(r => r.Name == "Core::GetGameBuildRevision")
-                ?? throw new Exception("Failed to get Core::GetGameBuildRevision from address records");
+            using var fs = File.OpenRead(PluginCachePath);
+            var pluginCache = JsonSerializer.Deserialize<PluginRecordCacheJson>(fs, SerializerOptions)
+                ?? throw new Exception("Failed to deserialize plugin records cache");
 
-            var addressRecord = new AddressRecord(gameBuildRevisionJsonRecord.Pattern, gameBuildRevisionJsonRecord.Offset)
-                ?? throw new Exception("Failed scan for Core::GetGameBuildRevision");
+            var gameVersion = InternalCalls.GetGameRevision();
+            if (string.IsNullOrEmpty(gameVersion))
+            {
+                Log.Error("Failed to get game revision");
+                return;
+            }
 
+            if (pluginCache.Version == gameVersion)
+            {
+                Log.Debug("[Core] Restoring from plugin record cache.");
 
-            // We unfortunately can't call this function directly, as it uses CRT functions
-            // that might not have been initialized yet. Instead, we just parse the offset
-            // in the instruction to the constant.
-            // var getGameBuildRevision = new NativeFunction<nint>(addressRecord.Address);
-            var constantOffset = Memory.MemoryUtil.Read<UInt32>(addressRecord.Address+7);
-            var constantBase = addressRecord.Address + 11;
-            var gameVersionPtr = MemoryUtil.Read<nint>(constantBase + constantOffset);
-            var gameVersion = MemoryUtil.ReadString(gameVersionPtr);
+                foreach (var record in pluginCache.Addresses)
+                {
+                    PluginRecords[record.Key] = (nint)record.Value;
+                }
 
-            return gameVersion;
+                return;
+            }
+            
+            // Actual scanning will be performed by the plugins themselves.
+            Log.Debug("[Core] No valid plugin record cache found. Performing first-time scan.");
+        }
+
+        public static void SavePluginRecords()
+        {
+            var gameVersion = InternalCalls.GetGameRevision();
+            if (string.IsNullOrEmpty(gameVersion))
+            {
+                Log.Error("Failed to get game revision");
+                return;
+            }
+
+            var cacheJson = JsonSerializer.Serialize(
+                new PluginRecordCacheJson
+                {
+                    Version = gameVersion,
+                    Addresses = PluginRecords.ToDictionary(e => e.Key, e => (ulong)e.Value),
+                }) ?? throw new Exception("Failed to serialize plugin records cache");
+
+            File.WriteAllText(PluginCachePath, cacheJson);
         }
 
         public static nint Get(string name)
@@ -110,6 +142,9 @@ namespace SharpPluginLoader.Core.Memory
            throw new Exception($"Failed to find address for {name}");
         }
 
+        public static IDictionary<string, nint> GetPluginRecords() => PluginRecords;
+
+        private static readonly ConcurrentDictionary<string, nint> PluginRecords = [];
         private static readonly ConcurrentDictionary<string, nint> Records = [];
 
         private static readonly JsonSerializerOptions SerializerOptions = new()

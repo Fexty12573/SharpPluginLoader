@@ -96,6 +96,9 @@ private:
     static constexpr const char* s_game_window_name = "MONSTER HUNTER: WORLD(421652)";
 
     static constexpr ImWchar s_japanese_glyph_ranges[] = {
+        0x0080, 0x00FF, // Latin-1 Supplement
+        0x2190, 0x21FF, // Arrows
+        0x25A0, 0x25FF, // Geometric Shapes
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
         0x4e00, 0x9FAF, // CJK Ideograms

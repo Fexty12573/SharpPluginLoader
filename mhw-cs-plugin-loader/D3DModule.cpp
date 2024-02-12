@@ -18,8 +18,14 @@
 #include <thread>
 
 #include "ChunkModule.h"
+#include "LoaderConfig.h"
 
 void D3DModule::initialize(CoreClr* coreclr) {
+    if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
+        dlog::debug("Skipping D3D module initialization because imgui rendering is disabled");
+        return;
+    }
+
     // Directory for delay loaded DLLs
     AddDllDirectory(TEXT("nativePC/plugins/CSharp/Loader"));
 
@@ -415,7 +421,10 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    if (GetWindowLongPtr(m_game_window, GWLP_WNDPROC) != (LONG_PTR)my_window_proc) {
+        m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    }
+
     m_is_initialized = true;
 
     dlog::debug("Initialized D3D12");
@@ -451,6 +460,8 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
 }
 
 void D3DModule::d3d12_deinitialize_imgui() {
+    dlog::debug("Uninitializing D3D12 ImGui");
+
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     m_d3d12_frame_contexts.clear();
@@ -507,29 +518,40 @@ void D3DModule::title_menu_ready_hook(void* gui) {
     self->m_title_menu_ready_hook = {};
 }
 
+template<typename T, typename F, typename ...Args>
+auto invoke_if(const std::optional<std::shared_ptr<T>>& opt, F func, Args&&... args) {
+    return opt.and_then(std::bind(func, std::forward<Args>(args)...));
+}
+
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+    const auto& config = preloader::LoaderConfig::get();
 
     if (self->m_is_inside_present) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 
     self->m_is_inside_present = true;
-
+    
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
-        prm->late_init(self.get(), swap_chain);
+
+        if (config.get_primitive_rendering_enabled()) {
+            prm->late_init(self.get(), swap_chain);
+        }
     }
 
     if (!self->m_d3d12_command_queue) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 
-    self->m_core_render();
-
     const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
-    prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
+
+    if (config.get_primitive_rendering_enabled()) {
+        self->m_core_render();
+        prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
+    }
 
     // Start new frame
     ImGui_ImplDX12_NewFrame();
@@ -606,11 +628,14 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
 
     dlog::debug("ResizeBuffers called, resetting...");
 
-    self->m_is_initialized = false;
-    if (self->m_is_d3d12) {
-        self->d3d12_deinitialize_imgui();
-    } else {
-        self->d3d11_deinitialize_imgui();
+    if (self->m_is_initialized) {
+        self->m_is_initialized = false;
+        if (self->m_is_d3d12) {
+            self->d3d12_deinitialize_imgui();
+        }
+        else {
+            self->d3d11_deinitialize_imgui();
+        }
     }
 
     prm->shutdown();
@@ -621,6 +646,7 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
 HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+    const auto& config = preloader::LoaderConfig::get();
 
     if (self->m_is_inside_present) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
@@ -630,12 +656,16 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     if (!self->m_is_initialized) {
         self->d3d11_initialize_imgui(swap_chain);
-        prm->late_init(self.get(), swap_chain);
+        
+        if (config.get_primitive_rendering_enabled()) {
+            prm->late_init(self.get(), swap_chain);
+        }
     }
 
-    self->m_core_render();
-
-    prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
+    if (config.get_primitive_rendering_enabled()) {
+        self->m_core_render();
+        prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
+    }
 
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();

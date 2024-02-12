@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ImGuiNET;
@@ -47,6 +48,7 @@ namespace PlayerAnimationViewer
         private AnimationId _lockedAnimationId;
         #endregion
         #region LMT Editor
+        private LmtBitMapping _lmtBitMapping = null!;
         private MotionList? _selectedLmt;
         private int _timelineFlags = (int)ImGuiTimelineFlags.EnableFramePointerSnapping
                                      | (int)ImGuiTimelineFlags.EnableKeyframeSnapping
@@ -56,12 +58,19 @@ namespace PlayerAnimationViewer
         private MetadataParam* _selectedParam = null;
         private MetadataParamMember* _selectedParamMember = null;
         private MetadataKeyframe* _selectedKeyframe = null;
+        private string _selectedParamName = string.Empty;
+        private string _selectedParamMemberName = string.Empty;
         private PropType _selectedKeyframeType;
         private readonly float[] _keyframeBuffer = new float[50]; // More than 50 keyframes is unlikely
         private float _framePointer;
 
         private bool _sortKeyframes = true;
         private readonly List<ClaimedLmt> _claimedLmts = [];
+        private ImFontPtr _supplementalFont;
+        private int _fontLoadStatus = 0;
+
+        private static string LmtBitMappingFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/FlagMapping.json";
+        private static string SupplementalFontFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/CascadiaCode.ttf";
 
         #region Adding Keyframes
         private Motion* _addKeyframeMotion = null;
@@ -94,7 +103,6 @@ namespace PlayerAnimationViewer
             {
                 OnUpdate = true,
                 OnImGuiRender = true,
-                OnRender = true,
                 OnEntityAnimation = true,
                 OnMonsterAction = true
             };
@@ -111,6 +119,16 @@ namespace PlayerAnimationViewer
             _paramMemberDefPool->PoolSize = _paramMemberDefBuffer.Length * sizeof(LmtParamMemberDef);
             _paramMemberDefPool->UsedSize = 0;
             _paramMemberDefPool->AllocatorIndex = 0;
+
+            if (!File.Exists(LmtBitMappingFile))
+            {
+                var bitMapping = new LmtBitMapping();
+                LmtBitMapping.SaveTo(LmtBitMappingFile, bitMapping);
+
+                Log.Debug($"Created new LMT Bit Mapping file at {LmtBitMappingFile}");
+            }
+
+            _lmtBitMapping = LmtBitMapping.LoadFrom(LmtBitMappingFile);
         }
 
         public void OnUpdate(float deltaTime)
@@ -146,65 +164,6 @@ namespace PlayerAnimationViewer
             var actionController = player.ActionController;
             if (Input.IsPressed(Button.Circle))
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
-        }
-
-        public void OnRender()
-        {
-            if (_selectedModel is null)
-                return;
-            if (!GetEntityList().Contains(_selectedModel))
-            {
-                _selectedModel = null;
-                return;
-            }
-
-            var entity = _selectedModel.Is("uMhModel") ? _selectedModel.As<Entity>() : null;
-            var colComponent = entity?.CollisionComponent;
-            if (colComponent is null)
-                return;
-
-            foreach (var node in colComponent.Nodes)
-            {
-                if (!node.IsActive)
-                    continue;
-
-                foreach (var geometry in node.Geometries)
-                {
-                    if (geometry.Geom is null) continue;
-
-                    MtVector4 color;
-                    if (node.IsActive)
-                    {
-                        color = geometry.Geom.Type switch
-                        {
-                            GeometryType.Sphere => new MtVector4(1, 0, 0, 0.25f),
-                            GeometryType.Capsule => new MtVector4(0, 1, 0, 0.25f),
-                            GeometryType.Obb => new MtVector4(0, 0, 1, 0.25f),
-                            _ => new MtVector4(1, 1, 1, 0.25f)
-                        };
-
-                        if (node.Get<nint>(0x90) == 0) // AttackParam
-                            color = new MtVector4(0f, 0.165f, 0.431f, 0.25f);
-                    }
-                    else
-                    {
-                        color = new MtVector4(0.5f, 0.5f, 0.5f, 0.1f);
-                    }
-
-                    switch (geometry.Geom.Type)
-                    {
-                        case GeometryType.Sphere:
-                            Primitives.RenderSphere(geometry.Geom.Get<MtSphere>(0x20), color);
-                            break;
-                        case GeometryType.Capsule:
-                            Primitives.RenderCapsule(geometry.Geom.Get<MtCapsule>(0x20), color);
-                            break;
-                        case GeometryType.Obb:
-                            Primitives.RenderObb(geometry.Geom.Get<MtObb>(0x20), color);
-                            break;
-                    }
-                }
-            }
         }
 
         public void OnImGuiRender()
@@ -268,7 +227,15 @@ namespace PlayerAnimationViewer
 
                 ImGui.NewLine();
 
-                ImGui.Text($"Current Animation: {_selectedModel.CurrentAnimation}");
+                var currentAnim = _selectedModel.CurrentAnimation;
+                ImGui.Text($"Current Animation: {currentAnim}");
+                if (_selectedAnimLayer is not null)
+                {
+                    var motionLists = new NativeArray<nint>(_selectedAnimLayer.Instance + 0xE120, 16);
+                    var lmtPtr = motionLists[(int)currentAnim.Lmt];
+                    ImGui.Text($"LMT {currentAnim.Lmt} <-> {MemoryUtil.ReadString(lmtPtr + 0xC)}");
+                }
+
                 if (_selectedModel.Is("uCharacterModel"))
                 {
                     var entity = _selectedModel.As<Entity>();
@@ -317,7 +284,7 @@ namespace PlayerAnimationViewer
 
             if (ImGui.CollapsingHeader("Frame Viewer"))
             {
-                ImGui.Text($"Current Frame: {_selectedAnimLayer.CurrentFrame:.02}/{_selectedAnimLayer.MaxFrame}");
+                ImGui.Text($"Current Frame: {_selectedAnimLayer!.CurrentFrame:.02}/{_selectedAnimLayer.MaxFrame}");
                 ImGui.SliderFloat("Frame", ref _selectedAnimLayer.CurrentFrame, 0f, _selectedAnimLayer.MaxFrame);
 
                 var paused = _selectedAnimLayer.Paused;
@@ -355,7 +322,7 @@ namespace PlayerAnimationViewer
                     _lockedAnimationId = new AnimationId(animIdBuffer[0], animIdBuffer[1]);
 
                 ImGui.Checkbox("##lock-interframe", ref _lockInterFrame);
-                if (ImGui.BeginTooltip())
+                if (ImGui.BeginItemTooltip())
                 {
                     ImGui.Text("Lock Value");
                     ImGui.EndTooltip();
@@ -364,7 +331,7 @@ namespace PlayerAnimationViewer
                 ImGui.InputFloat("Next InterFrame", ref _lockedInterFrame);
 
                 ImGui.Checkbox("##lock-startframe", ref _lockStartFrame);
-                if (ImGui.BeginTooltip())
+                if (ImGui.BeginItemTooltip())
                 {
                     ImGui.Text("Lock Value");
                     ImGui.EndTooltip();
@@ -468,6 +435,12 @@ namespace PlayerAnimationViewer
                 ImGui.SameLine();
                 if (ImGui.Button("Sort All Keyframes"))
                     _selectedLmt.SortKeyframes();
+
+                ImGui.SameLine();
+                if (ImGui.Button("Reload Flag Mappings"))
+                {
+                    _lmtBitMapping = LmtBitMapping.LoadFrom(LmtBitMappingFile);
+                }
 
                 ImGui.Separator();
 
@@ -577,6 +550,8 @@ namespace PlayerAnimationViewer
                                             _selectedParamMember = MemoryUtil.AsPointer(ref member);
                                             _selectedKeyframe = MemoryUtil.AsPointer(ref member.GetKeyframe(selectedKeyframe));
                                             _selectedKeyframeType = def.Type;
+                                            _selectedParamName = dti.Name;
+                                            _selectedParamMemberName = memberName;
                                         }
                                     }
                                     
@@ -656,6 +631,8 @@ namespace PlayerAnimationViewer
                             ImGui.Combo("Interpolation Type", ref interpType, Enum.GetNames(typeof(InterpType)), (int)InterpType.Count);
                             _selectedKeyframe->ApplyType = (ApplyType)applyType;
                             _selectedKeyframe->InterpolationType = (InterpType)interpType;
+
+                            DisplayBitMappings();
                         }
 
                         if (ImGui.BeginPopup("Add New Keyframe##popup"))
@@ -784,6 +761,47 @@ namespace PlayerAnimationViewer
                 }
 
                 ImGui.TreePop();
+            }
+        }
+
+        private void DisplayBitMappings()
+        {
+            if (_selectedKeyframe->ApplyType is not (ApplyType.Flags or ApplyType.Trigger)) 
+                return;
+
+            var mappings = _lmtBitMapping.GetBitMapping(
+                _selectedParamName,
+                _selectedParamMemberName
+            );
+
+            if (mappings.Count == 0)
+                return;
+
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(6, 7));
+
+            var hoveredBit = -1;
+            ImGuiExtensions.Bitfield("Value", ref _selectedKeyframe->UIntValue, ref hoveredBit);
+
+            ImGui.PopStyleVar();
+
+            if (hoveredBit != -1)
+            {
+                var mapping = mappings.Find(mapping => mapping.Bit == hoveredBit);
+                if (mapping is not null)
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text(mapping.Name);
+                    ImGui.Text($"Affects Bit {mapping.Bit} (0x{(1u << mapping.Bit):X})");
+                    ImGui.Text(mapping.Description);
+                    ImGui.EndTooltip();
+                }
+                else
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text("No Mapping");
+                    ImGui.Text($"Affects Bit {hoveredBit} (0x{(1u << hoveredBit):X})");
+                    ImGui.EndTooltip();
+                }
             }
         }
 
@@ -1188,6 +1206,29 @@ namespace PlayerAnimationViewer
 
                 claimedLmt.ModifiedKeyframeLists.Add(newKfList);
             }
+        }
+
+        //private readonly NativeArray<ushort> _supplementalGlyphRanges = NativeArray<ushort>.Create(8);
+
+        private void LoadSupplementalFont()
+        {
+            //_supplementalGlyphRanges[0] = 0x2190; // Arrows
+            //_supplementalGlyphRanges[1] = 0x21FF;
+            //_supplementalGlyphRanges[2] = 0x25A0; // Geometric Shapes
+            //_supplementalGlyphRanges[3] = 0x25FF;
+            //_supplementalGlyphRanges[4] = 0x2A00; // Mathematical Operators
+            //_supplementalGlyphRanges[5] = 0x2AFF;
+            //_supplementalGlyphRanges[6] = 0x0000; // Null terminator
+            //_supplementalGlyphRanges[7] = 0x0000;
+            
+            var io = ImGui.GetIO();
+            _supplementalFont = io.Fonts.AddFontFromFileTTF(
+                SupplementalFontFile,
+                16
+            );
+
+            io.Fonts.Build();
+            io.Fonts.GetTexDataAsRGBA32(out nint _, out _, out _);
         }
 
         private static int FindMemberDef(Span<LmtParamMemberDef> memberDefs, uint hash)

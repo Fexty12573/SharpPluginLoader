@@ -45,7 +45,8 @@ public class InternalCallSourceGenerator : IIncrementalGenerator
         if (methodsToGenerate.Count == 0)
             return;
 
-        var source = SourceGenerationHelper.GenerateSource(methodsToGenerate, context);
+        var className = methodsToGenerate.First().Method.ContainingType.Name;
+        var source = SourceGenerationHelper.GenerateSource(new InternalCallCollection(className, methodsToGenerate), context);
         context.AddSource("InternalCalls.g.cs", SourceText.From(source, Encoding.UTF8));
     }
 
@@ -75,7 +76,38 @@ public class InternalCallSourceGenerator : IIncrementalGenerator
                 .Any(tc => tc.Type?.ToDisplayString() == SourceGenerationHelper.FullOptionsEnumName 
                            && tc.Value is not null
                            && (int)tc.Value == 1) ?? false;
-            methodsToGenerate.Add(new InternalCallMethod(methodSymbol, isUnsafe));
+
+            // Check for named arguments
+            long address = 0;
+            string? pattern = null;
+            var offset = 0;
+            var cache = true;
+
+            if (attributeData is not null)
+            {
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    switch (namedArg.Key)
+                    {
+                        case SourceGenerationHelper.AddressPropertyName:
+                            address = (long)namedArg.Value.Value!;
+                            break;
+                        case SourceGenerationHelper.PatternPropertyName:
+                            pattern = (string?)namedArg.Value.Value!;
+                            break;
+                        case SourceGenerationHelper.OffsetPropertyName:
+                            offset = (int)namedArg.Value.Value!;
+                            break;
+                        case SourceGenerationHelper.CachePropertyName:
+                            cache = (bool)namedArg.Value.Value!;
+                            break;
+                    }
+                }
+            }
+
+            methodsToGenerate.Add(
+                new InternalCallMethod(methodSymbol, isUnsafe, address, pattern, offset, cache)
+            );
         }
 
         return methodsToGenerate;

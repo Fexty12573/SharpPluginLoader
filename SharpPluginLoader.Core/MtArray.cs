@@ -84,8 +84,8 @@ namespace SharpPluginLoader.Core
             if (Length == Capacity)
                 Utility.ResizeArray(this, Capacity + Capacity / 2);
 
-            this[(int)Length] = item;
             Length += 1;
+            this[(int)Length - 1] = item;
         }
 
         /// <summary>

@@ -93,6 +93,12 @@
     <ClCompile Include="LoaderConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PatternScan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bitfield.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">
@@ -182,6 +188,12 @@
     <ClInclude Include="LoaderConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PatternScan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bitfield.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpPluginLoader.runtimeconfig.json">
@@ -200,5 +212,14 @@
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include=".clang-tidy" />
+    <None Include="Shaders\LineRenderingVS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\LineRenderingPS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\LineRenderingGS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

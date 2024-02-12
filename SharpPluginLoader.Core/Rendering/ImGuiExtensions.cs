@@ -40,6 +40,11 @@ namespace SharpPluginLoader.Core.Rendering
             return InternalCalls.TimelineTrack(label, keyframes, out _, explicitCount);
         }
 
+        public static bool Bitfield(string label, ref uint value, ref int hoveredBit)
+        {
+            return InternalCalls.Bitfield(label, ref value, ref hoveredBit);
+        }
+
         public static void NotificationSuccess(string message, int duration = 3000)
         {
             InternalCalls.NotificationSuccess(message, duration);

@@ -24,6 +24,8 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<void> EndTimelineGroupPtr;
         public static delegate* unmanaged<string, float*, int, out int, bool> TimelineTrackPtr;
 
+        public static delegate* unmanaged<string, ref uint, ref int, bool> BitfieldPtr;
+
         public static delegate* unmanaged<string, int, void> NotificationSuccessPtr;
         public static delegate* unmanaged<string, int, void> NotificationErrorPtr;
         public static delegate* unmanaged<string, int, void> NotificationWarningPtr;
@@ -34,6 +36,9 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<nint, nint, void> RenderSpherePtr;
         public static delegate* unmanaged<nint, nint, void> RenderObbPtr;
         public static delegate* unmanaged<nint, nint, void> RenderCapsulePtr;
+        public static delegate* unmanaged<nint, nint, void> RenderLinePtr;
+
+        public static delegate* unmanaged<sbyte*> GetGameRevisionPtr;
 #pragma warning restore CS0649
 
         public static void TestInternalCall() => TestInternalCallPtr();
@@ -82,6 +87,8 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        public static bool Bitfield(string label, ref uint value, ref int hoveredBit) => BitfieldPtr(label, ref value, ref hoveredBit);
+
         public static void NotificationSuccess(string message, int duration) => NotificationSuccessPtr(message, duration);
 
         public static void NotificationError(string message, int duration) => NotificationErrorPtr(message, duration);
@@ -99,5 +106,13 @@ namespace SharpPluginLoader.Core
         public static void RenderObb(nint obbPtr, nint colorPtr) => RenderObbPtr(obbPtr, colorPtr);
 
         public static void RenderCapsule(nint capsulePtr, nint colorPtr) => RenderCapsulePtr(capsulePtr, colorPtr);
+
+        public static void RenderLine(nint linePtr, nint colorPtr) => RenderLinePtr(linePtr, colorPtr);
+
+        public static string GetGameRevision()
+        {
+            var revision = GetGameRevisionPtr();
+            return revision == null ? string.Empty : new string(revision);
+        }
     }
 }

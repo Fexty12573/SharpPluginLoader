@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Loader;
 using SharpPluginLoader.Core.Configuration;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Memory.Windows;
 
 namespace SharpPluginLoader.Core
@@ -31,7 +32,7 @@ namespace SharpPluginLoader.Core
             }
         }
 
-        private delegate void UploadInternalCallsDelegate(Dictionary<string, nint> icalls);
+        private delegate void UploadInternalCallsDelegate(IDictionary<string, nint> icalls, IDictionary<string, nint> addressCache);
         private static readonly TimeSpan EventCooldown = TimeSpan.FromMilliseconds(500);
         private readonly Dictionary<string, PluginContext> _contexts = [];
         private readonly FileSystemWatcher _watcher;
@@ -46,7 +47,14 @@ namespace SharpPluginLoader.Core
             _watcher = new FileSystemWatcher("nativePC/plugins/CSharp");
             _watcher.IncludeSubdirectories = true;
 
-            _watcher.Created += (_, args) => { if (IsPlugin(args.FullPath)) LoadPlugin(args.FullPath); };
+            _watcher.Created += (_, args) =>
+            {
+                if (IsPlugin(args.FullPath))
+                {
+                    LoadPlugin(args.FullPath);
+                    AddressRepository.SavePluginRecords();
+                }
+            };
             _watcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
             _watcher.Changed += (_, args) =>
             {
@@ -63,7 +71,7 @@ namespace SharpPluginLoader.Core
                     _lastEventTimes[args.FullPath] = nowTime;
                 }
                 
-                ReloadPlugin(args.FullPath);
+                ReloadPlugin(args.FullPath, true);
             };
 
             _watcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -78,7 +86,14 @@ namespace SharpPluginLoader.Core
                     var symlinkWatcher = new FileSystemWatcher(info.LinkTarget!);
                     symlinkWatcher.IncludeSubdirectories = true;
 
-                    symlinkWatcher.Created += (_, args) => { if (IsPlugin(args.FullPath)) LoadPlugin(args.FullPath); };
+                    symlinkWatcher.Created += (_, args) =>
+                    {
+                        if (IsPlugin(args.FullPath))
+                        {
+                            LoadPlugin(args.FullPath);
+                            AddressRepository.SavePluginRecords();
+                        }
+                    };
                     symlinkWatcher.Deleted += (_, args) => { if (IsPlugin(args.FullPath)) UnloadPlugin(args.FullPath); };
                     symlinkWatcher.Changed += (_, args) =>
                     {
@@ -95,7 +110,7 @@ namespace SharpPluginLoader.Core
                             _lastEventTimes[args.FullPath] = nowTime;
                         }
 
-                        ReloadPlugin(args.FullPath);
+                        ReloadPlugin(args.FullPath, true);
                     };
 
                     symlinkWatcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -202,6 +217,9 @@ namespace SharpPluginLoader.Core
                 if (IsPlugin(pluginPath))
                     LoadPlugin(pluginPath);
             }
+
+            // After all plugins are loaded, we can save the plugin records cache.
+            AddressRepository.SavePluginRecords();
         }
 
         /// <summary>
@@ -390,7 +408,7 @@ namespace SharpPluginLoader.Core
 
             try
             {
-                uploadInternalCalls.CreateDelegate<UploadInternalCallsDelegate>()(icallMap);
+                uploadInternalCalls.CreateDelegate<UploadInternalCallsDelegate>()(icallMap, AddressRepository.GetPluginRecords());
             }
             catch (Exception e)
             {
@@ -448,9 +466,11 @@ namespace SharpPluginLoader.Core
 
                 ReloadPlugin(pluginPath);
             }
+
+            AddressRepository.SavePluginRecords();
         }
 
-        public void ReloadPlugin(string pluginPath)
+        public void ReloadPlugin(string pluginPath, bool updatePluginCache = false)
         {
             UnloadPlugin(pluginPath);
             LoadPlugin(pluginPath);
@@ -463,6 +483,9 @@ namespace SharpPluginLoader.Core
                 }
                 context.Plugin.OnLoad();
             }
+
+            if (updatePluginCache)
+                AddressRepository.SavePluginRecords();
         }
 
         public void UnloadAllPlugins()

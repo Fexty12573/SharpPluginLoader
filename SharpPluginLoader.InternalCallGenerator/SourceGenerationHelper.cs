@@ -34,17 +34,28 @@ public static class SourceGenerationHelper
                                     [System.AttributeUsage(System.AttributeTargets.Method)]
                                     public class {{AttributeName}}(InternalCallOptions options = InternalCallOptions.None) : System.Attribute
                                     {
-                                        public InternalCallOptions Options { get; } = options;
+                                        public InternalCallOptions {{OptionsPropertyName}} = options;
+                                        public long {{AddressPropertyName}};
+                                        public string? {{PatternPropertyName}};
+                                        public int {{OffsetPropertyName}};
+                                        public bool {{CachePropertyName}} = true;
                                     }
                                     
                                     [System.AttributeUsage(System.AttributeTargets.Parameter | System.AttributeTargets.ReturnValue)]
                                     public class {{WideStringAttributeName}} : System.Attribute;
                                     """;
 
+    public const string OptionsPropertyName = "Options";
+    public const string AddressPropertyName = "Address";
+    public const string PatternPropertyName = "Pattern";
+    public const string OffsetPropertyName = "Offset";
+    public const string CachePropertyName = "Cache";
+
     private static IMethodSymbol? _currentMethodSymbol;
 
-    public static string GenerateSource(List<InternalCallMethod> internalCalls, SourceProductionContext context)
+    public static string GenerateSource(InternalCallCollection internalCallCollection, SourceProductionContext context)
     {
+        var (className, internalCalls) = internalCallCollection;
         if (internalCalls.Count == 0)
             return "";
 
@@ -57,6 +68,8 @@ public static class SourceGenerationHelper
         List<string> pinStatements = []; // Used to store variables that need to be pinned
         List<string> gcHandles = []; // Used to store the gc handles
 
+        var containingNamespace = internalCalls[0].Method.ContainingNamespace.ToDisplayString();
+
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Text;");
         sb.AppendLine("using System.Runtime.InteropServices;");
@@ -66,9 +79,9 @@ public static class SourceGenerationHelper
         sb.AppendLine("using SharpPluginLoader.Core.Memory;");
         sb.Append($$"""
                   
-                  namespace {{internalCalls[0].Method.ContainingNamespace.ToDisplayString()}};
+                  namespace {{containingNamespace}};
 
-                  public static unsafe partial class InternalCalls
+                  public static unsafe partial class {{className}}
                   {
                   
                   """);
@@ -76,7 +89,8 @@ public static class SourceGenerationHelper
         // Generate start of upload method
         uploadMethodSb.Append("""
                               
-                              public static void UploadInternalCalls(System.Collections.Generic.Dictionary<string, nint> icalls)
+                              public static void UploadInternalCalls(System.Collections.Generic.IDictionary<string, nint> icalls,
+                                    System.Collections.Generic.IDictionary<string, nint> addressCache)
                               {
                               
                               """);
@@ -91,9 +105,20 @@ public static class SourceGenerationHelper
         // - Array types where the element type is a primitive type or a pointer type
         // - ref/out types
         // - string
-        foreach (var (method, isUnsafe) in internalCalls)
+        foreach (var icall in internalCalls)
         {
+            var method = icall.Method;
+            var isUnsafe = icall.IsUnsafe;
+
             _currentMethodSymbol = method;
+
+            if (icall.Address != 0)
+            {
+                if (icall.Pattern is not null)
+                {
+                    ReportWarning(context, "ICG007", "Both address and pattern are specified, using address");
+                }
+            }
 
             var transformedReturnType = TransformReturn(method, context);
             if (transformedReturnType.typeName is null)
@@ -111,9 +136,19 @@ public static class SourceGenerationHelper
                 retModifier = "ref readonly ";
             
             var unsafeModifier = IsMethodDeclaredUnsafe(method) ? "unsafe " : "";
-            
+            var methodAccess = method.DeclaredAccessibility switch
+            {
+                Accessibility.Public => "public",
+                Accessibility.Protected => "protected",
+                Accessibility.Private => "private",
+                Accessibility.Internal => "internal",
+                Accessibility.ProtectedOrInternal => "protected internal",
+                Accessibility.ProtectedAndInternal => "private protected",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
             // Start method generation
-            methodSb.Append($"public static {unsafeModifier}partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
+            methodSb.Append($"{methodAccess} static {unsafeModifier}partial {retModifier}{method.ReturnType.ToDisplayString()} {method.Name}(");
 
             if (!method.ReturnsVoid)
                 methodBodySb.AppendLine($"{transformedReturnType.typeName} __result = default;");
@@ -153,7 +188,9 @@ public static class SourceGenerationHelper
                     case TypeConversionKind.RefOut:
                         switch (param.RefKind)
                         {
+                            case RefKind.In:
                             case RefKind.Ref:
+                            case RefKind.RefReadOnlyParameter:
                                 invokeParamName = $"t__{param.Name}";
                                 pinStatements.Add($"fixed({typeName} {invokeParamName} = &{param.Name})");
                                 methodInvokeParams.Add(invokeParamName);
@@ -163,14 +200,6 @@ public static class SourceGenerationHelper
                                 invokeParamName = $"t__{param.Name}";
                                 pinStatements.Add($"fixed({typeName} {invokeParamName} = &{param.Name})");
                                 methodInvokeParams.Add(invokeParamName);
-                                break;
-                            case RefKind.In:
-                                ReportError(context, "ICG003", "In parameters are not supported");
-                                methodInvokeParams.Add(param.Name);
-                                break;
-                            case RefKind.RefReadOnlyParameter:
-                                ReportError(context, "ICG004", "Ref readonly parameters are not supported");
-                                methodInvokeParams.Add(param.Name);
                                 break;
                             case RefKind.None:
                             default:
@@ -267,12 +296,47 @@ public static class SourceGenerationHelper
 
             // Add entry to upload method
             var fieldType = fieldTypeSb.ToString();
-            uploadMethodSb.AppendLine($"""
-                                       if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
-                                           _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
-                                       else
-                                           Log.Warn("Could not find InternalCall for method {method.Name}");
-                                       """);
+            if (icall.Address != 0)
+            {
+                uploadMethodSb.AppendLine($"_{method.Name}Ptr = ({fieldType})0x{icall.Address:X};");
+            }
+            else if (icall.Pattern is not null)
+            {
+                uploadMethodSb.AppendLine(icall.Cache
+                    ? $$"""
+                        if (addressCache.TryGetValue("{{containingNamespace}}:{{method.Name}}", out var {{method.Name}}Ptr))
+                        {
+                            _{{method.Name}}Ptr = ({{fieldType}}){{method.Name}}Ptr;
+                        }
+                        else
+                        {
+                            var {{method.Name}}_scanResult = PatternScanner.FindFirst(Pattern.FromString("{{icall.Pattern}}"));
+                            if ({{method.Name}}_scanResult == 0)
+                                Log.Warn("Could not find pattern for method {{method.Name}}");
+                            else
+                            {
+                                _{{method.Name}}Ptr = ({{fieldType}})({{method.Name}}_scanResult + {{icall.Offset}});
+                                addressCache["{{containingNamespace}}:{{method.Name}}"] = (nint)_{{method.Name}}Ptr;
+                            }
+                        }
+                        """
+                    : $"""
+                       var {method.Name}_scanResult = PatternScanner.FindFirst(Pattern.FromString("{icall.Pattern}"));
+                       if ({method.Name}_scanResult == 0)
+                           Log.Warn("Could not find pattern for method {method.Name}");
+                       else
+                           _{method.Name}Ptr = ({fieldType})({method.Name}_scanResult + {icall.Offset});
+                       """);
+            }
+            else
+            {
+                uploadMethodSb.AppendLine($"""
+                                           if (icalls.TryGetValue("{method.Name}", out var {method.Name}Ptr))
+                                               _{method.Name}Ptr = ({fieldType}){method.Name}Ptr;
+                                           else
+                                               Log.Warn("Could not find InternalCall for method {method.Name}");
+                                           """);
+            }
             
             // Clear reused string builders and lists
             methodBodySb.Clear();
@@ -323,7 +387,7 @@ public static class SourceGenerationHelper
                 return (TransformType(arrayType.ElementType, context).typeName + "*", TypeConversionKind.Array);
             case IPointerTypeSymbol pointerType:
                 var (typeName, _) = TransformType(pointerType.PointedAtType, context);
-                return param.RefKind is RefKind.Ref or RefKind.Out 
+                return param.RefKind is not RefKind.None
                     ? (typeName + "**", TypeConversionKind.RefOut) // ref/out pointers are represented as pointer to pointer
                     : (typeName + "*", TypeConversionKind.None);
             case INamedTypeSymbol namedType:
@@ -359,7 +423,7 @@ public static class SourceGenerationHelper
                 }
 
                 var (type, _) = TransformType(namedType, context);
-                return param.RefKind is RefKind.Ref or RefKind.Out 
+                return param.RefKind is not RefKind.None
                     ? (type + "*", TypeConversionKind.RefOut) // ref/out value types are represented as pointer to value type
                     : (type, TypeConversionKind.None);
             case ITypeParameterSymbol:
@@ -469,6 +533,23 @@ public static class SourceGenerationHelper
                     message,
                     "InternalCallGenerator",
                     DiagnosticSeverity.Error,
+                    true
+                ),
+                (method ?? _currentMethodSymbol)!.Locations[0]
+            )
+        );
+    }
+
+    private static void ReportWarning(SourceProductionContext context, string id, string message, IMethodSymbol? method = null)
+    {
+        context.ReportDiagnostic(
+            Diagnostic.Create(
+                new DiagnosticDescriptor(
+                    id,
+                    "InternalCallGenerator",
+                    message,
+                    "InternalCallGenerator",
+                    DiagnosticSeverity.Warning,
                     true
                 ),
                 (method ?? _currentMethodSymbol)!.Locations[0]

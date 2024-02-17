@@ -9,13 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpPluginLoader.ImGui" Version="1.90.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\SharpPluginLoader.Core\SharpPluginLoader.Core.csproj">
       <Private>False</Private>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="..\..\SharpPluginLoader.InternalCallGenerator\SharpPluginLoader.InternalCallGenerator.csproj" 
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"/>
+    <ProjectReference Include="..\..\SharpPluginLoader.InternalCallGenerator\SharpPluginLoader.InternalCallGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

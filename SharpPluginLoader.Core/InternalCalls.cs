@@ -38,6 +38,9 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<nint, nint, void> RenderCapsulePtr;
         public static delegate* unmanaged<nint, nint, void> RenderLinePtr;
 
+        public static delegate* unmanaged<string, nint> LoadTexturePtr;
+        public static delegate* unmanaged<nint, void> UnloadTexturePtr;
+
         public static delegate* unmanaged<sbyte*> GetGameRevisionPtr;
 #pragma warning restore CS0649
 
@@ -108,6 +111,10 @@ namespace SharpPluginLoader.Core
         public static void RenderCapsule(nint capsulePtr, nint colorPtr) => RenderCapsulePtr(capsulePtr, colorPtr);
 
         public static void RenderLine(nint linePtr, nint colorPtr) => RenderLinePtr(linePtr, colorPtr);
+
+        public static nint LoadTexture(string path) => LoadTexturePtr(path);
+
+        public static void UnloadTexture(nint texture) => UnloadTexturePtr(texture);
 
         public static string GetGameRevision()
         {

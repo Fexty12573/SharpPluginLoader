@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Resources;
@@ -20,17 +21,17 @@ namespace SharpPluginLoader.Core.Models
         /// <summary>
         /// The position of the model
         /// </summary>
-        public ref MtVector3 Position => ref GetRef<MtVector3>(0x160);
+        public ref Vector3 Position => ref GetRef<Vector3>(0x160);
 
         /// <summary>
         /// The size of the model
         /// </summary>
-        public ref MtVector3 Size => ref GetRef<MtVector3>(0x180);
+        public ref Vector3 Size => ref GetRef<Vector3>(0x180);
 
         /// <summary>
         /// The position of the model's collision box
         /// </summary>
-        public ref MtVector3 CollisionPosition => ref GetRef<MtVector3>(0xA50);
+        public ref Vector3 CollisionPosition => ref GetRef<Vector3>(0xA50);
 
         /// <summary>
         /// The rotation of the model
@@ -40,7 +41,7 @@ namespace SharpPluginLoader.Core.Models
         /// <summary>
         /// The model's forward vector
         /// </summary>
-        public MtVector3 Forward => Rotation * MtVector3.Forward;
+        public Vector3 Forward => Rotation * Vector3.UnitZ;
 
         /// <summary>
         /// Freezes the model and pauses all processing
@@ -56,7 +57,7 @@ namespace SharpPluginLoader.Core.Models
         /// </summary>
         /// <remarks>Use this function if you need to move a model and ignore walls.</remarks>
         /// <param name="position">The target position</param>
-        public void Teleport(MtVector3 position)
+        public void Teleport(Vector3 position)
         {
             Position = position;
             CollisionPosition = position;
@@ -68,7 +69,7 @@ namespace SharpPluginLoader.Core.Models
         /// <param name="size">The new size of the model</param>
         public void Resize(float size)
         {
-            Size = new MtVector3(size, size, size);
+            Size = new Vector3(size, size, size);
         }
 
         /// <summary>

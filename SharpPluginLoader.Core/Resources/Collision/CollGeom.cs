@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.Resources.Collision;
 
@@ -30,11 +30,11 @@ public struct CollGeom
     [FieldOffset(0x14)] public ushort Region;
     [FieldOffset(0x16)] public short RangeCheckBaseJoint;
     [FieldOffset(0x18)] public float Radius;
-    [FieldOffset(0x20)] public MtVector2 Angle0;
-    [FieldOffset(0x28)] public MtVector2 Angle1;
-    [FieldOffset(0x30)] public MtVector4 Offset0;
-    [FieldOffset(0x40)] public MtVector4 Offset1;
-    [FieldOffset(0x50)] public MtVector3 Extent;
+    [FieldOffset(0x20)] public Vector2 Angle0;
+    [FieldOffset(0x28)] public Vector2 Angle1;
+    [FieldOffset(0x30)] public Vector4 Offset0;
+    [FieldOffset(0x40)] public Vector4 Offset1;
+    [FieldOffset(0x50)] public Vector3 Extent;
     [FieldOffset(0x60)] public bool Use;
 }
 

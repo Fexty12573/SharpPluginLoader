@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Collision;
@@ -19,7 +20,7 @@ public partial class CollisionComponent
         /// <summary>
         /// Gets the world matrix of this node.
         /// </summary>
-        public ref MtMatrix4X4 WorldMatrix => ref GetRef<MtMatrix4X4>(0x10);
+        public ref Matrix4x4 WorldMatrix => ref GetRef<Matrix4x4>(0x10);
 
         /// <summary>
         /// Gets the geometry of this node.

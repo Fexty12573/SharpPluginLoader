@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
@@ -66,7 +67,7 @@ namespace SharpPluginLoader.Core
             InternalCalls.QueueYesNoDialog(msgPtr);
         }
 
-        public static unsafe void DisplayMessageWindow(string message, MtVector2 offset = new())
+        public static unsafe void DisplayMessageWindow(string message, Vector2 offset = new())
         {
             var msgPtr = Marshal.StringToHGlobalAnsi(message);
             var offsetPtr = &offset;

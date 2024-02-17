@@ -17,25 +17,25 @@ public class Camera : MtObject
     /// <summary>
     /// The position of the camera, in world space coordinates.
     /// </summary>
-    public ref MtVector3 Position => ref GetRef<MtVector3>(0x150);
+    public ref Vector3 Position => ref GetRef<Vector3>(0x150);
 
     /// <summary>
     /// The up vector of the camera, in local coordinates.
     /// </summary>
-    public ref MtVector3 Up => ref GetRef<MtVector3>(0x160);
+    public ref Vector3 Up => ref GetRef<Vector3>(0x160);
 
     /// <summary>
     /// The target of the camera, in local coordinates.
     /// </summary>
-    public ref MtVector3 Target => ref GetRef<MtVector3>(0x170);
+    public ref Vector3 Target => ref GetRef<Vector3>(0x170);
 
     /// <summary>
     /// Gets the target of the camera in world space coordinates.
     /// </summary>
     /// <returns>The target of the camera in world space coordinates.</returns>
-    public unsafe MtVector3 GetTargetWorld()
+    public unsafe Vector3 GetTargetWorld()
     {
-        MtVector3 result = new();
+        Vector3 result = new();
         new NativeAction<nint, nint>(GetVirtualFunction(33)).Invoke(Instance, MemoryUtil.AddressOf(ref result));
         return result;
     }
@@ -67,9 +67,9 @@ public class Camera : MtObject
     /// <remarks>
     /// <b>Warning:</b> This method does not perform any caching. It is recommended to cache the result of this method.
     /// </remarks>
-    public unsafe MtMatrix4X4 GetViewMatrix()
+    public unsafe Matrix4x4 GetViewMatrix()
     {
-        MtMatrix4X4 result = new();
+        Matrix4x4 result = new();
         new NativeAction<nint, nint>(GetVirtualFunction(34)).Invoke(Instance, MemoryUtil.AddressOf(ref result));
         return result;
     }
@@ -81,9 +81,9 @@ public class Camera : MtObject
     /// <remarks>
     /// <b>Warning:</b> This method does not perform any caching. It is recommended to cache the result of this method.
     /// </remarks>
-    public unsafe MtMatrix4X4 GetProjectionMatrix()
+    public unsafe Matrix4x4 GetProjectionMatrix()
     {
-        MtMatrix4X4 result = new();
+        Matrix4x4 result = new();
         new NativeAction<nint, nint>(GetVirtualFunction(35)).Invoke(Instance, MemoryUtil.AddressOf(ref result));
         return result;
     }

@@ -101,52 +101,6 @@ namespace SharpPluginLoader.Core.MtTypes
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtPoint
-    {
-        public uint X;
-        public uint Y;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtPointF
-    {
-        public float X;
-        public float Y;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtSize
-    {
-        public uint Width;
-        public uint Height;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtSizeF
-    {
-        public float Width;
-        public float Height;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtRect
-    {
-        public uint X;
-        public uint Y;
-        public uint W;
-        public uint H;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtRectF
-    {
-        public float X;
-        public float Y;
-        public float W;
-        public float H;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     public struct MtTime
     {
         public ulong Time;
@@ -162,66 +116,66 @@ namespace SharpPluginLoader.Core.MtTypes
     [StructLayout(LayoutKind.Sequential)]
     public struct MtLine
     {
-        public MtVector3 Point;
-        public MtVector3 Direction;
+        public Vector3 Point;
+        public Vector3 Direction;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x20)]
     public struct MtLineSegment
     {
-        [FieldOffset(0x00)] public MtVector3 Point1;
-        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x00)] public Vector3 Point1;
+        [FieldOffset(0x10)] public Vector3 Point2;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct MtPlane
     {
-        public MtVector3 Normal;
+        public Vector3 Normal;
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 0x10)]
     public struct MtSphere
     {
-        public MtVector3 Center;
+        public Vector3 Center;
         public float Radius;
     }
 
     [StructLayout(LayoutKind.Explicit)]
     public struct MtCapsule
     {
-        [FieldOffset(0x00)] public MtVector3 Point1;
-        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x00)] public Vector3 Point1;
+        [FieldOffset(0x10)] public Vector3 Point2;
         [FieldOffset(0x20)] public float Radius;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 0x20)]
     public struct MtAabb
     {
-        [FieldOffset(0x00)] public MtVector3 Min;
-        [FieldOffset(0x10)] public MtVector3 Max;
+        [FieldOffset(0x00)] public Vector3 Min;
+        [FieldOffset(0x10)] public Vector3 Max;
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 0x50)]
     public struct MtObb
     {
         public Float4X4 Transform;
-        public MtVector3 Extents;
+        public Vector3 Extents;
     }
 
     [StructLayout(LayoutKind.Explicit)]
     public struct MtCylinder
     {
-        [FieldOffset(0x00)] public MtVector3 Point1;
-        [FieldOffset(0x10)] public MtVector3 Point2;
+        [FieldOffset(0x00)] public Vector3 Point1;
+        [FieldOffset(0x10)] public Vector3 Point2;
         [FieldOffset(0x20)] public float Radius;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct MtTriangle
     {
-        public MtVector3 Point1;
-        public MtVector3 Point2;
-        public MtVector3 Point3;
+        public Vector3 Point1;
+        public Vector3 Point2;
+        public Vector3 Point3;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -353,7 +307,7 @@ namespace SharpPluginLoader.Core.MtTypes
     [StructLayout(LayoutKind.Sequential)]
     public struct MtPlaneXz
     {
-        public MtVector3 Normal;
+        public Vector3 Normal;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -369,14 +323,14 @@ namespace SharpPluginLoader.Core.MtTypes
         public static implicit operator MtColor(Color color) => new() { R = color.R, G = color.G, B = color.B, A = color.A };
         public static implicit operator MtColor(uint rgba) => new() { Rgba = rgba };
         public static implicit operator uint(MtColor color) => color.Rgba;
-        public static explicit operator MtColor(MtVector4 color) => new()
+        public static explicit operator MtColor(Vector4 color) => new()
         {
             R = (byte)(color.X * 255), 
             G = (byte)(color.Y * 255), 
             B = (byte)(color.Z * 255), 
             A = (byte)(color.W * 255)
         };
-        public static explicit operator MtVector4(MtColor color) => new()
+        public static explicit operator Vector4(MtColor color) => new()
         {
             X = color.R / 255.0f, 
             Y = color.G / 255.0f, 
@@ -392,19 +346,5 @@ namespace SharpPluginLoader.Core.MtTypes
             B = (byte)(color.Z * 255), 
             A = (byte)(color.W * 255)
         };
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MtString
-    {
-        public int RefCount;
-        public uint Length;
-        public unsafe fixed char String[1];
-
-        public unsafe char this[int index]
-        {
-            get => String[index];
-            set => String[index] = value;
-        }
     }
 }

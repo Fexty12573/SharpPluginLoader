@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.MtTypes;
@@ -28,5 +29,5 @@ public class CollisionNodeObject : CollisionNode
     /// <summary>
     /// The move vector of the node.
     /// </summary>
-    public ref MtVector4 MoveVector => ref GetRef<MtVector4>(0xA0);
+    public ref Vector4 MoveVector => ref GetRef<Vector4>(0xA0);
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -26,27 +27,27 @@ public class Viewport : MtObject
     /// <summary>
     /// The region of the viewport.
     /// </summary>
-    public ref MtRect Region => ref GetRef<MtRect>(0x28);
+    public ref Rectangle Region => ref GetRef<Rectangle>(0x28);
 
     /// <summary>
     /// The view matrix of the viewports camera.
     /// </summary>
-    public ref MtMatrix4X4 ViewMatrix => ref GetRef<MtMatrix4X4>(0xA0);
+    public ref Matrix4x4 ViewMatrix => ref GetRef<Matrix4x4>(0xA0);
 
     /// <summary>
     /// The projection matrix of the viewports camera.
     /// </summary>
-    public ref MtMatrix4X4 ProjectionMatrix => ref GetRef<MtMatrix4X4>(0xE0);
+    public ref Matrix4x4 ProjectionMatrix => ref GetRef<Matrix4x4>(0xE0);
 
     /// <summary>
     /// The previous view matrix of the viewports camera.
     /// </summary>
-    public ref MtMatrix4X4 PrevViewMatrix => ref GetRef<MtMatrix4X4>(0x120);
+    public ref Matrix4x4 PrevViewMatrix => ref GetRef<Matrix4x4>(0x120);
 
     /// <summary>
     /// The previous projection matrix of the viewports camera.
     /// </summary>
-    public ref MtMatrix4X4 PrevProjectionMatrix => ref GetRef<MtMatrix4X4>(0x160);
+    public ref Matrix4x4 PrevProjectionMatrix => ref GetRef<Matrix4x4>(0x160);
 
     /// <summary>
     /// Converts a point in world space to screen space.
@@ -54,7 +55,7 @@ public class Viewport : MtObject
     /// <param name="worldPosition">The point in world space.</param>
     /// <param name="screenPos">The point in screen space.</param>
     /// <returns>True if the point is visible, false otherwise.</returns>
-    public bool WorldToScreen(MtVector3 worldPosition, out MtVector2 screenPos)
+    public bool WorldToScreen(Vector3 worldPosition, out Vector2 screenPos)
     {
         Vector4 worldPos = new(worldPosition, 1.0f);
         
@@ -69,10 +70,10 @@ public class Viewport : MtObject
 
         var ndcPos = clipPos / clipPos.W;
 
-        var hwidth = (Region.W - Region.X) * 0.5f;
-        var hheight = (Region.H - Region.Y) * 0.5f;
+        var hwidth = (Region.Width - Region.X) * 0.5f;
+        var hheight = (Region.Height - Region.Y) * 0.5f;
 
-        screenPos = new MtVector2(
+        screenPos = new Vector2(
             (hwidth * ndcPos.X) + hwidth,
             -(hheight * ndcPos.Y) + hheight
         );

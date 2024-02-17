@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -34,7 +35,7 @@ namespace SharpPluginLoader.Core.Resources.Animation
         [FieldOffset(0x08)] public uint ParamNum;
         [FieldOffset(0x0C)] public uint FrameNum;
         [FieldOffset(0x10)] public uint LoopFrame;
-        [FieldOffset(0x20)] public MtVector3 BaseTransform;
+        [FieldOffset(0x20)] public Vector3 BaseTransform;
         [FieldOffset(0x30)] public MtQuaternion BaseQuat;
         [FieldOffset(0x40)] public uint Flags;
         [FieldOffset(0x58)] private readonly Metadata* _metadata;

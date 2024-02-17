@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
@@ -16,10 +17,10 @@ public static class Primitives
     /// <param name="radius">The radius of the sphere.</param>
     /// <param name="color">The color of the sphere.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderSphere(MtVector3 position, float radius, MtColor color)
+    public static void RenderSphere(Vector3 position, float radius, MtColor color)
     {
         var sphere = new MtSphere { Center = position, Radius = radius };
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderSphere(MemoryUtil.AddressOf(ref sphere), MemoryUtil.AddressOf(ref color4));
     }
 
@@ -30,7 +31,7 @@ public static class Primitives
     /// <param name="radius">The radius of the sphere.</param>
     /// <param name="color">The color of the sphere.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderSphere(MtVector3 position, float radius, MtVector4 color)
+    public static void RenderSphere(Vector3 position, float radius, Vector4 color)
     {
         var sphere = new MtSphere { Center = position, Radius = radius };
         InternalCalls.RenderSphere(MemoryUtil.AddressOf(ref sphere), MemoryUtil.AddressOf(ref color));
@@ -44,7 +45,7 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderSphere(MtSphere sphere, MtColor color)
     {
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderSphere(MemoryUtil.AddressOf(ref sphere), MemoryUtil.AddressOf(ref color4));
     }
 
@@ -54,7 +55,7 @@ public static class Primitives
     /// <param name="sphere">The sphere to render.</param>
     /// <param name="color">The color of the sphere.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderSphere(MtSphere sphere, MtVector4 color)
+    public static void RenderSphere(MtSphere sphere, Vector4 color)
     {
         InternalCalls.RenderSphere(MemoryUtil.AddressOf(ref sphere), MemoryUtil.AddressOf(ref color));
     }
@@ -68,7 +69,7 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderObb(MtObb obb, MtColor color)
     {
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderObb(MemoryUtil.AddressOf(ref obb), MemoryUtil.AddressOf(ref color4));
     }
 
@@ -78,7 +79,7 @@ public static class Primitives
     /// <param name="obb">The oriented bounding box to render.</param>
     /// <param name="color">The color of the oriented bounding box.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderObb(MtObb obb, MtVector4 color)
+    public static void RenderObb(MtObb obb, Vector4 color)
     {
         InternalCalls.RenderObb(MemoryUtil.AddressOf(ref obb), MemoryUtil.AddressOf(ref color));
     }
@@ -92,7 +93,7 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderCapsule(MtCapsule capsule, MtColor color)
     {
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderCapsule(MemoryUtil.AddressOf(ref capsule), MemoryUtil.AddressOf(ref color4));
     }
 
@@ -102,7 +103,7 @@ public static class Primitives
     /// <param name="capsule">The capsule to render.</param>
     /// <param name="color">The color of the capsule.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderCapsule(MtCapsule capsule, MtVector4 color)
+    public static void RenderCapsule(MtCapsule capsule, Vector4 color)
     {
         InternalCalls.RenderCapsule(MemoryUtil.AddressOf(ref capsule), MemoryUtil.AddressOf(ref color));
     }
@@ -114,16 +115,16 @@ public static class Primitives
     /// <param name="end">The end position of the line.</param>
     /// <param name="color">The color of the line.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderLine(MtVector3 start, MtVector3 end, MtColor color)
+    public static void RenderLine(Vector3 start, Vector3 end, MtColor color)
     {
         var line = new MtLineSegment { Point1 = start, Point2 = end };
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color4));
     }
 
-    /// <inheritdoc cref="RenderLine(MtVector3,MtVector3,MtColor)"/>
+    /// <inheritdoc cref="RenderLine(Vector3,Vector3,MtColor)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderLine(MtVector3 start, MtVector3 end, MtVector4 color)
+    public static void RenderLine(Vector3 start, Vector3 end, Vector4 color)
     {
         var line = new MtLineSegment { Point1 = start, Point2 = end };
         InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color));
@@ -137,13 +138,13 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderLine(MtLineSegment line, MtColor color)
     {
-        var color4 = (MtVector4)color;
+        var color4 = (Vector4)color;
         InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color4));
     }
 
     /// <inheritdoc cref="RenderLine(MtLineSegment,MtColor)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void RenderLine(MtLineSegment line, MtVector4 color)
+    public static void RenderLine(MtLineSegment line, Vector4 color)
     {
         InternalCalls.RenderLine(MemoryUtil.AddressOf(ref line), MemoryUtil.AddressOf(ref color));
     }

@@ -10,11 +10,6 @@
 #include <Windows.h>
 #include <imgui_impl.h>
 #include <utility/game_functions.h>
-#include <directxtk/DDSTextureLoader.h>
-#include <directxtk/WICTextureLoader.h>
-#include <directxtk12/DDSTextureLoader.h>
-#include <directxtk12/WICTextureLoader.h>
-#include <directxtk12/ResourceUploadBatch.h>
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_dx11.h"
@@ -26,6 +21,9 @@
 #include "ChunkModule.h"
 #include "HResultHandler.h"
 #include "LoaderConfig.h"
+
+// DirectXTK12 References SerializeRootSignature so we need to link this
+#pragma comment(lib, "d3d12.lib")
 
 void D3DModule::initialize(CoreClr* coreclr) {
     if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
@@ -644,7 +642,10 @@ void D3DModule::d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_que
     if (!self->m_d3d12_command_queue && command_queue->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
         dlog::debug("Found D3D12 command queue");
         self->m_d3d12_command_queue = command_queue;
-        self->m_texture_manager->update_command_queue(command_queue);
+
+        if (self->m_texture_manager) {
+            self->m_texture_manager->update_command_queue(command_queue);
+        }
     }
 
     return self->m_d3d_execute_command_lists_hook.call<void>(command_queue, num_command_lists, command_lists);

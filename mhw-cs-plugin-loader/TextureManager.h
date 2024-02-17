@@ -32,6 +32,7 @@ class TextureManager {
 public:
     explicit TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue);
     explicit TextureManager(ID3D11Device* device, ID3D11DeviceContext* context);
+    ~TextureManager();
 
     TextureHandle load_texture(std::string_view path);
     void unload_texture(TextureHandle handle);

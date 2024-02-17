@@ -175,6 +175,8 @@
     <ClCompile Include="Preloader.cpp" />
     <ClCompile Include="PrimitiveRenderingModule.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="TextureManager11.cpp" />
+    <ClCompile Include="TextureManager12.cpp" />
     <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>

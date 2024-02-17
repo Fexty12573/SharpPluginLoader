@@ -1,5 +1,6 @@
 #pragma once
 #include "NativeModule.h"
+#include "TextureManager.h"
 #include "PrimitiveRenderingModule.h"
 
 #include <d3d11.h>
@@ -8,14 +9,10 @@
 #include <IconsFontAwesome6.h>
 #include <wrl.h>
 
-#include <directxtk12/DescriptorHeap.h>
-
 #include <imgui_impl.h>
 #include <safetyhook/safetyhook.hpp>
 
 #include <vector>
-
-#include "TextureManager.h"
 
 class D3DModule final : public NativeModule {
     template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;

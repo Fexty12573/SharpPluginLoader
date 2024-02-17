@@ -311,8 +311,8 @@
     },
     {
         "Name": "MtSerializer:SerializeBinary",
-        "Pattern": "48 8B E9 8B 50 08 D1 EA F6 C2 01",
-        "Offset": -24
+        "Pattern": "57 48 81 EC 80 04 00 00 8B 42 08 49 8B D9 D1 E8 41 0F B7 F8",
+        "Offset": -10
     },
     {
         "Name": "MtSerializer:DeserializeXml",

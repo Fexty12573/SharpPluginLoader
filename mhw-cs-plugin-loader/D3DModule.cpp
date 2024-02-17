@@ -11,7 +11,9 @@
 #include <imgui_impl.h>
 #include <utility/game_functions.h>
 #include <directxtk/DDSTextureLoader.h>
+#include <directxtk/WICTextureLoader.h>
 #include <directxtk12/DDSTextureLoader.h>
+#include <directxtk12/WICTextureLoader.h>
 #include <directxtk12/ResourceUploadBatch.h>
 
 #include "imgui_impl_dx12.h"
@@ -22,6 +24,7 @@
 #include <thread>
 
 #include "ChunkModule.h"
+#include "HResultHandler.h"
 #include "LoaderConfig.h"
 
 void D3DModule::initialize(CoreClr* coreclr) {
@@ -50,6 +53,9 @@ void D3DModule::initialize(CoreClr* coreclr) {
     );
 
     m_title_menu_ready_hook = safetyhook::create_inline(MH::uGUITitle::play, title_menu_ready_hook);
+
+    coreclr->add_internal_call("LoadTexture", (void*)load_texture);
+    coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);
 }
 
 void D3DModule::shutdown() {
@@ -508,90 +514,28 @@ void D3DModule::imgui_load_fonts() {
     ImFontConfig_destroy(font_cfg);
 }
 
-D3DModule::ComPtr<ID3D11ShaderResourceView> D3DModule::d3d11_load_texture(std::string_view path) {
-    namespace fs = std::filesystem;
-
-    const auto file = fs::path(path);
-    if (!fs::exists(file)) {
-        dlog::error("Failed to load texture: {} does not exist", path);
+TextureHandle D3DModule::load_texture(const char* path) {
+    const auto& self = NativePluginFramework::get_module<D3DModule>();
+    if (!self->m_texture_manager) {
+        dlog::error("Cannot load texture during Buffer Resize event");
         return nullptr;
     }
 
-    const auto ext = file.extension().string();
-    if (ext == ".dds") {
-        ComPtr<ID3D11Resource> texture;
-        ComPtr<ID3D11ShaderResourceView> srv;
-        DirectX::CreateDDSTextureFromFile(
-            m_d3d11_device,
-            file.c_str(),
-            texture.GetAddressOf(),
-            srv.GetAddressOf()
-        );
-
-        return srv;
-    } else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
-        ComPtr<ID3D11Resource> texture;
-        ComPtr<ID3D11ShaderResourceView> srv;
-        /*DirectX::CreateWICTextureFromFile(
-            m_d3d11_device,
-            m_d3d11_device_context,
-            file.c_str(),
-            texture.GetAddressOf(),
-            srv.GetAddressOf()
-        );*/
-
-        return srv;
-    } else {
-        dlog::error("Failed to load texture: unsupported format {}", ext);
+    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
+        dlog::error("Cannot load texture during Buffer Resize event (D3D12)");
         return nullptr;
     }
+
+    return self->m_texture_manager->load_texture(path);
 }
 
-D3DModule::ComPtr<ID3D11ShaderResourceView> D3DModule::d3d11_create_static_texture(UINT w, UINT h, DXGI_FORMAT format, const void* data) {
-    D3D11_TEXTURE2D_DESC desc = {
-        .Width = w,
-        .Height = h,
-        .MipLevels = 1,
-        .ArraySize = 1,
-        .Format = format,
-        .SampleDesc = {
-            .Count = 1,
-            .Quality = 0
-        },
-        .Usage = D3D11_USAGE_DEFAULT,
-        .BindFlags = D3D11_BIND_SHADER_RESOURCE,
-        .CPUAccessFlags = 0,
-        .MiscFlags = 0
-    };
-
-    D3D11_SUBRESOURCE_DATA subres_data = {
-        .pSysMem = data,
-        .SysMemPitch = w * 4,
-        .SysMemSlicePitch = 0
-    };
-
-    ComPtr<ID3D11Texture2D> texture;
-    if (FAILED(m_d3d11_device->CreateTexture2D(&desc, &subres_data, texture.GetAddressOf()))) {
-        dlog::error("Failed to create D3D11 texture");
-        return nullptr;
+void D3DModule::unload_texture(TextureHandle handle) {
+    const auto& self = NativePluginFramework::get_module<D3DModule>();
+    if (!self->m_texture_manager) {
+        return;
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {
-        .Format = format,
-        .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
-        .Texture2D = {
-            .MostDetailedMip = 0,
-            .MipLevels = 1
-        }
-    };
-
-    ComPtr<ID3D11ShaderResourceView> srv;
-    if (FAILED(m_d3d11_device->CreateShaderResourceView(texture.Get(), &srv_desc, srv.GetAddressOf()))) {
-        dlog::error("Failed to create D3D11 shader resource view");
-        return nullptr;
-    }
-
-    return srv;
+    self->m_texture_manager->unload_texture(handle);
 }
 
 bool D3DModule::is_d3d12() {
@@ -626,6 +570,10 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
+        
+        if (!self->m_texture_manager) {
+            self->m_texture_manager = std::make_unique<TextureManager>(self->m_d3d12_device, self->m_d3d12_command_queue);
+        }
 
         if (config.get_primitive_rendering_enabled()) {
             prm->late_init(self.get(), swap_chain);
@@ -696,6 +644,7 @@ void D3DModule::d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_que
     if (!self->m_d3d12_command_queue && command_queue->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT) {
         dlog::debug("Found D3D12 command queue");
         self->m_d3d12_command_queue = command_queue;
+        self->m_texture_manager->update_command_queue(command_queue);
     }
 
     return self->m_d3d_execute_command_lists_hook.call<void>(command_queue, num_command_lists, command_lists);
@@ -746,6 +695,10 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
 
     if (!self->m_is_initialized) {
         self->d3d11_initialize_imgui(swap_chain);
+
+        if (!self->m_texture_manager) {
+            self->m_texture_manager = std::make_unique<TextureManager>(self->m_d3d11_device, self->m_d3d11_device_context);
+        }
         
         if (config.get_primitive_rendering_enabled()) {
             prm->late_init(self.get(), swap_chain);

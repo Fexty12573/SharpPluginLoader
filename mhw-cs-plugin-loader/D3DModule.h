@@ -8,10 +8,14 @@
 #include <IconsFontAwesome6.h>
 #include <wrl.h>
 
+#include <directxtk12/DescriptorHeap.h>
+
 #include <imgui_impl.h>
 #include <safetyhook/safetyhook.hpp>
 
 #include <vector>
+
+#include "TextureManager.h"
 
 class D3DModule final : public NativeModule {
     template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -32,8 +36,8 @@ private:
     void d3d11_deinitialize_imgui();
     void imgui_load_fonts();
 
-    ComPtr<ID3D11ShaderResourceView> d3d11_load_texture(std::string_view path);
-    ComPtr<ID3D11ShaderResourceView> d3d11_create_static_texture(UINT w, UINT h, DXGI_FORMAT format, const void* data);
+    static TextureHandle load_texture(const char* path);
+    static void unload_texture(TextureHandle handle);
 
     static bool is_d3d12();
 
@@ -66,6 +70,10 @@ private:
     safetyhook::InlineHook m_d3d_signal_hook;
     safetyhook::InlineHook m_d3d_resize_buffers_hook;
 
+    std::unique_ptr<TextureManager> m_texture_manager;
+
+    #pragma region D3D12
+
     ID3D12Device* m_d3d12_device = nullptr;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_back_buffers = nullptr;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_render_targets = nullptr;
@@ -76,9 +84,15 @@ private:
     UINT32 m_d3d12_buffer_count = 0;
     std::vector<FrameContext> m_d3d12_frame_contexts;
 
+    #pragma endregion
+
+    #pragma region D3D11
+
     ID3D11Device* m_d3d11_device = nullptr;
     ID3D11DeviceContext* m_d3d11_device_context = nullptr;
     IDXGISwapChain* m_d3d11_swap_chain = nullptr;
+
+    #pragma endregion
 
     HMODULE m_d3d12_module = nullptr;
     HMODULE m_d3d11_module = nullptr;

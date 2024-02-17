@@ -3,9 +3,9 @@
 ## Introduction
 The framework also provides a way to render your own UI to the screen using [Dear ImGui](https://github.com/ocornut/imgui/tree/master). ImGui is a very powerful UI library that is very easy to use and has a lot of features.
 
-To get started add the `ImGui.NET` NuGet package to your project. You can do this by right-clicking your project in the solution explorer and selecting "Manage NuGet Packages". Then search for `ImGui.NET` and install it.
+To get started add the `SharpPluginLoader.ImGui` NuGet package to your project. You can do this by right-clicking your project in the solution explorer and selecting "Manage NuGet Packages". Then search for `SharpPluginLoader.ImGui` and install it.
 
-Next add an event handler for the `OnRender` event to your plugin. This event is called every frame and is where you will do all your rendering.
+Next add an event handler for the `OnImGuiRender` event to your plugin. This event is called every frame and is where you will do all your rendering.
 ```csharp
 
 public PluginData Inititalize()

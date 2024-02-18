@@ -21,6 +21,8 @@ namespace SharpPluginLoader.Core.Rendering
         public static bool DemoShown => _showDemo;
 #endif
 
+        public static bool IsDirectX12 => MemoryUtil.Read<bool>(0x1451c9e40);
+
         /// <summary>
         /// Loads a texture from the specified path.
         /// </summary>

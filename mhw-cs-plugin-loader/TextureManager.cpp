@@ -1,31 +1,28 @@
 #include "TextureManager.h"
 #include "HResultHandler.h"
 
-TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue)
-    : m_is_d3d12(true), m_device12(device), m_command_queue12(cmd_queue) {}
+TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue, const ComPtr<ID3D12DescriptorHeap>& heap)
+    : m_is_d3d12(true), m_device12(device), m_command_queue12(cmd_queue)
+    , m_descriptor_heap12(std::make_unique<DirectX::DescriptorHeap>(heap.Get())) {}
 
 TextureManager::TextureManager(ID3D11Device* device, ID3D11DeviceContext* context) 
     : m_is_d3d12(false), m_device11(device), m_context11(context) {}
 
-TextureManager::~TextureManager() {
-    CoUninitialize();
-}
-
-TextureHandle TextureManager::load_texture(std::string_view path) {
+TextureHandle TextureManager::load_texture(std::string_view path, u32* out_width, u32* out_height) {
     TextureHandle handle;
     TextureEntry entry{
         .Path = std::string(path)
     };
 
     if (m_is_d3d12) {
-        entry.Texture12 = load_texture12(path);
+        entry.Texture12 = load_texture12(path, out_width, out_height);
         if (!entry.Texture12) {
             return nullptr;
         }
 
         handle = (TextureHandle)get_gpu_descriptor_handle(entry).ptr;
     } else {
-        entry.Texture11 = load_texture11(path);
+        entry.Texture11 = load_texture11(path, out_width, out_height);
         if (!entry.Texture11) {
             return nullptr;
         }
@@ -57,27 +54,18 @@ void TextureManager::unload_texture(TextureHandle handle) {
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::get_gpu_descriptor_handle(TextureEntry& entry) {
-    if (m_descriptor_heaps.empty()) {
-        m_descriptor_heaps.emplace_back(m_device12, DESCRIPTOR_HEAP_SIZE);
-        m_next_descriptor_index = 0;
-    } else if (m_next_descriptor_index >= DESCRIPTOR_HEAP_SIZE) {
-        m_descriptor_heaps.emplace_back(m_device12, DESCRIPTOR_HEAP_SIZE);
-        m_next_descriptor_index = 0;
+    if (m_next_descriptor_index >= DESCRIPTOR_HEAP_SIZE && m_free_descriptor_indices.empty()) {
+        dlog::error("Failed to get GPU descriptor handle: descriptor heap is full");
+        return { 0 };
     }
 
-    DescriptorIndex descriptor_index{
-        .HeapIndex = (u32)m_descriptor_heaps.size() - 1,
-        .Index = m_next_descriptor_index
-    };
-
-    if (!m_free_descriptor_indices.empty()) {
+    u32 descriptor_index;
+    if (m_free_descriptor_indices.empty()) {
+        descriptor_index = m_next_descriptor_index++;
+    } else {
         descriptor_index = m_free_descriptor_indices.front();
         m_free_descriptor_indices.pop();
-    } else {
-        m_next_descriptor_index++;
     }
-
-    auto& heap = m_descriptor_heaps[descriptor_index.HeapIndex];
 
     // Place the texture in the next available descriptor
     D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
@@ -89,13 +77,11 @@ D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::get_gpu_descriptor_handle(TextureEnt
     srv_desc.Texture2D.PlaneSlice = 0;
     srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap.GetCpuHandle(descriptor_index.Index);
+    D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = m_descriptor_heap12->GetCpuHandle(descriptor_index);
     m_device12->CreateShaderResourceView(entry.Texture12.Get(), &srv_desc, cpu_handle);
 
-    auto handle = heap.GetGpuHandle(descriptor_index.Index);
-
+    auto handle = m_descriptor_heap12->GetGpuHandle(descriptor_index);
     entry.DescriptorIndex = descriptor_index;
-    m_next_descriptor_index++;
 
     return handle;
 }

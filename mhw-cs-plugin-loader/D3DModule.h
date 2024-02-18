@@ -33,7 +33,7 @@ private:
     void d3d11_deinitialize_imgui();
     void imgui_load_fonts();
 
-    static TextureHandle load_texture(const char* path);
+    static TextureHandle load_texture(const char* path, u32* out_width, u32* out_height);
     static void unload_texture(TextureHandle handle);
 
     static bool is_d3d12();
@@ -73,13 +73,15 @@ private:
 
     ID3D12Device* m_d3d12_device = nullptr;
     ComPtr<ID3D12DescriptorHeap> m_d3d12_back_buffers = nullptr;
-    ComPtr<ID3D12DescriptorHeap> m_d3d12_render_targets = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_srv_heap = nullptr;
     ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
     ID3D12CommandQueue* m_d3d12_command_queue = nullptr;
     ID3D12Fence* m_d3d12_fence = nullptr;
     UINT64 m_d3d12_fence_value = 0;
     UINT32 m_d3d12_buffer_count = 0;
     std::vector<FrameContext> m_d3d12_frame_contexts;
+
+    static constexpr u32 D3D12_DESCRIPTOR_HEAP_SIZE = TextureManager::DESCRIPTOR_HEAP_SIZE;
 
     #pragma endregion
 

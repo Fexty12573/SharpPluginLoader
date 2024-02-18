@@ -25,6 +25,8 @@ namespace SharpPluginLoader.Core.Rendering
         /// Loads a texture from the specified path.
         /// </summary>
         /// <param name="path">The path to the texture.</param>
+        /// <param name="width">The width of the loaded texture.</param>
+        /// <param name="height">The height of the loaded texture.</param>
         /// <returns>A handle to the loaded texture.</returns>
         /// <remarks>
         /// Textures can be any of the following formats: PNG, JPG, DDS
@@ -39,9 +41,9 @@ namespace SharpPluginLoader.Core.Rendering
         ///     ImGui.Image(texture, new Vector2(100, 100));
         /// </code>
         /// </example>
-        public static TextureHandle LoadTexture(string path)
+        public static TextureHandle LoadTexture(string path, out uint width, out uint height)
         {
-            return new TextureHandle(InternalCalls.LoadTexture(path));
+            return new TextureHandle(InternalCalls.LoadTexture(path, out width, out height));
         }
 
         [UnmanagedCallersOnly]

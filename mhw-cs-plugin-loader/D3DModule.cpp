@@ -349,14 +349,14 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     m_d3d12_buffer_count = desc.BufferCount;
     m_d3d12_frame_contexts.resize(desc.BufferCount, FrameContext{});
 
-    const D3D12_DESCRIPTOR_HEAP_DESC dp_imgui_desc = {
+    constexpr D3D12_DESCRIPTOR_HEAP_DESC dp_imgui_desc = {
         .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-        .NumDescriptors = desc.BufferCount,
+        .NumDescriptors = D3D12_DESCRIPTOR_HEAP_SIZE,
         .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
         .NodeMask = 0
     };
 
-    if (FAILED(m_d3d12_device->CreateDescriptorHeap(&dp_imgui_desc, IID_PPV_ARGS(m_d3d12_render_targets.GetAddressOf())))) {
+    if (FAILED(m_d3d12_device->CreateDescriptorHeap(&dp_imgui_desc, IID_PPV_ARGS(m_d3d12_srv_heap.GetAddressOf())))) {
         dlog::error("Failed to create D3D12 descriptor heap for back buffers");
         return;
     }
@@ -417,9 +417,9 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     }
 
     if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
-        DXGI_FORMAT_R8G8B8A8_UNORM, m_d3d12_render_targets.Get(),
-        m_d3d12_render_targets->GetCPUDescriptorHandleForHeapStart(),
-        m_d3d12_render_targets->GetGPUDescriptorHandleForHeapStart())) {
+        DXGI_FORMAT_R8G8B8A8_UNORM, m_d3d12_srv_heap.Get(),
+        m_d3d12_srv_heap->GetCPUDescriptorHandleForHeapStart(),
+        m_d3d12_srv_heap->GetGPUDescriptorHandleForHeapStart())) {
         dlog::error("Failed to initialize ImGui D3D12");
         return;
     }
@@ -474,7 +474,7 @@ void D3DModule::d3d12_deinitialize_imgui() {
     ImGui_ImplWin32_Shutdown();
     m_d3d12_frame_contexts.clear();
     m_d3d12_back_buffers = nullptr;
-    m_d3d12_render_targets = nullptr;
+    m_d3d12_srv_heap = nullptr;
     m_d3d12_command_list = nullptr;
     m_d3d12_command_queue = nullptr;
     m_d3d12_fence = nullptr;
@@ -512,7 +512,7 @@ void D3DModule::imgui_load_fonts() {
     ImFontConfig_destroy(font_cfg);
 }
 
-TextureHandle D3DModule::load_texture(const char* path) {
+TextureHandle D3DModule::load_texture(const char* path, u32* out_width, u32* out_height) {
     const auto& self = NativePluginFramework::get_module<D3DModule>();
     if (!self->m_texture_manager) {
         dlog::error("Cannot load texture during Buffer Resize event");
@@ -524,7 +524,7 @@ TextureHandle D3DModule::load_texture(const char* path) {
         return nullptr;
     }
 
-    return self->m_texture_manager->load_texture(path);
+    return self->m_texture_manager->load_texture(path, out_width, out_height);
 }
 
 void D3DModule::unload_texture(TextureHandle handle) {
@@ -570,7 +570,11 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         self->d3d12_initialize_imgui(swap_chain);
         
         if (!self->m_texture_manager) {
-            self->m_texture_manager = std::make_unique<TextureManager>(self->m_d3d12_device, self->m_d3d12_command_queue);
+            self->m_texture_manager = std::make_unique<TextureManager>(
+                self->m_d3d12_device, 
+                self->m_d3d12_command_queue, 
+                self->m_d3d12_srv_heap
+            );
         }
 
         if (config.get_primitive_rendering_enabled()) {
@@ -612,7 +616,7 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     self->m_d3d12_command_list->Reset(frame_ctx.CommandAllocator.Get(), nullptr);
     self->m_d3d12_command_list->ResourceBarrier(1, &barrier);
     self->m_d3d12_command_list->OMSetRenderTargets(1, &frame_ctx.RenderTargetDescriptor, FALSE, nullptr);
-    self->m_d3d12_command_list->SetDescriptorHeaps(1, self->m_d3d12_render_targets.GetAddressOf());
+    self->m_d3d12_command_list->SetDescriptorHeaps(1, self->m_d3d12_srv_heap.GetAddressOf());
 
     ImGui_ImplDX12_RenderDrawData(draw_data, self->m_d3d12_command_list.Get());
 

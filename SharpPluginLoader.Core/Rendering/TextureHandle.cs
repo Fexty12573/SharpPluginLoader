@@ -7,7 +7,7 @@ namespace SharpPluginLoader.Core.Rendering;
 /// <param name="handle">The handle</param>
 /// <remarks>
 /// You should generally not have to create instances of this struct yourself.
-/// Use <see cref="Renderer.LoadTexture(string)"/> to load a texture and get a handle.
+/// Use <see cref="Renderer.LoadTexture"/> to load a texture and get a handle.
 /// <para/>
 /// If for some reason you <i>do</i> need to create a handle manually, the handle should be:
 /// <list type="bullet">

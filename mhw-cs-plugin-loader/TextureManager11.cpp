@@ -7,7 +7,7 @@
 #include <directxtk/WICTextureLoader.h>
 
 
-TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(std::string_view path) const {
+TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(std::string_view path, u32* width, u32* height) const {
     namespace fs = std::filesystem;
 
     const auto file = fs::path(path);
@@ -27,6 +27,10 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
             srv.GetAddressOf()
         ));
 
+        if (width && height) {
+            get_texture_dimensions(texture, width, height);
+        }
+
         return srv;
     }
 
@@ -42,6 +46,10 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
             srv.GetAddressOf()
         ));
 
+        if (width && height) {
+            get_texture_dimensions(texture, width, height);
+        }
+
         return srv;
     }
 
@@ -49,3 +57,21 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
     return nullptr;
 }
 
+void TextureManager::get_texture_dimensions(const ComPtr<ID3D11Resource>& texture, u32* width, u32* height) {
+    D3D11_RESOURCE_DIMENSION dim;
+    texture->GetType(&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
+        ComPtr<ID3D11Texture2D> tex2d;
+        HandleResult(texture.As(&tex2d));
+
+        D3D11_TEXTURE2D_DESC desc;
+        tex2d->GetDesc(&desc);
+
+        *width = desc.Width;
+        *height = desc.Height;
+    }
+    else {
+        dlog::error("Failed to get texture dimensions: unsupported resource type");
+    }
+}

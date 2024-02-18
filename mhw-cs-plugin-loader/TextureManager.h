@@ -29,6 +29,7 @@ public:
     explicit TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue, const ComPtr<ID3D12DescriptorHeap>& heap);
     explicit TextureManager(ID3D11Device* device, ID3D11DeviceContext* context);
 
+    TextureHandle register_texture(void* texture);
     TextureHandle load_texture(std::string_view path, u32* out_width, u32* out_height);
     void unload_texture(TextureHandle handle);
 
@@ -42,6 +43,7 @@ private:
 
     static void get_texture_dimensions(const ComPtr<ID3D11Resource>& texture, u32* width, u32* height);
     static void get_texture_dimensions(const ComPtr<ID3D12Resource>& texture, u32* width, u32* height);
+    static DXGI_FORMAT get_texture_format(const ComPtr<ID3D11Resource>& texture);
 
     D3D12_GPU_DESCRIPTOR_HANDLE get_gpu_descriptor_handle(TextureEntry& entry);
 

@@ -8,6 +8,41 @@ TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_que
 TextureManager::TextureManager(ID3D11Device* device, ID3D11DeviceContext* context) 
     : m_is_d3d12(false), m_device11(device), m_context11(context) {}
 
+TextureHandle TextureManager::register_texture(void* texture) {
+    TextureEntry entry;
+    TextureHandle handle;
+
+    if (m_is_d3d12) {
+        entry.Texture12 = static_cast<ID3D12Resource*>(texture);
+        handle = (TextureHandle)get_gpu_descriptor_handle(entry).ptr;
+    } else {
+        ComPtr<ID3D11ShaderResourceView> srv;
+        const ComPtr<ID3D11Resource> resource = static_cast<ID3D11Resource*>(texture);
+        const D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {
+            .Format = get_texture_format(resource),
+            .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+            .Texture2D = {
+                .MostDetailedMip = 0,
+                .MipLevels = 0
+            }
+        };
+
+        HandleResult(m_device11->CreateShaderResourceView(
+            resource.Get(),
+            &srv_desc, 
+            srv.GetAddressOf())
+        );
+
+        entry.Texture11 = srv;
+        handle = (TextureHandle)srv.Get();
+    }
+
+    dlog::debug("Registered texture: handle {}", handle);
+
+    m_textures.emplace(handle, std::move(entry));
+    return handle;
+}
+
 TextureHandle TextureManager::load_texture(std::string_view path, u32* out_width, u32* out_height) {
     TextureHandle handle;
     TextureEntry entry{

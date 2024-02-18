@@ -75,3 +75,21 @@ void TextureManager::get_texture_dimensions(const ComPtr<ID3D11Resource>& textur
         dlog::error("Failed to get texture dimensions: unsupported resource type");
     }
 }
+
+DXGI_FORMAT TextureManager::get_texture_format(const ComPtr<ID3D11Resource>& texture) {
+    D3D11_RESOURCE_DIMENSION dim;
+    texture->GetType(&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
+        ComPtr<ID3D11Texture2D> tex2d;
+        HandleResult(texture.As(&tex2d));
+
+        D3D11_TEXTURE2D_DESC desc;
+        tex2d->GetDesc(&desc);
+
+        return desc.Format;
+    }
+
+    dlog::error("Failed to get texture format: unsupported resource type");
+    return DXGI_FORMAT_UNKNOWN;
+}

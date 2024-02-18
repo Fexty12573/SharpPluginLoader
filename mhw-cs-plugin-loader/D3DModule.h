@@ -33,6 +33,7 @@ private:
     void d3d11_deinitialize_imgui();
     void imgui_load_fonts();
 
+    static TextureHandle register_texture(void* texture);
     static TextureHandle load_texture(const char* path, u32* out_width, u32* out_height);
     static void unload_texture(TextureHandle handle);
 

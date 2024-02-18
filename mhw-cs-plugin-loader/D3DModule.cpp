@@ -54,6 +54,7 @@ void D3DModule::initialize(CoreClr* coreclr) {
 
     coreclr->add_internal_call("LoadTexture", (void*)load_texture);
     coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);
+    coreclr->add_internal_call("RegisterTexture", (void*)register_texture);
 }
 
 void D3DModule::shutdown() {
@@ -510,6 +511,21 @@ void D3DModule::imgui_load_fonts() {
     ImFontAtlas_Build(io.Fonts);
 
     ImFontConfig_destroy(font_cfg);
+}
+
+TextureHandle D3DModule::register_texture(void* texture) {
+    const auto& self = NativePluginFramework::get_module<D3DModule>();
+    if (!self->m_texture_manager) {
+        dlog::error("Cannot register texture during Buffer Resize event");
+        return nullptr;
+    }
+
+    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
+        dlog::error("Cannot register texture during Buffer Resize event (D3D12)");
+        return nullptr;
+    }
+
+    return self->m_texture_manager->register_texture(texture);
 }
 
 TextureHandle D3DModule::load_texture(const char* path, u32* out_width, u32* out_height) {

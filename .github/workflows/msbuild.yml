@@ -37,7 +37,7 @@ jobs:
         uses: lukka/run-vcpkg@v10.2
         with:
           vcpkgDirectory: "${{runner.workspace}}/b/vcpkg"
-          vcpkgGitCommitId: "c8696863d371ab7f46e213d8f5ca923c4aef2a00" # github.com/microsoft/vcpkg - 2023-12-12 release.
+          vcpkgGitCommitId: "13bde2ff13192e1b2fdd37bd9b475c7665ae6ae5" # github.com/microsoft/vcpkg - Latest commit as of 2024-02-19
           vcpkgJsonGlob: "**/vcpkg.json"
           runVcpkgInstall: true
 

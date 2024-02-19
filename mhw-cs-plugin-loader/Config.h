@@ -83,4 +83,16 @@ constexpr inline auto SPL_CORE_ASSEMBLY_NAME = L"SharpPluginLoader.Core"sv;
 // The path to the loader core assembly
 constexpr inline auto SPL_CORE_ASSEMBLY = detail::concat<SPL_LOADER_DIR, SPL_CORE_ASSEMBLY_FILE_NAME>;
 
+
+
+#ifdef _DEBUG
+// The path to the default chunk
+static constexpr const char* SPL_DEFAULT_CHUNK_PATH = "nativePC/plugins/CSharp/Loader/Default.Debug.bin";
+#else
+// The path to the default chunk
+static constexpr const char* SPL_DEFAULT_CHUNK_PATH = "nativePC/plugins/CSharp/Loader/Default.bin";
+#endif
+
+// The path of the address repository cache file
+static constexpr const char* SPL_ADDRESS_REPOSITORY_CACHE_PATH = "nativePC/plugins/CSharp/Loader/NativeAddressCache.json";
 }

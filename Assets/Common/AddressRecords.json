@@ -5,6 +5,21 @@
         "Offset": 0
     },
     {
+        "Name": "Core::ScrtCommonMain",
+        "Pattern": "48 89 5C 24 08 57 48 83 EC 30 B9 01 00 00 00 E8 ? ? ? ? 84 C0",
+        "Offset": 0
+    },
+    {
+        "Name": "Core::WinMainCall",
+        "Pattern": "E8 ? ? ? ? 0F B7 D8 E8 ? ? ? ? 4C 8B C0 44 8B CB 33 D2 48 8D ? ? ? ? ?",
+        "Offset": 28
+    },
+    {
+        "Name": "Core::MhMainCtor",
+        "Pattern": "BA 00 00 08 00 48 8B CF E8 ? ? ? ? 4C 89 3F C7 87 ? ? ? ? FF FF FF FF",
+        "Offset": -122
+    },
+    {
         "Name": "AnimationLayerComponent:RegisterLmt",
         "Pattern": "48 8b 81 60 04 00 00 48 85 c0 74 08 48 8b c8 e9 ? ? ? ? 48 8b 89 68 04 00 00 48 85 c9 ? ? ? ? ? ? c3",
         "Offset": 0

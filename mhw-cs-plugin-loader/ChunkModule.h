@@ -33,12 +33,6 @@ private:
 private:
     Ref<Chunk> m_default_chunk;
     std::unordered_map<std::string, Ref<Chunk>> m_chunks;
-
-#ifdef _DEBUG
-    static constexpr const char* DefaultChunkPath = "nativePC/plugins/CSharp/Loader/Default.Debug.bin";
-#else
-    static constexpr const char* DefaultChunkPath = "nativePC/plugins/CSharp/Loader/Default.bin";
-#endif
 };
 
 

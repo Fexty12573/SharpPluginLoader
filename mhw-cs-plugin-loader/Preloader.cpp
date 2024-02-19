@@ -9,6 +9,7 @@
 
 #include <safetyhook/safetyhook.hpp>
 
+#include "AddressRepository.h"
 #include "NativePluginFramework.h"
 #include "CoreClr.h"
 #include "Log.h"
@@ -26,14 +27,10 @@ SafetyHookInline g_mh_main_ctor_hook{};
 
 CoreClr* s_coreclr = nullptr;
 NativePluginFramework* s_framework = nullptr;
+AddressRepository* s_address_repository = nullptr;
 
 // The default value that MSVC uses for the IMAGE_LOAD_CONFIG_DIRECTORY64.SecurityCookie.
 const uint64_t MSVC_DEFAULT_SECURITY_COOKIE_VALUE = 0x2B992DDFA232L;
-const Pattern SCRT_COMMON_MAIN_PATTERN = Pattern::from_string("48 89 5C 24 08 57 48 83 EC 30 B9 01 00 00 00 E8 ?? ?? ?? ?? 84 C0");
-const Pattern WINMAIN_CALL_PATTERN = Pattern::from_string("E8 ?? ?? ?? ?? 0F B7 D8 E8 ?? ?? ?? ?? 4C 8B C0 44 8B CB 33 D2 48 8D ?? ?? ?? ?? ??");
-const int64_t WINMAIN_CALL_PATTERN_OFFSET = 28;
-const Pattern MHMAIN_CALL_PATTERN = Pattern::from_string("BA 00 00 08 00 48 8B CF E8 ?? ?? ?? ?? 4C 89 3F C7 87 ?? ?? ?? ?? FF FF FF FF");
-const int64_t MHMAIN_CALL_PATTERN_OFFSET = -122;
 
 void open_console() {
     AllocConsole();
@@ -70,7 +67,7 @@ uint64_t* get_security_cookie_pointer() {
 __declspec(noinline) int64_t hooked_scrt_common_main() {
     dlog::info("[Preloader] Initializing CLR / NativePluginFramework");
     s_coreclr = new CoreClr();
-    s_framework = new NativePluginFramework(s_coreclr);
+    s_framework = new NativePluginFramework(s_coreclr, s_address_repository);
     dlog::info("[Preloader] Initialized");
 
     s_framework->trigger_on_pre_main();
@@ -140,10 +137,10 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
     if (is_main_game_security_init_cookie_call(ret_address)) {
         // The game has been unpacked in memory (for steam DRM or possibly Enigma in the future),
         // start scanning for the core/main functions we want to hook.
+        s_address_repository = new AddressRepository();
+        s_address_repository->initialize();
 
-        auto pattern_scan_start_time = std::chrono::steady_clock::now();
-
-        const auto scrt_common_main_address = PatternScanner::find_first(SCRT_COMMON_MAIN_PATTERN);
+        const auto scrt_common_main_address = s_address_repository->get("Core::ScrtCommonMain");
         if (scrt_common_main_address == 0) {
             dlog::error("[Preloader] Failed to find __scrt_common_main_seh address");
             return;
@@ -152,28 +149,20 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
 
         // We parse this one from the call to WinMain rather than searching for the WinMain code itself,
         // since that has changed drastically in previous patches (e.g. when they removed anti-debug stuff).
-        const auto winmain_call_address = PatternScanner::find_first(WINMAIN_CALL_PATTERN);
+        const auto winmain_call_address = s_address_repository->get("Core::WinMainCall");
         if (winmain_call_address == 0) {
             dlog::error("[Preloader] Failed to find WinMain call address");
             return;
         }
-        uintptr_t winmain_address = resolve_x86_relative_call(winmain_call_address + WINMAIN_CALL_PATTERN_OFFSET);
+        uintptr_t winmain_address = resolve_x86_relative_call(winmain_call_address);
         dlog::debug("[Preloader] Resolved address for WinMain: 0x{:X}", winmain_address);
 
-        const auto mhmain_scan = PatternScanner::find_first(MHMAIN_CALL_PATTERN);
-        if (mhmain_scan == 0) {
+        const auto mhmain_ctor_address = s_address_repository->get("Core::MhMainCtor");
+        if (mhmain_ctor_address == 0) {
             dlog::error("[Preloader] Failed to find sMhMain::ctor address");
             return;
         }
-        uintptr_t mhmain_ctor_address = (mhmain_scan + MHMAIN_CALL_PATTERN_OFFSET);
         dlog::debug("[Preloader] Resolved address for sMhMain::ctor: 0x{:X}", mhmain_ctor_address);
-
-        // Done scanning, log time for debugging sake.
-        auto pattern_scan_end_time = std::chrono::steady_clock::now();
-        dlog::debug(
-            "[Preloader] Pattern scanning for crtmain/winmain/mhmain took: {}ms",
-            std::chrono::duration_cast<std::chrono::milliseconds>(pattern_scan_end_time - pattern_scan_start_time).count()
-        );
 
         // Hook the functions.
         g_scrt_common_main_hook = safetyhook::create_inline(

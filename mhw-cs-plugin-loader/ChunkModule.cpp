@@ -1,7 +1,8 @@
 #include "ChunkModule.h"
 #include "NativePluginFramework.h"
+#include "Config.h"
 
-ChunkModule::ChunkModule() : m_default_chunk(std::make_shared<Chunk>(DefaultChunkPath)) { }
+ChunkModule::ChunkModule() : m_default_chunk(std::make_shared<Chunk>(config::SPL_DEFAULT_CHUNK_PATH)) { }
 
 void ChunkModule::initialize(CoreClr* coreclr) {
     coreclr->add_internal_call("LoadChunk", &ChunkModule::load_chunk_raw);

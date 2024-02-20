@@ -151,8 +151,7 @@ namespace SharpPluginLoader.Core
 
 
         /// <summary>
-        /// Gets called when the plugin is loaded. This is where you configure your plugin within the framework.
-        /// The plugin must return a <see cref="Core.PluginData"/> struct, which tells the framework which events to call.
+        /// Gets called when the plugin is loaded. This is where you can optionally configure your plugin within the framework.
         /// 
         /// Default event, always called once per plugin [re]load.
         /// </summary>
@@ -180,6 +179,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Called after game's static initializers, but before WinMain.
         /// This is only for special cases, and is not applicable to most plugins.
+        /// This will NOT be called during hot-reloading.
         /// </summary>
         [PluginEvent]
         public void OnWinMain() => throw new MissingEventException();

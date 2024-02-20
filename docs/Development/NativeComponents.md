@@ -78,7 +78,7 @@ As you can see the managed function takes a `string` and a `Span<int>` as parame
 ## Other Languages
 It is also possible to write native components in languages other than C++ such as Rust. The only requirement is that the dll uses the [Microsoft x64 calling convention](https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170) for the two exported functions. This is the default calling convention when compiling C/C++ with MSVC on x64.
 
-# Binding to Game Functions
+## Binding to Game Functions
 It is also possible to bind an internal call to a game function directly. 
 
 The naive way of doing this is to simply cast the function pointer to a `void*` and pass it to the internal call.

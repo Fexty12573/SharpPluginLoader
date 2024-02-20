@@ -20,57 +20,53 @@ dotnet add package SharpPluginLoader.Core
 
 ## Entry point
 Each plugin has an entry point class, which must implement the `IPlugin` interface inside the `SharpPluginLoader.Core` namespace.
-```csharp title="ExamplePlugin.cs" linenums="1" hl_lines="7 9 14"
+```csharp title="ExamplePlugin.cs" linenums="1" hl_lines="7 8"
 using SharpPluginLoader.Core;
 
-namespace Example
+namespace Example;
+
+public class ExamplePlugin : IPlugin
 {
-    public class ExamplePlugin : IPlugin
-    {
-        public string Name => "Example Plugin";
-
-        public PluginData Initialize()
-        {
-            // ...
-        }
-
-        public void OnLoad()
-        {
-            // ...
-        }
-    }
+    public string Name => "Example Plugin";
+    public string Author => "Fexty";
 }
 ```
-Take a look at the highlighted lines. These are the only required methods and properties for a plugin to work.
-* The `Name` property is used to identify the plugin.
-* The `Initialize` method is called to configure framework callbacks for this plugin.
-* The `OnLoad` method is called when the plugin is loaded (after the game's startup code has run).
+The above is technically already a valid plugin, but it doesn't do anything yet. The `IPlugin` interface has a few methods that you can override to add functionality to your plugin.
 
-## Events
-You need to return a `PluginData` object from the `Initialize` method. This object will contain information about which events the plugin subscribes to.
-```csharp 
+* The `Name` property is used to identify the plugin.
+* The `Author` property is used to identify the author of the plugin.
+
+## Default methods
+There are 2 methods that will always be called when the plugin is loaded/reloaded. Both of them are *optional* to implement.
+```csharp
 public PluginData Initialize()
 {
-    return new PluginData
-    {
-        OnUpdate = true
-    }
+    return new PluginData();
+}
+
+public void OnLoad()
+{
 }
 ```
-In this example, the plugin will subscribe to the `OnUpdate` event, which is called every frame. For a list of all available events, check the [API Reference](../API/index.md).
 
-### Event handlers
-Once you subscribe to an event by setting its value to `true`, you need to create a method with the same name as the event, inside your plugin class.
+In the `Initialize` method you need to return a `PluginData` object, which contains some optional details about the plugin.
+
+!!! info
+    You should not do any game-related initialization in the `Initialize` method, as it is called before the game is fully loaded. Use the `OnLoad` method for that.
+
+The `OnLoad` method is where you will normally do any setup that you need to do when the plugin is loaded. This method is called every time the plugin is loaded, so it's a good place to initialize any resources that you need.
+
+## Events
+There is a set of events exposed by the `IPlugin` interface that you can subscribe to. You "subscribe" to an event by implementing the corresponding interface method in your plugin class. 
 ```csharp
 public void OnUpdate(float deltaTime)
 {
     Log.Info("Hello!");
 }
 ```
-All event methods implement an interface method provided by the `IPlugin` interface. You can check reference on `IPlugin` for details on each event.
-If you subscribe to an event and forget to implement that method your plugin will throw an exception when that event is called.
+The above code subscribes to the `OnUpdate` event, which is called every frame.
 
-The above code simply prints "Hello!" to the console every frame.
+For a full list of events, check the [API Reference](../API/SharpPluginLoader.Core.IPlugin.md).
 
 ## Loading the plugin
 Now you can compile your plugin (either in Debug or Release mode) and place the resulting DLL inside the `nativePC\plugins\CSharp` folder (or any subdirectory

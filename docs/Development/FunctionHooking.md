@@ -17,8 +17,6 @@ public class Example : IPlugin
     private delegate void ReleaseResourceDelegate(nint resourceManager, nint resourcePtr);
     private Hook<ReleaseResourceDelegate> _releaseResourceHook;
 
-    public PluginData Initialize() => new PluginData();
-
     public void OnLoad()
     {
         _releaseResourceHook = Hook.Create<ReleaseResourceDelegate>(0x142224890, ReleaseResourceDetour);
@@ -97,8 +95,6 @@ public class Plugin : IPlugin
 {
     private delegate void ReleaseResourceDelegate(MtObject resourceManager, Resource resource);
     private MarshallingHook<ReleaseResourceDelegate> _releaseResourceHook;
-
-    public PluginData Initialize() => new PluginData();
 
     public void OnLoad()
     {

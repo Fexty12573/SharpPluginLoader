@@ -23,7 +23,7 @@ public unsafe void MyMethod(MtObject obj)
     var otherObject = obj.GetObject<MtObject>(0x20);
 }
 ```
-You can get a full breakdown of the `MtObject` class in the [API Reference]().
+You can get a full breakdown of the `MtObject` class in the [API Reference](../API/SharpPluginLoader.Core.MtObject.md).
 
 ## Object Hierarchy
 There is an important distinction to make between the object hierarchy of the framework and the one of the game. The framework does not provide a wrapper around every class in the game, only a select few that are generally useful.

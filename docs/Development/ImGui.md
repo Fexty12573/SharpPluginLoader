@@ -7,19 +7,6 @@ To get started add the `SharpPluginLoader.ImGui` NuGet package to your project. 
 
 Next add an event handler for the `OnImGuiRender` event to your plugin. This event is called every frame and is where you will do all your rendering.
 ```csharp
-
-public PluginData Inititalize()
-{
-    return new PluginData
-    {
-        OnImGuiRender = true
-    };
-}
-
-public void OnLoad()
-{
-}
-
 public void OnImGuiRender()
 {
     // Render your UI here
@@ -48,7 +35,6 @@ public PluginData Inititalize()
 {
     return new PluginData
     {
-        OnImGuiRender = true,
         ImGuiWrappedInTreeNode = false
     };
 }
@@ -56,14 +42,6 @@ public PluginData Inititalize()
 
 If you want your UI to be contained in its own window, you can instead subscribe to the `OnImGuiFreeRender` event. This event is called after the main ImGui window has been rendered, and is where you can render your own ImGui windows.
 ```csharp
-public PluginData Inititalize()
-{
-    return new PluginData
-    {
-        OnImGuiFreeRender = true
-    };
-}
-
 public void OnImGuiFreeRender()
 {
     ImGui.Begin("My Window");

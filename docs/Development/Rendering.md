@@ -3,17 +3,9 @@
 Besides the ImGui rendering, the framework also supports arbitrary rendering using DirectX. This is done by subscribing to the `OnRender` event. This event is called right before the ImGui rendering.
 
 ```csharp
-public PluginData Inititalize()
+public void OnRender()
 {
-    return new PluginData
-    {
-        OnRender = true
-    };
-
-    public void OnRender()
-    {
-        // Render your stuff here
-    }
+    // Render your stuff here
 }
 ```
 

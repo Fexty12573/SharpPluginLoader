@@ -10,15 +10,51 @@ namespace SharpPluginLoader.Core.Rendering
 {
     public static class Renderer
     {
+        /// <summary>
+        /// Indicates whether the main SPL menu is currently shown.
+        /// </summary>
         public static bool MenuShown => _showMenu;
+
+#if DEBUG
+        /// <summary>
+        /// Indicates whether the ImGui demo window is currently shown.
+        /// </summary>
         public static bool DemoShown => _showDemo;
+#endif
+
+        public static bool IsDirectX12 => MemoryUtil.Read<bool>(0x1451c9e40);
+
+        /// <summary>
+        /// Loads a texture from the specified path.
+        /// </summary>
+        /// <param name="path">The path to the texture.</param>
+        /// <param name="width">The width of the loaded texture.</param>
+        /// <param name="height">The height of the loaded texture.</param>
+        /// <returns>A handle to the loaded texture.</returns>
+        /// <remarks>
+        /// Textures can be any of the following formats: PNG, JPG, DDS
+        /// </remarks>
+        ///
+        /// <example>
+        /// <code>
+        ///     var texture = Renderer.LoadTexture("./path/to/texture.png");
+        ///     if (texture == TextureHandle.Invalid)
+        ///         // handle error
+        ///     ...
+        ///     ImGui.Image(texture, new Vector2(100, 100));
+        /// </code>
+        /// </example>
+        public static TextureHandle LoadTexture(string path, out uint width, out uint height)
+        {
+            return new TextureHandle(InternalCalls.LoadTexture(path, out width, out height));
+        }
 
         [UnmanagedCallersOnly]
         internal static nint Initialize()
         {
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
-
+            
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;

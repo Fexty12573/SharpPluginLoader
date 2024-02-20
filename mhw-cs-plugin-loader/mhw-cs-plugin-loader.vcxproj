@@ -175,6 +175,9 @@
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="Preloader.cpp" />
     <ClCompile Include="PrimitiveRenderingModule.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="TextureManager11.cpp" />
+    <ClCompile Include="TextureManager12.cpp" />
     <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -209,6 +212,7 @@
     <ClInclude Include="PrimitiveRenderingModule.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="SharpPluginLoader.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Timeline.h" />
   </ItemGroup>
   <ItemGroup>

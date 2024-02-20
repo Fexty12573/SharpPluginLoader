@@ -5,16 +5,9 @@ namespace BackgroundOptimize
     public class Plugin : IPlugin
     {
         public string Name => "BackgroundOptimize";
+        public string Author => "Fexty";
 
         private float _lastFps;
-
-        public PluginData Initialize()
-        {
-            return new PluginData
-            {
-                OnUpdate = true
-            };
-        }
 
         public void OnLoad()
         {

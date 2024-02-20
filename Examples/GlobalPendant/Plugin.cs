@@ -6,6 +6,7 @@ namespace GlobalPendant
     public class Plugin : IPlugin
     {
         public string Name => "GlobalPendant";
+        public string Author => "Fexty";
 
         private delegate void ChangePendant(nint equipCharm, int pendantIndex, nint unk);
 
@@ -55,11 +56,6 @@ namespace GlobalPendant
             });
 
             _changePendantHook.Original(equipCharmPtr, pendantIndex, unk);
-        }
-
-        public PluginData Initialize()
-        {
-            return new PluginData();
         }
 
         public void OnLoad()

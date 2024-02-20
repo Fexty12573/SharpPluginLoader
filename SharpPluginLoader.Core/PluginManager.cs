@@ -325,7 +325,21 @@ namespace SharpPluginLoader.Core
                 }
             }
 
-            var pluginData = plugin.Initialize();
+            PluginData pluginData;
+
+            try
+            {
+                pluginData = plugin.Initialize();
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to initialize plugin {pluginName}: {e}");
+                context.Unload();
+                return;
+            }
+
+            // Figures out which events the plugin subscribes to and populate the PluginData object.
+            PopulateEventSubscriptions(plugin, pluginData);
 
             var nativePlugin = TryLoadNativePlugin(assembly, plugin, Path.ChangeExtension(absPath, ".Native.dll"));
 
@@ -420,6 +434,24 @@ namespace SharpPluginLoader.Core
             
 
             return nativePlugin;
+        }
+
+        private static void PopulateEventSubscriptions(IPlugin plugin, PluginData data)
+        {
+            var type = plugin.GetType();
+            var eventMethods = typeof(IPlugin)
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(method => method.GetCustomAttribute<PluginEventAttribute>() is not null);
+
+            var fields = data.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance).ToDictionary(f => f.Name);
+
+            foreach (var method in eventMethods)
+            {
+                var implemented = type.OverridesMethod(method.Name);
+                Log.Debug($"Plugin {plugin.Name} {(implemented ? "implements" : "does not implement")} {method.Name}");
+                fields[method.Name].SetValue(data, implemented);
+            }
         }
 
         public IPlugin[] GetPlugins()
@@ -518,7 +550,9 @@ namespace SharpPluginLoader.Core
                     .Select(e => e.Key)
                     .FirstOrDefault();
 
-                Ensure.NotNull(key);
+                if (key is null)
+                    return;
+
                 _contexts[key].Dispose();
                 _contexts.Remove(key);
             }

@@ -16,6 +16,7 @@ namespace ExperimentalTesting
     public class Plugin : IPlugin
     {
         public string Name => "Experimental Testing";
+        public string Author => "Fexty";
 
         public delegate void CreateShinyDropDelegate(MtObject a, int b, int c, nint d, long e, uint f);
         public delegate void ReleaseResourceDelegate(MtObject resourceMgr, Resource resource);
@@ -45,14 +46,6 @@ namespace ExperimentalTesting
             Log.Info($"Releasing Resource: {resource.FilePath}.{resource.FileExtension}" + 
                      (resource.Get<int>(0x5C) == 1 ? " | Unloading..." : ""));
             _releaseResourceHook.Original(resourceMgr, resource);
-        }
-
-        public PluginData Initialize()
-        {
-            return new PluginData
-            {
-                OnImGuiRender = true
-            };
         }
 
         public void OnLoad()

@@ -52,11 +52,11 @@ namespace SharpPluginLoader.Core
             AppDomain.CurrentDomain.UnhandledException += (_, args) =>
             {
                 var e = (Exception)args.ExceptionObject;
-                Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{new StackTrace(e).Format()}");
+                Log.Error($"[Core] Unhandled exception: {e.GetType().Name}: {e.Message}, Stacktrace:\n{new StackTrace(e)}");
                 if (e.InnerException is not null)
                 {
                     Log.Error($"[Core] Inner exception: {e.InnerException.GetType().Name}: " +
-                              $"{e.InnerException.Message}, Stacktrace:\n{new StackTrace(e.InnerException).Format()}");
+                              $"{e.InnerException.Message}, Stacktrace:\n{new StackTrace(e.InnerException)}");
                 }
             };
 

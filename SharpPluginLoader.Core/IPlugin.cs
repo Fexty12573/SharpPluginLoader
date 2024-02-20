@@ -8,120 +8,122 @@ using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {
+
+#pragma warning disable CS0649
+
     public class PluginData
     {
-
         #region Pre-Main Events
         /// <inheritdoc cref="IPlugin.OnPreMain"/>
-        public bool OnPreMain;
+        internal bool OnPreMain;
 
         /// <inheritdoc cref="IPlugin.OnWinMain"/>
-        public bool OnWinMain;
+        internal bool OnWinMain;
         #endregion
 
         #region Generic
         /// <inheritdoc cref="IPlugin.OnUpdate"/>
-        public bool OnUpdate;
+        internal bool OnUpdate;
 
         /// <inheritdoc cref="IPlugin.OnSave"/>
-        public bool OnSave;
+        internal bool OnSave;
 
         /// <inheritdoc cref="IPlugin.OnSelectSaveSlot"/>
-        public bool OnSelectSaveSlot;
+        internal bool OnSelectSaveSlot;
 
         /// <inheritdoc cref="IPlugin.OnResourceLoad"/>
-        public bool OnResourceLoad;
+        internal bool OnResourceLoad;
 
         /// <inheritdoc cref="IPlugin.OnChatMessageSent"/>
-        public bool OnChatMessageSent;
+        internal bool OnChatMessageSent;
         #endregion
 
         #region Quests
         /// <inheritdoc cref="IPlugin.OnQuestAccept"/>
-        public bool OnQuestAccept;
+        internal bool OnQuestAccept;
 
         /// <inheritdoc cref="IPlugin.OnQuestCancel"/>
-        public bool OnQuestCancel;
+        internal bool OnQuestCancel;
 
         /// <inheritdoc cref="IPlugin.OnQuestDepart"/>
-        public bool OnQuestDepart;
+        internal bool OnQuestDepart;
 
         /// <inheritdoc cref="IPlugin.OnQuestEnter"/>
-        public bool OnQuestEnter; 
+        internal bool OnQuestEnter; 
 
         /// <inheritdoc cref="IPlugin.OnQuestLeave"/>
-        public bool OnQuestLeave;
+        internal bool OnQuestLeave;
 
         /// <inheritdoc cref="IPlugin.OnQuestComplete"/>
-        public bool OnQuestComplete;
+        internal bool OnQuestComplete;
 
         /// <inheritdoc cref="IPlugin.OnQuestFail"/>
-        public bool OnQuestFail;
+        internal bool OnQuestFail;
 
         /// <inheritdoc cref="IPlugin.OnQuestReturn"/>
-        public bool OnQuestReturn;
+        internal bool OnQuestReturn;
 
         /// <inheritdoc cref="IPlugin.OnQuestAbandon"/>
-        public bool OnQuestAbandon;
+        internal bool OnQuestAbandon;
         #endregion
 
         #region Monster
         /// <inheritdoc cref="IPlugin.OnMonsterCreate"/>
-        public bool OnMonsterCreate;
+        internal bool OnMonsterCreate;
 
         /// <inheritdoc cref="IPlugin.OnMonsterInitialized"/>
-        public bool OnMonsterInitialized;
+        internal bool OnMonsterInitialized;
 
         /// <inheritdoc cref="IPlugin.OnMonsterAction"/>
-        public bool OnMonsterAction;
+        internal bool OnMonsterAction;
 
         /// <inheritdoc cref="IPlugin.OnMonsterFlinch"/>
-        public bool OnMonsterFlinch;
+        internal bool OnMonsterFlinch;
 
         /// <inheritdoc cref="IPlugin.OnMonsterEnrage"/>
-        public bool OnMonsterEnrage;
+        internal bool OnMonsterEnrage;
 
         /// <inheritdoc cref="IPlugin.OnMonsterUnenrage"/>
-        public bool OnMonsterUnenrage;
+        internal bool OnMonsterUnenrage;
 
         /// <inheritdoc cref="IPlugin.OnMonsterDeath"/>
-        public bool OnMonsterDeath;
+        internal bool OnMonsterDeath;
 
         /// <inheritdoc cref="IPlugin.OnMonsterDestroy"/>
-        public bool OnMonsterDestroy;
+        internal bool OnMonsterDestroy;
         #endregion
 
         #region Player
         /// <inheritdoc cref="IPlugin.OnPlayerAction"/>
-        public bool OnPlayerAction;
+        internal bool OnPlayerAction;
 
         /// <inheritdoc cref="IPlugin.OnWeaponChange"/>
-        public bool OnWeaponChange;
+        internal bool OnWeaponChange;
         #endregion
 
         #region Entity
         /// <inheritdoc cref="IPlugin.OnEntityAction"/>
-        public bool OnEntityAction;
+        internal bool OnEntityAction;
         
         /// <inheritdoc cref="IPlugin.OnEntityAnimation"/>
-        public bool OnEntityAnimation;
+        internal bool OnEntityAnimation;
 
         /// <inheritdoc cref="IPlugin.OnEntityAnimationUpdate"/>
-        public bool OnEntityAnimationUpdate;
+        internal bool OnEntityAnimationUpdate;
         #endregion
 
         #region Network
-        public bool OnSendPacket;
-        public bool OnReceivePacket;
+        internal bool OnSendPacket;
+        internal bool OnReceivePacket;
         #endregion
 
         #region Rendering
         /// <inheritdoc cref="IPlugin.OnRender"/>
-        public bool OnRender;
+        internal bool OnRender;
         /// <inheritdoc cref="IPlugin.OnImGuiRender"/>
-        public bool OnImGuiRender;
+        internal bool OnImGuiRender;
         /// <inheritdoc cref="IPlugin.OnImGuiFreeRender"/>
-        public bool OnImGuiFreeRender;
+        internal bool OnImGuiFreeRender;
         #endregion
 
         // Non-Events
@@ -132,6 +134,8 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public bool ImGuiWrappedInTreeNode = true;
     }
+
+#pragma warning restore CS0649
 
     public interface IPlugin
     {
@@ -148,12 +152,12 @@ namespace SharpPluginLoader.Core
 
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you configure your plugin within the framework.
-        /// The plugin must return a <see cref="PluginData"/> struct, which tells the framework which events to call.
+        /// The plugin must return a <see cref="Core.PluginData"/> struct, which tells the framework which events to call.
         /// 
         /// Default event, always called once per plugin [re]load.
         /// </summary>
         /// <returns>The filled out PluginData</returns>
-        public PluginData Initialize();
+        public PluginData Initialize() => new();
 
         /// <summary>
         /// Gets called after the game has initialized it's singletons. This is you initialize anything in your plugin
@@ -161,7 +165,7 @@ namespace SharpPluginLoader.Core
         /// 
         /// Default event, always called once per plugin [re]load.
         /// </summary>
-        public void OnLoad() { }
+        public void OnLoad() { } // Not marked as a plugin event because it's always called
 
 
         #region Pre-Main Events
@@ -170,12 +174,14 @@ namespace SharpPluginLoader.Core
         /// This is only used for special cases, and is not applicable to most plugins.
         /// This will NOT be called during hot-reloading.
         /// </summary>
+        [PluginEvent]
         public void OnPreMain() => throw new MissingEventException();
 
         /// <summary>
         /// Called after game's static initializers, but before WinMain.
         /// This is only for special cases, and is not applicable to most plugins.
         /// </summary>
+        [PluginEvent]
         public void OnWinMain() => throw new MissingEventException();
         #endregion
 
@@ -184,17 +190,20 @@ namespace SharpPluginLoader.Core
         /// Gets called every frame.
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last time this function was called, in seconds</param>
+        [PluginEvent]
         public void OnUpdate(float deltaTime) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the game is saved.
         /// </summary>
+        [PluginEvent]
         public void OnSave() => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player selects a save slot.
         /// </summary>
         /// <param name="slot">The save slot that was selected</param>
+        [PluginEvent]
         public void OnSelectSaveSlot(int slot) => throw new MissingEventException();
 
         /// <summary>
@@ -204,12 +213,14 @@ namespace SharpPluginLoader.Core
         /// <param name="dti">The DTI of the resource</param>
         /// <param name="path">The file path of the resource, without its extension</param>
         /// <param name="flags">The flags passed to the request</param>
+        [PluginEvent]
         public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).
         /// </summary>
         /// <param name="message">The contents of the message</param>
+        [PluginEvent]
         public void OnChatMessageSent(string message) => throw new MissingEventException();
         #endregion
 
@@ -218,54 +229,63 @@ namespace SharpPluginLoader.Core
         /// Gets called when a quest is accepted on the quest board.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestAccept(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a quest is cancelled on the quest board.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestCancel(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player departs on a quest.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestDepart(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player arrives in the quest area.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestEnter(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player leaves the quest area.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestLeave(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a quest is completed.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestComplete(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a quest is failed.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestFail(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player selects "Return from Quest" in the menu.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestReturn(int questId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when the player selects "Abandon Quest" in the menu.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
+        [PluginEvent]
         public void OnQuestAbandon(int questId) => throw new MissingEventException();
         #endregion
 
@@ -278,6 +298,7 @@ namespace SharpPluginLoader.Core
         /// This function is called immediately after the monsters constructor is run,
         /// most of its data is not yet initialized by this point.
         /// </remarks>
+        [PluginEvent]
         public void OnMonsterCreate(Monster monster) => throw new MissingEventException();
 
         /// <summary>
@@ -285,6 +306,7 @@ namespace SharpPluginLoader.Core
         /// </summary>
         /// <param name="monster">The monster that was initialized</param>
         /// <remarks>Most data in the monster is ready to be used by this point.</remarks>
+        [PluginEvent]
         public void OnMonsterInitialized(Monster monster) => throw new MissingEventException();
 
         /// <summary>
@@ -293,38 +315,44 @@ namespace SharpPluginLoader.Core
         /// <param name="monster">The monster doing the action</param>
         /// <param name="actionId">The id of the action to be executed</param>
         /// <remarks>The actionId parameter can be modified to change the executed action</remarks>
+        [PluginEvent]
         public void OnMonsterAction(Monster monster, ref int actionId) => throw new MissingEventException();
-        
+
         /// <summary>
         /// Gets called when a monster gets flinched.
         /// </summary>
         /// <param name="monster">The monster getting flinched</param>
         /// <param name="actionId">The flinch action it will perform</param>
         /// <returns>False to cancel the flinch</returns>
+        [PluginEvent]
         public bool OnMonsterFlinch(Monster monster, ref int actionId) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a monster gets enraged.
         /// </summary>
         /// <param name="monster">The monster getting enraged</param>
+        [PluginEvent]
         public void OnMonsterEnrage(Monster monster) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a monster leaves its enraged state.
         /// </summary>
         /// <param name="monster">The monster leaving its enraged state</param>
+        [PluginEvent]
         public void OnMonsterUnenrage(Monster monster) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a monster dies.
         /// </summary>
         /// <param name="monster">The monster that died</param>
+        [PluginEvent]
         public void OnMonsterDeath(Monster monster) => throw new MissingEventException();
 
         /// <summary>
         /// Gets called when a monster is destroyed (its destructor is called).
         /// </summary>
         /// <param name="monster">The monster that is about to be destroyed</param>
+        [PluginEvent]
         public void OnMonsterDestroy(Monster monster) => throw new MissingEventException();
         #endregion
 
@@ -335,6 +363,7 @@ namespace SharpPluginLoader.Core
         /// <param name="player">The player doing the action</param>
         /// <param name="action">The action to be executed</param>
         /// <remarks>The action parameter can be modified to change the executed action</remarks>
+        [PluginEvent]
         public void OnPlayerAction(Player player, ref ActionInfo action) => throw new MissingEventException();
 
         /// <summary>
@@ -344,6 +373,7 @@ namespace SharpPluginLoader.Core
         /// <param name="weaponType">The new weapon type</param>
         /// <param name="weaponId">The new weapon id</param>
         /// <remarks>This function is called asynchronously.</remarks>
+        [PluginEvent]
         public void OnWeaponChange(Player player, WeaponType weaponType, int weaponId) => throw new MissingEventException();
         #endregion
 
@@ -354,6 +384,7 @@ namespace SharpPluginLoader.Core
         /// <param name="entity">The entity doing the action</param>
         /// <param name="action">The action to be executed</param>
         /// <remarks>The action parameter can be modified to change the executed action</remarks>
+        [PluginEvent]
         public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
 
         /// <summary>
@@ -364,6 +395,7 @@ namespace SharpPluginLoader.Core
         /// <param name="startFrame">The starting frame of the animation</param>
         /// <param name="interFrame">The number of frames to use for interpolation between animations</param>
         /// <remarks>Both the animationId and the startFrame parameters can be modified to change the executed animation.</remarks>
+        [PluginEvent]
         public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame, ref float interFrame) => throw new MissingEventException();
 
         /// <summary>
@@ -372,6 +404,7 @@ namespace SharpPluginLoader.Core
         /// <param name="entity">The entity whos animation component is updated</param>
         /// <param name="currentAnimation">The current active animation</param>
         /// <param name="deltaTime">The time since the last time this entity's animation component was updated</param>
+        [PluginEvent]
         public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
         #endregion
 
@@ -382,6 +415,7 @@ namespace SharpPluginLoader.Core
         /// <param name="packet">The packet being sent</param>
         /// <param name="isBroadcast">Whether the packet is broadcasted to all players in the session or not</param>
         /// <param name="session">The session the packet is sent to</param>
+        [PluginEvent]
         public void OnSendPacket(Packet packet, bool isBroadcast, SessionIndex session) => throw new MissingEventException();
 
         /// <summary>
@@ -391,6 +425,7 @@ namespace SharpPluginLoader.Core
         /// <param name="type">The type of the packet</param>
         /// <param name="sourceSession">The session the packet was sent from</param>
         /// <param name="data">The data of the packet</param>
+        [PluginEvent]
         public void OnReceivePacket(uint id, PacketType type, SessionIndex sourceSession, NetBuffer data) => throw new MissingEventException();
         #endregion
 
@@ -398,17 +433,22 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The user can use this function to render arbitrary things on the screen (after the game has rendered).
         /// </summary>
+        [PluginEvent]
         public void OnRender() => throw new MissingEventException();
+
         /// <summary>
         /// The user can use this function to render ImGui widgets on the screen. Widgets rendered here will be inside the main SPL ImGui window.
         /// </summary>
+        [PluginEvent]
         public void OnImGuiRender() => throw new MissingEventException();
+
         /// <summary>
         /// The user can use this function to render their own ImGui windows.
         /// </summary>
         /// <remarks>
         /// <b>Note:</b> To render any ImGui widgets inside this function, you <i>must</i> create your own ImGui window.
         /// </remarks>
+        [PluginEvent]
         public void OnImGuiFreeRender() => throw new MissingEventException();
         #endregion
 
@@ -437,5 +477,13 @@ namespace SharpPluginLoader.Core
         {
             return type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
         }
+
+        public static bool OverridesMethod(this Type type, string methodName)
+        {
+            return type.GetMethod(methodName)?.DeclaringType == type;
+        }
     }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    internal class PluginEventAttribute : Attribute;
 }

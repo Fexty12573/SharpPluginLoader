@@ -12,14 +12,6 @@ public class Plugin : IPlugin
     private string _className = "MtObject";
     private MtDti? _dti;
 
-    public PluginData Initialize()
-    {
-        return new PluginData
-        {
-            OnImGuiRender = true
-        };
-    }
-
     public void OnLoad()
     {
         _dti = MtDti.Find(_className);

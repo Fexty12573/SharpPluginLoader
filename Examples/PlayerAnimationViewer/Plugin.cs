@@ -97,17 +97,6 @@ namespace PlayerAnimationViewer
         #endregion
         #endregion
 
-        public PluginData Initialize()
-        {
-            return new PluginData
-            {
-                OnUpdate = true,
-                OnImGuiRender = true,
-                OnEntityAnimation = true,
-                OnMonsterAction = true
-            };
-        }
-
         public void OnLoad()
         {
             var timlObjDti = MtDti.Find("nTimeline::Object");

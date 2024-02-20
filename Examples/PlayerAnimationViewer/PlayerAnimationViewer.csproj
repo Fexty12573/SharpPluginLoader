@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
+    <PackageReference Include="SharpPluginLoader.ImGui" Version="1.90.2" />
   </ItemGroup>
 
   <ItemGroup>

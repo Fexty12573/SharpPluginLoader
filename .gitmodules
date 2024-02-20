@@ -1,3 +1,4 @@
 [submodule "cimgui"]
 	path = dependencies/cimgui
-	url = https://github.com/cimgui/cimgui
+	url = https://github.com/Fexty12573/cimgui
+	branch = docking_inter

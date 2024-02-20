@@ -108,6 +108,9 @@
     <ClCompile Include="TextureManager12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AddressRepository.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">
@@ -204,6 +207,9 @@
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="TextureManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressRepository.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

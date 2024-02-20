@@ -58,3 +58,4 @@ The core assembly then loads all plugins into a custom ALC (`PluginLoadContext`)
 - [nlohmann-json](https://github.com/nlohmann/json) - C++ JSON library
 - [zlib](https://www.zlib.net/) - Compression library
 - [DirectXMath](https://github.com/microsoft/DirectXMath) - DirectX Math library
+- [PicoSHA2](https://github.com/okdshin/PicoSHA2) - header-only SHA256 library

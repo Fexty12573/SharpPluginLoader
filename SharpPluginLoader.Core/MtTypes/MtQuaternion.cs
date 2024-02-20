@@ -1,57 +1,50 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core.MtTypes
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct MtQuaternion
+    public struct MtQuaternion(float x, float y, float z, float w)
     {
-        public float X;
-        public float Y;
-        public float Z;
-        public float W;
-
-        public MtQuaternion(float x, float y, float z, float w)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-            W = w;
-        }
+        public float X = x;
+        public float Y = y;
+        public float Z = z;
+        public float W = w;
 
         #region Properties
 
-        public float Length => (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+        public readonly float Length => (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
 
-        public float LengthSquared => X * X + Y * Y + Z * Z + W * W;
+        public readonly float LengthSquared => X * X + Y * Y + Z * Z + W * W;
 
-        public MtQuaternion Normalized => this / Length;
+        public readonly MtQuaternion Normalized => this / Length;
 
-        public MtQuaternion NormalizedSafe => LengthSquared == 0 ? Identity : Normalized;
+        public readonly MtQuaternion NormalizedSafe => LengthSquared == 0 ? Identity : Normalized;
 
-        public float Angle => (float)Math.Acos(W) * 2f;
+        public readonly float Angle => (float)Math.Acos(W) * 2f;
 
-        public MtVector3 Axis
+        public Vector3 Axis
         {
             get
             {
                 var s1 = 1f - W * W;
-                if (s1 < 0) return new MtVector3(0f, 0f, 1f);
+                if (s1 < 0) return new Vector3(0f, 0f, 1f);
                 var s2 = 1f / (float)Math.Sqrt(s1);
-                return new MtVector3(X * s2, Y * s2, Z * s2);
+                return new Vector3(X * s2, Y * s2, Z * s2);
             }
         }
 
-        public float Yaw => (float)Math.Asin(-2 * (double)(X * Z - W * Y));
+        public readonly float Yaw => (float)Math.Asin(-2 * (double)(X * Z - W * Y));
 
-        public float Pitch => (float)Math.Atan2(2 * (double)(Y * Z + W * X), W * W - X * X - Y * Y + Z * Z);
+        public readonly float Pitch => (float)Math.Atan2(2 * (double)(Y * Z + W * X), W * W - X * X - Y * Y + Z * Z);
 
-        public float Roll => (float)Math.Atan2(2 * (double)(X * Y + W * Z), W * W + X * X - Y * Y - Z * Z);
+        public readonly float Roll => (float)Math.Atan2(2 * (double)(X * Y + W * Z), W * W + X * X - Y * Y - Z * Z);
 
-        public MtVector3 EulerAngle => new(Pitch, Yaw, Roll);
+        public readonly Vector3 EulerAngle => new(Pitch, Yaw, Roll);
 
-        public MtQuaternion Conjugate => new(-X, -Y, -Z, W);
+        public readonly MtQuaternion Conjugate => new(-X, -Y, -Z, W);
 
-        public MtQuaternion Inverse => Conjugate / LengthSquared;
+        public readonly MtQuaternion Inverse => Conjugate / LengthSquared;
 
         #endregion
 
@@ -62,12 +55,12 @@ namespace SharpPluginLoader.Core.MtTypes
         public static MtQuaternion One => new(1f, 1f, 1f, 1f);
 
         public static MtQuaternion Identity => new(0f, 0f, 0f, 1f);
-        
+
         public static MtQuaternion UnitX => new(1f, 0f, 0f, 0f);
 
         public static MtQuaternion UnitY => new(0f, 1f, 0f, 0f);
 
-        public static MtQuaternion UnitZ => new(0f, 0f, 1f, 0f);    
+        public static MtQuaternion UnitZ => new(0f, 0f, 1f, 0f);
 
         public static MtQuaternion UnitW => new(0f, 0f, 0f, 1f);
 
@@ -90,17 +83,17 @@ namespace SharpPluginLoader.Core.MtTypes
             return new MtQuaternion(q.X / s, q.Y / s, q.Z / s, q.W / s);
         }
 
-        public static MtVector3 operator *(MtQuaternion q, MtVector3 v)
+        public static Vector3 operator *(MtQuaternion q, Vector3 v)
         {
-            var qv = new MtVector3(q.X, q.Y, q.Z);
-            var uv = MtVector3.Cross(qv, v);
-            var uuv = MtVector3.Cross(qv, uv);
+            var qv = new Vector3(q.X, q.Y, q.Z);
+            var uv = Vector3.Cross(qv, v);
+            var uuv = Vector3.Cross(qv, uv);
             return v + (uv * q.W + uuv) * 2f;
         }
 
-        public static MtVector4 operator *(MtQuaternion q, MtVector4 v)
+        public static Vector4 operator *(MtQuaternion q, Vector4 v)
         {
-            return new MtVector4(q * new MtVector3(v.X, v.Y, v.Z), v.W);
+            return new Vector4(q * new Vector3(v.X, v.Y, v.Z), v.W);
         }
 
         public static bool operator ==(MtQuaternion left, MtQuaternion right)

@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Memory;
+﻿using System.Numerics;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Weapons;
@@ -38,7 +39,7 @@ namespace SharpPluginLoader.Core.Entities
         public WeaponType CurrentWeaponType => CurrentWeapon?.Type ?? WeaponType.None;
 
         /// <inheritdoc/>
-        public override void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
+        public override void CreateShell(uint index, Vector3 target, Vector3? origin = null)
         {
             var shll = CurrentWeaponType < WeaponType.Bow 
                 ? CurrentWeapon?.GetObject<ShellParamList>(0x1D90) // Weapon shll
@@ -50,7 +51,7 @@ namespace SharpPluginLoader.Core.Entities
             CreateShell(shll, index, target, origin);
         }
 
-        public override void CreateShell(ShellParamList shll, uint index, MtVector3 target, MtVector3? origin = null)
+        public override void CreateShell(ShellParamList shll, uint index, Vector3 target, Vector3? origin = null)
         {
             var shell = shll.GetShell(index);
             if (shell == null)
@@ -59,7 +60,7 @@ namespace SharpPluginLoader.Core.Entities
             CreateShell(shell, target, origin);
         }
 
-        public override unsafe void CreateShell(ShellParam shell, MtVector3 target, MtVector3? origin = null)
+        public override unsafe void CreateShell(ShellParam shell, Vector3 target, Vector3? origin = null)
         {
             var shellParams = new ShellCreationParams(target, origin ?? Position);
             CreateShellFunc.Invoke(shell.Instance, Instance, Instance, (nint)(&shellParams));

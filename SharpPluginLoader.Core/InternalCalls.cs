@@ -42,6 +42,7 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<nint, void> UnloadTexturePtr;
         public static delegate* unmanaged<nint, nint> RegisterTexturePtr;
 
+        public static delegate* unmanaged<string, nint> GetRepositoryAddressPtr;
         public static delegate* unmanaged<sbyte*> GetGameRevisionPtr;
 #pragma warning restore CS0649
 
@@ -118,6 +119,8 @@ namespace SharpPluginLoader.Core
         public static void UnloadTexture(nint texture) => UnloadTexturePtr(texture);
 
         public static nint RegisterTexture(nint texture) => RegisterTexturePtr(texture);
+
+        public static nint GetRepositoryAddress(string name) => GetRepositoryAddressPtr(name);
 
         public static string GetGameRevision()
         {

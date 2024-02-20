@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Drawing;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using SharpPluginLoader.Core.IO;
@@ -255,7 +256,7 @@ namespace SharpPluginLoader.Core.Rendering
             style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 0.501960813999176f);
         }
 
-        private static nint GetCursorPositionHook(nint app, out MtPoint pos)
+        private static nint GetCursorPositionHook(nint app, out Point pos)
         {
             var result = _getCursorPositionHook.Original(app, out pos);
             if (ImGui.GetCurrentContext() == 0)
@@ -270,7 +271,7 @@ namespace SharpPluginLoader.Core.Rendering
             return result;
         }
 
-        private delegate nint GetCursorPositionDelegate(nint app, out MtPoint pos);
+        private delegate nint GetCursorPositionDelegate(nint app, out Point pos);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static bool _showMenu = false;
         private static bool _showDemo = false;

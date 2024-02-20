@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Memory;
+﻿using System.Numerics;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.Entities
@@ -123,7 +124,7 @@ namespace SharpPluginLoader.Core.Entities
         public nint AiData => Get<nint>(0x12278);
 
         /// <inheritdoc/>
-        public override void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
+        public override void CreateShell(uint index, Vector3 target, Vector3? origin = null)
         {
             base.CreateShell(index, target, origin);
         }

@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.InternalCallGenerator;
+﻿using System.Numerics;
+using SharpPluginLoader.InternalCallGenerator;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core;
 
@@ -7,7 +8,7 @@ namespace ExperimentalTesting;
 public struct HasRefTypes
 {
     public string str;
-    public MtVector2 vec;
+    public Vector2 vec;
 }
 
 [InternalCallManager]
@@ -27,7 +28,7 @@ public partial class InternalCalls
 
     // Test with array and pointer types
     [InternalCall]
-    public static unsafe partial void TransformCoordinates(float[] coords, MtVector3* transformMatrix);
+    public static unsafe partial void TransformCoordinates(float[] coords, Vector3* transformMatrix);
 
     // Test with InternalCallOptions and ref parameter
     [InternalCall(InternalCallOptions.Unsafe)]
@@ -39,15 +40,15 @@ public partial class InternalCalls
 
     // Test with complex struct return type and primitive parameters
     [InternalCall]
-    public static partial MtMatrix4X4 ComputeStruct(int param1, float param2);
+    public static partial Matrix4x4 ComputeStruct(int param1, float param2);
 
     // Test with pointer to struct and primitive types
     [InternalCall]
-    public static unsafe partial MtVector2* CreateVector(int x, int y);
+    public static unsafe partial Vector2* CreateVector(int x, int y);
 
     // Test with multiple ref and out parameters
     [InternalCall]
-    public static partial void TestRefOutParameters(ref float a, out double b, ref MtVector2 vec);
+    public static partial void TestRefOutParameters(ref float a, out double b, ref Vector2 vec);
 
     // Test with mixed array, pointer, and primitive types
     [InternalCall]
@@ -55,11 +56,11 @@ public partial class InternalCalls
 
     // Test with strings
     [InternalCall]
-    public static partial MtVector2 Parse(string str);
+    public static partial Vector2 Parse(string str);
 
     [InternalCall]
     [return: WideString]
-    public static partial string Format(MtVector2 vec, [WideString] string str);
+    public static partial string Format(Vector2 vec, [WideString] string str);
 
     [InternalCall]
     public static partial void EnumTest(PropType type);
@@ -92,5 +93,5 @@ public partial class InternalCalls
     public static partial void DisplayFatalErrorMessage(string message);
 
     [InternalCall]
-    public static partial void InParameterTest(in MtVector2 vec);
+    public static partial void InParameterTest(in Vector2 vec);
 }

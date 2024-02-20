@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 
@@ -31,14 +32,36 @@ namespace SharpPluginLoader.Core.Memory.Windows
 
         public static bool IsManagedAssembly(string path)
         {
-            using var stream = File.OpenRead(path);
+            // Repeatedly try to open the file for reading, with a timeout of 3 seconds.
+            // This is necessary because the file may be locked due to a copy operation.
+            using var stream = TryOpenFileStream(path, TimeSpan.FromSeconds(3));
+            if (stream is null)
+                return false;
+
             using var reader = new PEReader(stream);
-            
             if (!reader.HasMetadata)
                 return false;
 
             var metadataReader = reader.GetMetadataReader();
             return metadataReader.IsAssembly;
+        }
+
+        private static FileStream? TryOpenFileStream(string path, TimeSpan timeout)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            while (stopwatch.Elapsed < timeout)
+            {
+                try
+                {
+                    return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                }
+                catch (IOException)
+                {
+                    Thread.Sleep(100);
+                }
+            }
+
+            return null;
         }
     }
 

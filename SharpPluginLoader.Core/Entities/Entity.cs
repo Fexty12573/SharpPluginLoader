@@ -1,4 +1,5 @@
-﻿using SharpPluginLoader.Core.Actions;
+﻿using System.Numerics;
+using SharpPluginLoader.Core.Actions;
 using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
@@ -81,7 +82,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="shlpIndex">The index of the shlp in the shll</param>
         /// <param name="target">The position the shell should travel towards</param>
         /// <param name="origin">The origin of the shell (or null for the entity itself)</param>
-        public virtual unsafe void CreateShell(int shllIndex, int shlpIndex, MtVector3 target, MtVector3? origin = null)
+        public virtual unsafe void CreateShell(int shllIndex, int shlpIndex, Vector3 target, Vector3? origin = null)
         {
             var shellParams = ShellCreationParams.Create(target, origin ?? Position);
             CreateShellFunc.Invoke(ShllArray.Address, shllIndex, shlpIndex, Instance, Instance, MemoryUtil.AddressOf(ref shellParams));
@@ -110,7 +111,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="index">The index of the shell in the entities shell list (shll)</param>
         /// <param name="target">The position the shell should travel towards</param>
         /// <param name="origin">The origin of the shell (or null for the entity itself)</param>
-        public virtual void CreateShell(uint index, MtVector3 target, MtVector3? origin = null)
+        public virtual void CreateShell(uint index, Vector3 target, Vector3? origin = null)
         {
             throw new NotImplementedException();
         }
@@ -123,7 +124,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="target">The position the shell should travel towards</param>
         /// <param name="origin">The origin of the shell (or null for the entity itself)</param>
         /// <remarks><b>Tip:</b> You can load any shll file using <see cref="ResourceManager.GetResource{T}"/></remarks>
-        public virtual void CreateShell(ShellParamList shll, uint index, MtVector3 target, MtVector3? origin = null)
+        public virtual void CreateShell(ShellParamList shll, uint index, Vector3 target, Vector3? origin = null)
         {
             throw new NotImplementedException();
         }
@@ -134,7 +135,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <param name="shell">The shell to spawn</param>
         /// <param name="target">The target position of the shell</param>
         /// <param name="origin">The origin position of the shell (or null for the entity itself)</param>
-        public virtual void CreateShell(ShellParam shell, MtVector3 target, MtVector3? origin = null)
+        public virtual void CreateShell(ShellParam shell, Vector3 target, Vector3? origin = null)
         {
             throw new NotImplementedException();
         }
@@ -234,7 +235,7 @@ namespace SharpPluginLoader.Core.Entities
         internal unsafe struct ShellCreationParams
         {
             public static ref ShellCreationParams Default() => ref MemoryUtil.GetRef<ShellCreationParams>(0x143f939e0);
-            public static ShellCreationParams Create(MtVector3 target, MtVector3 origin)
+            public static ShellCreationParams Create(Vector3 target, Vector3 origin)
             {
                 ShellCreationParams defaultParams = Default();
                 defaultParams.Populate(target, origin);
@@ -250,7 +251,7 @@ namespace SharpPluginLoader.Core.Entities
                     return (T*)((nint)ptr + offset);
             }
 
-            public ShellCreationParams(MtVector3 target, MtVector3 origin)
+            public ShellCreationParams(Vector3 target, Vector3 origin)
             {
                 Values[0] = origin.X;
                 Values[1] = origin.Y;
@@ -271,7 +272,7 @@ namespace SharpPluginLoader.Core.Entities
                 ivals[2] = -1;
             }
 
-            private void Populate(MtVector3 target, MtVector3 origin)
+            private void Populate(Vector3 target, Vector3 origin)
             {
                 Values[0] = origin.X;
                 Values[1] = origin.Y;

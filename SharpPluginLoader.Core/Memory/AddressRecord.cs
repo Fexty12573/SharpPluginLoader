@@ -29,7 +29,7 @@ namespace SharpPluginLoader.Core.Memory
                 if (_address == 0)
                 {
                     var addr = PatternScanner.Scan(_pattern).FirstOrDefault();
-                    if (addr == 0) throw new Exception("Failed to find address");
+                    if (addr == 0) throw new Exception($"Failed to find address for pattern: {_pattern}");
                     _address = addr + _offset;
                 }
 

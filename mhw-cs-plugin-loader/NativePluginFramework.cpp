@@ -8,8 +8,9 @@
 #include "ImGuiModule.h"
 #include "PatternScan.h"
 
-NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
-    : m_managed_functions(coreclr->get_managed_function_pointers()) {
+NativePluginFramework::NativePluginFramework(CoreClr* coreclr, AddressRepository* address_repository)
+    : m_managed_functions(coreclr->get_managed_function_pointers()),
+      m_address_repository(address_repository) {
 
     s_instance = this;
     m_modules.push_back(std::make_shared<CoreModule>());
@@ -23,6 +24,8 @@ NativePluginFramework::NativePluginFramework(CoreClr* coreclr)
         module->initialize(coreclr);
     }
 
+    // TODO(andoryuuta): should this be a full "Module" instead?
+    coreclr->add_internal_call("GetRepositoryAddress", get_repository_address);
     coreclr->add_internal_call("GetGameRevision", get_game_revision);
     coreclr->upload_internal_calls();
     coreclr->initialize_core_assembly();
@@ -38,6 +41,10 @@ void NativePluginFramework::trigger_on_win_main() {
 
 void NativePluginFramework::trigger_on_mh_main_ctor() {
     m_managed_functions.TriggerOnMhMainCtor();
+}
+
+uintptr_t NativePluginFramework::get_repository_address(const char* name) {
+    return s_instance->m_address_repository->get(name);
 }
 
 const char* NativePluginFramework::get_game_revision() {

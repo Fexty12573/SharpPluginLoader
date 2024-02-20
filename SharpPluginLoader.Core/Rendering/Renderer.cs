@@ -14,8 +14,11 @@ namespace SharpPluginLoader.Core.Rendering
         public static bool DemoShown => _showDemo;
 
         [UnmanagedCallersOnly]
-        internal static nint Initialize()
+        internal static nint Initialize(Size viewportSize)
         {
+            _viewportSize = new Vector2(viewportSize.Width, viewportSize.Height);
+            Log.Debug($"Renderer Initialized with Viewport Size: {viewportSize.Width}x{viewportSize.Height}");
+
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
 
@@ -54,6 +57,7 @@ namespace SharpPluginLoader.Core.Rendering
             var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
             var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
             io.MouseDrawCursor = anyFocused || anyHovered;
+            io.DisplaySize = _viewportSize;
 
             if (_showMenu)
                 ImGui.GetStyle().Alpha = anyFocused ? 1.0f : 0.5f;
@@ -68,15 +72,22 @@ namespace SharpPluginLoader.Core.Rendering
                         if (ImGui.BeginMenu("Options"))
                         {
                             ImGui.Checkbox("Draw Primitives as Wireframe",
-                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.DrawPrimitivesAsWireframe));
+                                ref MemoryUtil.AsRef(_renderingOptionPointers.DrawPrimitivesAsWireframe));
 
                             ImGui.SliderFloat("Line Thickness",
-                                                               ref MemoryUtil.AsRef(_renderingOptionPointers.LineThickness),
-                                                                                              1.0f, 10.0f);
+                                ref MemoryUtil.AsRef(_renderingOptionPointers.LineThickness),
+                                1.0f, 10.0f);
+
+                            ImGui.SliderFloat("Font Scale", ref io.FontGlobalScale, 0.5f, 2.0f);
 
                             ImGui.EndMenu();
                         }
                         ImGui.EndMenuBar();
+
+                        if (ImGui.IsItemDeactivated())
+                        {
+                            // TODO: Save settings
+                        }
                     }
 
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
@@ -240,6 +251,8 @@ namespace SharpPluginLoader.Core.Rendering
         private static bool _showMenu = false;
         private static bool _showDemo = false;
         private static RenderingOptionPointers _renderingOptionPointers;
+        private static Vector2 _viewportSize;
+        private static float _fontScale = 1.0f;
     }
 
     [StructLayout(LayoutKind.Sequential)]

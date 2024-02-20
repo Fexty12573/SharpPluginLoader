@@ -87,7 +87,7 @@ private:
     HWND m_temp_window = nullptr;
     WNDCLASSEX* m_temp_window_class = nullptr;
 
-    ImGuiContext*(*m_core_initialize_imgui)() = nullptr;
+    ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size) = nullptr;
     ImDrawData*(*m_core_imgui_render)() = nullptr;
     void(*m_core_render)() = nullptr;
 

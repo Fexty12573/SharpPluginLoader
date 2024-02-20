@@ -39,7 +39,7 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ImGuiRender"
     );
-    m_core_initialize_imgui = coreclr->get_method<ImGuiContext * ()>(
+    m_core_initialize_imgui = coreclr->get_method<ImGuiContext*(MtSize)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Initialize"
@@ -321,18 +321,18 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    const auto context = m_core_initialize_imgui();
-    igSetCurrentContext(context);
-
-    imgui_load_fonts();
-
-    CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
     DXGI_SWAP_CHAIN_DESC desc;
     if (FAILED(swap_chain->GetDesc(&desc))) {
         dlog::error("Failed to get DXGI swap chain description");
         return;
     }
+    
+    const auto context = m_core_initialize_imgui({ desc.BufferDesc.Width, desc.BufferDesc.Height });
+    igSetCurrentContext(context);
+
+    imgui_load_fonts();
+
+    CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
     desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     m_game_window = desc.OutputWindow;
@@ -395,6 +395,9 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
             dlog::error("Failed to get DXGI swap chain buffer");
             return;
         }
+
+        const auto buffer_desc = back_buffer->GetDesc();
+        dlog::debug("Creating RTV for back buffer {}, with size {}x{}", i, buffer_desc.Width, buffer_desc.Height);
         
         m_d3d12_device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_handle);
         m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
@@ -407,6 +410,8 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         dlog::error("Failed to initialize ImGui Win32");
         return;
     }
+
+    ImGui_ImplWin32_EnableDpiAwareness();
 
     if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
         DXGI_FORMAT_R8G8B8A8_UNORM, m_d3d12_render_targets.Get(),
@@ -438,7 +443,13 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
 
     m_d3d11_device->GetImmediateContext(&m_d3d11_device_context);
 
-    const auto context = m_core_initialize_imgui();
+    DXGI_SWAP_CHAIN_DESC desc;
+    if (FAILED(swap_chain->GetDesc(&desc))) {
+        dlog::error("Failed to get DXGI swap chain description");
+        return;
+    }
+
+    const auto context = m_core_initialize_imgui({ desc.BufferDesc.Width, desc.BufferDesc.Height });
     igSetCurrentContext(context);
 
     imgui_load_fonts();

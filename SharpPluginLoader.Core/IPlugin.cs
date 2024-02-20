@@ -143,7 +143,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The author of the plugin.
         /// </summary>
-        public string Author => "Unknown";
+        public string Author { get; }
 
 
         /// <summary>

@@ -161,7 +161,7 @@ namespace SharpPluginLoader.Core
         /// 
         /// Default event, always called once per plugin [re]load.
         /// </summary>
-        public void OnLoad();
+        public void OnLoad() { }
 
 
         #region Pre-Main Events

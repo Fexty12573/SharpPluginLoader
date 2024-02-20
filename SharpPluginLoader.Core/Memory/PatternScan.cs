@@ -145,6 +145,23 @@ namespace SharpPluginLoader.Core.Memory
             return new Pattern { Bytes = [.. patternBytes] };
         }
 
+        public override string ToString()
+        {
+            var outputParts = new List<string>();
+            foreach (var patternByte in Bytes)
+            {
+                if(patternByte.IsWildcard)
+                {
+                    outputParts.Add("??");
+                }
+                else
+                {
+                    outputParts.Add(Convert.ToHexString([patternByte.Value]));
+                }
+            }
+            return string.Join(" ", outputParts);
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         public record struct Byte(bool IsWildcard, byte Value);
     }

@@ -117,7 +117,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
@@ -158,6 +158,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx12.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp" />
+    <ClCompile Include="AddressRepository.cpp" />
     <ClCompile Include="Bitfield.cpp" />
     <ClCompile Include="ChunkModule.cpp" />
     <ClCompile Include="CoreClr.cpp" />
@@ -174,6 +175,9 @@
     <ClCompile Include="PatternScan.cpp" />
     <ClCompile Include="Preloader.cpp" />
     <ClCompile Include="PrimitiveRenderingModule.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="TextureManager11.cpp" />
+    <ClCompile Include="TextureManager12.cpp" />
     <ClCompile Include="Timeline.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +187,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx12.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="AddressRepository.h" />
     <ClInclude Include="Bitfield.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="ChunkModule.h" />
@@ -207,6 +212,7 @@
     <ClInclude Include="PrimitiveRenderingModule.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="SharpPluginLoader.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Timeline.h" />
   </ItemGroup>
   <ItemGroup>

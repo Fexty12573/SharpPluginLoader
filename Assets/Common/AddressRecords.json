@@ -358,5 +358,15 @@
         "Name": "ComponentManager:Find",
         "Pattern": "57 48 83 EC 20 48 8B 59 08 41 0F B6 F0 48 8B FA 48 85 DB 74 4B",
         "Offset": -10
+    },
+    {
+        "Name": "UnitManager:AddTop",
+        "Pattern": "48 69 f5 f8 00 00 00 48 03 f7 48 8b 86 80 00 00 00",
+        "Offset": -81
+    },
+    {
+        "Name": "UnitManager:AddBottom",
+        "Pattern": "48 69 f5 f8 00 00 00 4c 8b f5 48 03 f7 48 8b 86 88 00 00 00",
+        "Offset": -81
     }
 ]

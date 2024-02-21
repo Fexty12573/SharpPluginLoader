@@ -142,4 +142,7 @@
 	<ItemGroup>
 	  <NativeLibs Remove="Unit.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="UnitManager.cs" />
+	</ItemGroup>
 </Project>

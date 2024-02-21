@@ -13,7 +13,7 @@ namespace SharpPluginLoader.Core.Models
     /// <summary>
     /// Represents an instance of a uMhModel class
     /// </summary>
-    public class Model : MtObject
+    public class Model : Unit
     {
         public Model(nint instance) : base(instance) { }
         public Model() { }
@@ -143,11 +143,6 @@ namespace SharpPluginLoader.Core.Models
         /// The model's animation component
         /// </summary>
         public AnimationLayerComponent? AnimationLayer => GetObject<AnimationLayerComponent>(0x468);
-
-        /// <summary>
-        /// The model's component manager
-        /// </summary>
-        public ComponentManager ComponentManager => GetInlineObject<ComponentManager>(0x70);
 
         /// <summary>
         /// The model's motion lists.

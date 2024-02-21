@@ -56,7 +56,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The name of the monster
         /// </summary>
-        public string Name => Utility.GetMonsterName(Type);
+        public new string Name => Utility.GetMonsterName(Type);
 
         /// <summary>
         /// The current health of the monster

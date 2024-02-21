@@ -9,7 +9,10 @@ using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.View;
 
-public class Camera : MtObject
+/// <summary>
+/// Represents an instance of a uCamera class.
+/// </summary>
+public class Camera : Unit
 {
     public Camera(nint instance) : base(instance) { }
     public Camera() { }

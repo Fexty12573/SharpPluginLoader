@@ -139,4 +139,7 @@
 	<ItemGroup>
 	  <NativeLibs Remove="SingletonManager.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="Unit.cs" />
+	</ItemGroup>
 </Project>

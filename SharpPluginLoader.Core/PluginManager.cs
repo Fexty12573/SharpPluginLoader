@@ -341,7 +341,8 @@ namespace SharpPluginLoader.Core
             // Figures out which events the plugin subscribes to and populate the PluginData object.
             PopulateEventSubscriptions(plugin, pluginData);
 
-            var nativePlugin = TryLoadNativePlugin(assembly, plugin, Path.ChangeExtension(absPath, ".Native.dll"));
+            var (icalls, nativePlugin) = GetNativeInternalCalls(assembly, plugin, Path.ChangeExtension(absPath, ".Native.dll"));
+            TryUploadInternalCalls(assembly, plugin, icalls, AddressRepository.GetPluginRecords());
 
             lock (_contexts)
             {
@@ -359,16 +360,18 @@ namespace SharpPluginLoader.Core
             return;
         }
 
-        private static unsafe nint TryLoadNativePlugin(Assembly assembly, IPlugin plugin, string path)
+        private static unsafe (Dictionary<string, nint>, nint) GetNativeInternalCalls(Assembly assembly, IPlugin plugin, string path)
         {
             if (!File.Exists(path))
-                return 0;
+            {
+                return ([], 0);
+            }
 
             var nativePlugin = WinApi.LoadLibrary(path);
             if (nativePlugin == 0)
             {
                 Log.Error($"Failed to load native plugin for {plugin.Name}");
-                return 0;
+                return ([], 0);
             }
 
             var getIcallCount = new NativeFunction<int>(WinApi.GetProcAddress(nativePlugin, "get_internal_call_count"));
@@ -376,22 +379,22 @@ namespace SharpPluginLoader.Core
 
             if (getIcallCount.NativePointer == 0)
             {
-                Log.Error($"Native plugin for {plugin.Name} does not export GetInternalCallCount");
+                Log.Error($"Native plugin for {plugin.Name} does not export get_internal_call_count");
                 WinApi.FreeLibrary(nativePlugin);
 
-                return 0;
+                return ([], 0);
             }
 
             if (collectIcalls.NativePointer == 0)
             {
-                Log.Error($"Native plugin for {plugin.Name} does not export CollectInternalCalls");
+                Log.Error($"Native plugin for {plugin.Name} does not export collect_internal_calls");
                 WinApi.FreeLibrary(nativePlugin);
 
-                return 0;
+                return ([], 0);
             }
 
             var icallCount = getIcallCount.Invoke();
-            var icalls = NativeArray<InternalCall>.Create(icallCount);
+            using var icalls = NativeArray<InternalCall>.Create(icallCount);
 
             collectIcalls.Invoke(icalls.Address);
 
@@ -400,40 +403,34 @@ namespace SharpPluginLoader.Core
                 icall => icall.FunctionPointer
             );
 
+            return (icallMap, nativePlugin);
+        }
+
+        private static unsafe void TryUploadInternalCalls(Assembly assembly, IPlugin plugin,
+            IDictionary<string, nint> nativeICalls, IDictionary<string, nint> addressCache)
+        {
             var icallManager = assembly.GetTypes()
                 .FirstOrDefault(type => type.GetCustomAttribute<InternalCallManagerAttribute>() is not null);
             if (icallManager is null)
-            {
-                Log.Error($"{plugin.Name} has a native component but no InternalCallManager");
-                WinApi.FreeLibrary(nativePlugin);
-
-                return 0;
-            }
+                return;
 
             var uploadInternalCalls = icallManager
                 .GetMethod("UploadInternalCalls", BindingFlags.Public | BindingFlags.Static);
             if (uploadInternalCalls is null)
             {
                 Log.Error($"{plugin.Name} has an InternalCallManager but is missing an UploadInternalCalls method");
-                WinApi.FreeLibrary(nativePlugin);
-
-                return 0;
+                return;
             }
 
             try
             {
-                uploadInternalCalls.CreateDelegate<UploadInternalCallsDelegate>()(icallMap, AddressRepository.GetPluginRecords());
+                uploadInternalCalls.CreateDelegate<UploadInternalCallsDelegate>()(nativeICalls, addressCache);
             }
             catch (Exception e)
             {
                 Log.Error($"Failed to upload InternalCalls for {plugin.Name}: {e}");
-                WinApi.FreeLibrary(nativePlugin);
-
-                return 0;
+                return;
             }
-            
-
-            return nativePlugin;
         }
 
         private static void PopulateEventSubscriptions(IPlugin plugin, PluginData data)

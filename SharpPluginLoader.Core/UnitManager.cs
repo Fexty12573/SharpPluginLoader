@@ -29,7 +29,7 @@ public static class UnitManager
         if (index >= LineCount)
             return null;
 
-        return _moveLines[index] ??= SingletonInstance?.GetInlineObject<MoveLine>(0x38 + index * 0xF8);
+        return MoveLines[index] ??= SingletonInstance?.GetInlineObject<MoveLine>(0x38 + index * 0xF8);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public static class UnitManager
         if (SingletonInstance is null)
             return false;
 
-        return _addTop.Invoke(SingletonInstance.Instance, line, unit.Instance, groupBit);
+        return AddTopFunc.Invoke(SingletonInstance.Instance, line, unit.Instance, groupBit);
     }
 
     /// <summary>
@@ -85,15 +85,15 @@ public static class UnitManager
         if (SingletonInstance is null)
             return false;
 
-        return _addBottom.Invoke(SingletonInstance.Instance, line, unit.Instance, groupBit);
+        return AddBottomFunc.Invoke(SingletonInstance.Instance, line, unit.Instance, groupBit);
     }
 
 
     private static MtObject? _singleton;
-    private static MoveLine?[] _moveLines = null!;
+    private static readonly MoveLine?[] MoveLines = new MoveLine?[64];
 
-    private static readonly NativeFunction<nint, int, nint, ulong, bool> _addTop = new(AddressRepository.Get("sMhUnit:AddTop"));
-    private static readonly NativeFunction<nint, int, nint, ulong, bool> _addBottom = new(AddressRepository.Get("sMhUnit:AddBottom"));
+    private static readonly NativeFunction<nint, int, nint, ulong, bool> AddTopFunc = new(AddressRepository.Get("UnitManager:AddTop"));
+    private static readonly NativeFunction<nint, int, nint, ulong, bool> AddBottomFunc = new(AddressRepository.Get("UnitManager:AddBottom"));
 }
 
 /// <summary>

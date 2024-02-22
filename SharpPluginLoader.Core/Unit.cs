@@ -73,7 +73,14 @@ public class Unit : MtObject
     /// <summary>
     /// The name of the unit.
     /// </summary>
-    public unsafe string Name => new NativeFunction<nint, string>(GetVirtualFunction(15)).Invoke(Instance);
+    public unsafe string Name
+    {
+        get
+        {
+            var func = new NativeFunction<nint, nint>(GetVirtualFunction(15));
+            return new string((sbyte*)func.Invoke(Instance));
+        }
+    }
 
     public bool Fix
     {

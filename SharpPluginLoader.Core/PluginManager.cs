@@ -310,9 +310,22 @@ namespace SharpPluginLoader.Core
 
             Log.Info($"Loading plugin {pluginName}");
 
-            if (Activator.CreateInstance(pluginType) is not IPlugin plugin)
+
+            IPlugin plugin;
+            try
             {
-                Log.Warn($"Failed to create instance of {pluginType.FullName}");
+                if (Activator.CreateInstance(pluginType) is not IPlugin plg)
+                {
+                    Log.Warn($"Failed to create instance of {pluginType.FullName}");
+                    context.Unload();
+                    return;
+                }
+
+                plugin = plg;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.ToString());
                 context.Unload();
                 return;
             }

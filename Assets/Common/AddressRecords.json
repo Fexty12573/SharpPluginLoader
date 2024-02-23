@@ -368,5 +368,10 @@
         "Name": "UnitManager:AddBottom",
         "Pattern": "48 69 f5 f8 00 00 00 4c 8b f5 48 03 f7 48 8b 86 88 00 00 00",
         "Offset": -81
+    },
+    {
+        "Name": "Matchmaking:StartRequest",
+        "Pattern": "48 83 ec 68 8b 42 54 33 ed 4c 8b f2",
+        "Offset": -7
     }
 ]

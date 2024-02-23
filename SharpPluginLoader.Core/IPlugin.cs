@@ -115,6 +115,7 @@ namespace SharpPluginLoader.Core
         #region Network
         internal bool OnSendPacket;
         internal bool OnReceivePacket;
+        internal bool OnLobbySearch;
         #endregion
 
         #region Rendering
@@ -427,6 +428,16 @@ namespace SharpPluginLoader.Core
         /// <param name="data">The data of the packet</param>
         [PluginEvent]
         public void OnReceivePacket(uint id, PacketType type, SessionIndex sourceSession, NetBuffer data) => throw new MissingEventException();
+
+        /// <summary>
+        /// Gets called when the game is about to search for lobbies.
+        /// </summary>
+        /// <param name="maxResults">The maximum number of results to return.</param>
+        /// <remarks>
+        /// To modify the lobby search, take a look at the <see cref="Steam.Matchmaking"/> class
+        /// </remarks>
+        [PluginEvent]
+        public void OnLobbySearch(ref int maxResults) => throw new MissingEventException();
         #endregion
 
         #region Rendering

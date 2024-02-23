@@ -145,6 +145,17 @@ namespace SharpPluginLoader.Core.Memory
             return new Pattern { Bytes = [.. patternBytes] };
         }
 
+        public static Pattern FromBytes(params byte[] bytes)
+        {
+            var patternBytes = new List<Byte>();
+            foreach (var patternByte in bytes)
+            {
+                patternBytes.Add(new Byte(false, patternByte));
+            }
+
+            return new Pattern { Bytes = [.. patternBytes] };
+        }
+
         public override string ToString()
         {
             var outputParts = new List<string>();

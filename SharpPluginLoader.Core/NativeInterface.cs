@@ -6,6 +6,7 @@ using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Networking;
+using SharpPluginLoader.Core.Steam;
 
 namespace SharpPluginLoader.Core
 {
@@ -80,7 +81,8 @@ namespace SharpPluginLoader.Core
                     Task.Run(Player.Initialize),
                     Task.Run(Monster.Initialize),
                     Task.Run(ActionController.Initialize),
-                    Task.Run(AnimationLayerComponent.Initialize)
+                    Task.Run(AnimationLayerComponent.Initialize),
+                    Task.Run(Matchmaking.Initialize),
                 ]);
             }
             catch (Exception e)

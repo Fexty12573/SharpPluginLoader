@@ -10,6 +10,7 @@ using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Experimental;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Steam;
 
 namespace ExperimentalTesting
 {
@@ -55,6 +56,14 @@ namespace ExperimentalTesting
 
             //_createShinyDropHook = MarshallingHook.Create<CreateShinyDropDelegate>(CreateShinyDropHook, 0x1402cb1d0);
             //_releaseResourceHook = MarshallingHook.Create<ReleaseResourceDelegate>(ReleaseResourceHook, 0x142224890);
+        }
+
+        public void OnLobbySearch(ref int resultCount)
+        {
+            resultCount = 50;
+            Log.Info($"OnLobbySearch: {resultCount}");
+
+            Matchmaking.AddRequestLobbyListDistanceFilter(LobbyDistanceFilter.WorldWide);
         }
 
         public void OnImGuiRender()

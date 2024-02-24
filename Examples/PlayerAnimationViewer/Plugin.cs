@@ -155,51 +155,13 @@ namespace PlayerAnimationViewer
                 Log.Info($"Action: {actionController.CurrentAction} Animation: {player.CurrentAnimation} Frame: {player.AnimationLayer!.CurrentFrame}");
         }
 
-        public void OnImGuiRender()
+        public void OnImGuiFreeRender()
         {
-            if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
-            {
-                var entities = GetEntityList();
-                var dtis = entities.Select(e => e.GetDti()).ToArray();
-
-                for (var i = 0; i < dtis.Length; i++)
-                {
-                    if (ImGui.Selectable(dtis[i]?.Name ?? "N/A", dtis[i] == _selectedDti))
-                    {
-                        _selectedDti = dtis[i]!;
-                        _selectedModel = entities[i];
-                        _selectedAnimLayer = _selectedModel?.AnimationLayer;
-
-                        Ensure.NotNull(_selectedAnimLayer);
-
-                        _interFrame = 0f;
-                        _startFrame2 = 0f;
-                        _startSpeed = 1f;
-
-                        _animationId = _selectedDti.InheritsFrom("uWeapon")
-                            ? new AnimationId(0, 0) 
-                            : new AnimationId(12, 0);
-
-                        _lmtPlayer = GetLmtPlayer(_selectedAnimLayer!);
-                        _timlPlayer = _lmtPlayer.TimlPlayer;
-                        _timelineGroupExpandedMap.Clear();
-                    }
-                }
-
-                ImGui.EndCombo();
-            }
+            if (!Renderer.MenuShown)
+                return;
 
             if (_selectedModel is null || _selectedAnimLayer is null)
-            {
-                ImGui.TextColored(new Vector4(1, 1, 0, 1), "No Entity selected");
                 return;
-            }
-
-            if (_selectedModel.Is("uEnemy"))
-            {
-                ImGui.Checkbox("Lock Actions", ref _lockActions);
-                ImGui.InputInt("Action", ref _selectedAction);
-            }
 
             if (ImGui.Begin("Animation Viewer"))
             {
@@ -267,69 +229,116 @@ namespace PlayerAnimationViewer
                         }
                     }
                 }
-            }
 
-            ImGui.NewLine();
-
-            if (ImGui.CollapsingHeader("Frame Viewer"))
-            {
-                ImGui.Text($"Current Frame: {_selectedAnimLayer!.CurrentFrame:.02}/{_selectedAnimLayer.MaxFrame}");
-                ImGui.SliderFloat("Frame", ref _selectedAnimLayer.CurrentFrame, 0f, _selectedAnimLayer.MaxFrame);
-
-                var paused = _selectedAnimLayer.Paused;
-                if (ImGui.Checkbox("Paused", ref paused))
-                    _selectedAnimLayer.Paused = paused;
-
-                ImGui.Text($"Current Animation Speed: {_selectedAnimLayer.Speed}");
-                ImGui.SliderFloat("Speed", ref _lockedSpeed, 0, 10);
-
-                if (ImGui.Checkbox("Lock Speed", ref _speedLocked))
-                {
-                    if (_speedLocked)
-                        _selectedAnimLayer.LockSpeed(_lockedSpeed);
-                    else
-                        _selectedAnimLayer.UnlockSpeed();
-                }
-            }
-
-            if (ImGui.CollapsingHeader("Utilities"))
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0.5f, 0.5f, 1));
-                ImGui.TextWrapped("Note: These features only work for Players/Monsters.");
-                ImGui.PopStyleColor();
                 ImGui.NewLine();
 
-                ImGui.Checkbox("##lock-animid", ref _lockAnimationId);
-                if (ImGui.BeginItemTooltip())
+                if (ImGui.CollapsingHeader("Frame Viewer"))
                 {
-                    ImGui.Text("Lock Value");
-                    ImGui.EndTooltip();
-                }
-                ImGui.SameLine();
-                var animIdBuffer = stackalloc uint[2] { _lockedAnimationId.Lmt, _lockedAnimationId.Id };
-                if (ImGui.InputScalarN("Next Animation ID", ImGuiDataType.U32, (nint)animIdBuffer, 2))
-                    _lockedAnimationId = new AnimationId(animIdBuffer[0], animIdBuffer[1]);
+                    ImGui.Text($"Current Frame: {_selectedAnimLayer!.CurrentFrame:.02}/{_selectedAnimLayer.MaxFrame}");
+                    ImGui.SliderFloat("Frame", ref _selectedAnimLayer.CurrentFrame, 0f, _selectedAnimLayer.MaxFrame);
 
-                ImGui.Checkbox("##lock-interframe", ref _lockInterFrame);
-                if (ImGui.BeginItemTooltip())
-                {
-                    ImGui.Text("Lock Value");
-                    ImGui.EndTooltip();
-                }
-                ImGui.SameLine();
-                ImGui.InputFloat("Next InterFrame", ref _lockedInterFrame);
+                    var paused = _selectedAnimLayer.Paused;
+                    if (ImGui.Checkbox("Paused", ref paused))
+                        _selectedAnimLayer.Paused = paused;
 
-                ImGui.Checkbox("##lock-startframe", ref _lockStartFrame);
-                if (ImGui.BeginItemTooltip())
-                {
-                    ImGui.Text("Lock Value");
-                    ImGui.EndTooltip();
+                    ImGui.Text($"Current Animation Speed: {_selectedAnimLayer.Speed}");
+                    ImGui.SliderFloat("Speed", ref _lockedSpeed, 0, 10);
+
+                    if (ImGui.Checkbox("Lock Speed", ref _speedLocked))
+                    {
+                        if (_speedLocked)
+                            _selectedAnimLayer.LockSpeed(_lockedSpeed);
+                        else
+                            _selectedAnimLayer.UnlockSpeed();
+                    }
                 }
-                ImGui.SameLine();
-                ImGui.InputFloat("Next StartFrame", ref _lockedStartFrame);
+
+                if (ImGui.CollapsingHeader("Utilities"))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0.5f, 0.5f, 1));
+                    ImGui.TextWrapped("Note: These features only work for Players/Monsters.");
+                    ImGui.PopStyleColor();
+                    ImGui.NewLine();
+
+                    ImGui.Checkbox("##lock-animid", ref _lockAnimationId);
+                    if (ImGui.BeginItemTooltip())
+                    {
+                        ImGui.Text("Lock Value");
+                        ImGui.EndTooltip();
+                    }
+                    ImGui.SameLine();
+                    var animIdBuffer = stackalloc uint[2] { _lockedAnimationId.Lmt, _lockedAnimationId.Id };
+                    if (ImGui.InputScalarN("Next Animation ID", ImGuiDataType.U32, (nint)animIdBuffer, 2))
+                        _lockedAnimationId = new AnimationId(animIdBuffer[0], animIdBuffer[1]);
+
+                    ImGui.Checkbox("##lock-interframe", ref _lockInterFrame);
+                    if (ImGui.BeginItemTooltip())
+                    {
+                        ImGui.Text("Lock Value");
+                        ImGui.EndTooltip();
+                    }
+                    ImGui.SameLine();
+                    ImGui.InputFloat("Next InterFrame", ref _lockedInterFrame);
+
+                    ImGui.Checkbox("##lock-startframe", ref _lockStartFrame);
+                    if (ImGui.BeginItemTooltip())
+                    {
+                        ImGui.Text("Lock Value");
+                        ImGui.EndTooltip();
+                    }
+                    ImGui.SameLine();
+                    ImGui.InputFloat("Next StartFrame", ref _lockedStartFrame);
+                }
             }
-            
+
             ImGui.End();
+        }
+
+        public void OnImGuiRender()
+        {
+            if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
+            {
+                var entities = GetEntityList();
+                var dtis = entities.Select(e => e.GetDti()).ToArray();
+
+                for (var i = 0; i < dtis.Length; i++)
+                {
+                    if (ImGui.Selectable(dtis[i]?.Name ?? "N/A", dtis[i] == _selectedDti))
+                    {
+                        _selectedDti = dtis[i]!;
+                        _selectedModel = entities[i];
+                        _selectedAnimLayer = _selectedModel?.AnimationLayer;
+
+                        Ensure.NotNull(_selectedAnimLayer);
+
+                        _interFrame = 0f;
+                        _startFrame2 = 0f;
+                        _startSpeed = 1f;
+
+                        _animationId = _selectedDti.InheritsFrom("uWeapon")
+                            ? new AnimationId(0, 0) 
+                            : new AnimationId(12, 0);
+
+                        _lmtPlayer = GetLmtPlayer(_selectedAnimLayer!);
+                        _timlPlayer = _lmtPlayer.TimlPlayer;
+                        _timelineGroupExpandedMap.Clear();
+                    }
+                }
+
+                ImGui.EndCombo();
+            }
+
+            if (_selectedModel is null || _selectedAnimLayer is null)
+            {
+                ImGui.TextColored(new Vector4(1, 1, 0, 1), "No Entity selected");
+                return;
+            }
+
+            if (_selectedModel.Is("uEnemy"))
+            {
+                ImGui.Checkbox("Lock Actions", ref _lockActions);
+                ImGui.InputInt("Action", ref _selectedAction);
+            }
 
             if (ImGui.TreeNode("LMT Editor"))
             {
@@ -431,7 +440,7 @@ namespace PlayerAnimationViewer
                     _lmtBitMapping = LmtBitMapping.LoadFrom(LmtBitMappingFile);
                 }
 
-                ImGui.Separator();
+                ImGui.BeginChild("##timelines", new Vector2(), ImGuiChildFlags.Border | ImGuiChildFlags.ResizeY);
 
                 ref var header = ref _selectedLmt.Header;
                 for (var i = 0; i < header.MotionCount; ++i)
@@ -484,9 +493,9 @@ namespace PlayerAnimationViewer
                         {
                             ImGui.Text("Sorts all Keyframes in this Entry by their frame.");
                             ImGui.NewLine();
-                            ImGui.TextWrapped("When you drag a keyframe with a higher frame number to the left of a"
-                                              + "different keyframe with a lower frame number, the keyframes will be"
-                                              + "out of order. This will cause weird behavior in-game, so you should"
+                            ImGui.TextWrapped("When you drag a keyframe with a higher frame number to the left of a "
+                                              + "different keyframe with a lower frame number, the keyframes will be "
+                                              + "out of order. This will cause weird behavior in-game, so you should "
                                               + "sort the keyframes after you're done editing them.");
                             ImGui.EndTooltip();
                         }
@@ -552,76 +561,6 @@ namespace PlayerAnimationViewer
 
                             ImGuiExtensions.EndTimeline();
                             ImGui.NewLine();
-                        }
-
-                        if (_selectedKeyframe is not null)
-                        {
-                            if (ImGui.Button("Duplicate Keyframe") ||
-                                ImGui.IsKeyDown(ImGuiKey.LeftCtrl) && ImGui.IsKeyPressed(ImGuiKey.D))
-                            {
-                                DuplicateSelectedKeyframe();
-                                ImGuiExtensions.NotificationInfo("Duplicated Keyframe");
-                            }
-
-                            ImGui.SameLine();
-                            if (ImGui.Button("Delete Keyframe") || ImGui.IsKeyPressed(ImGuiKey.Delete))
-                            {
-                                if (_selectedParamMember->KeyframeNum > 1)
-                                {
-                                    DeleteSelectedKeyframe();
-                                    ImGuiExtensions.NotificationInfo("Deleted Keyframe");
-                                }
-                                else
-                                {
-                                    ImGuiExtensions.NotificationError("Cannot delete last Keyframe");
-                                }
-                            }
-
-                            switch (_selectedKeyframeType)
-                            {
-                                case PropType.Bool:
-                                    ImGui.Checkbox("Value", ref _selectedKeyframe->BoolValue);
-                                    break;
-                                case PropType.S32:
-                                    ImGui.InputInt("Value", ref _selectedKeyframe->IntValue);
-                                    break;
-                                case PropType.U32:
-                                    ImGuiExtensions.InputScalar("Value", ref _selectedKeyframe->UIntValue, 
-                                        format: _selectedKeyframe->ApplyType == ApplyType.Flags ? "%X" : "%u");
-                                    break;
-                                case PropType.Color:
-                                {
-                                    var vec4 = _selectedKeyframe->ColorValue.ToVector4();
-                                    ImGui.ColorEdit4("Value", ref vec4);
-                                    _selectedKeyframe->ColorValue = MtColor.FromVector4(vec4);
-                                    break;
-                                }
-                                case PropType.F32:
-                                    ImGui.InputFloat("Value", ref _selectedKeyframe->FloatValue);
-                                    break;
-                                default:
-                                    ImGui.Text($"Unsupported type: {_selectedKeyframeType}");
-                                    break;
-                            }
-
-                            ImGui.Separator();
-                            ImGui.InputFloat("Bounce Forward Limit", ref _selectedKeyframe->BounceForwardLimit);
-                            ImGui.InputFloat("Bounce Back Limit", ref _selectedKeyframe->BounceBackLimit);
-                            ImGui.Separator();
-                            ImGui.InputFloat("Frame", ref _selectedKeyframe->Frame);
-
-                            if (_selectedKeyframe->ApplyType == ApplyType.Flags)
-                                ImGuiExtensions.InputScalar("Flags Mask", ref _selectedKeyframe->FlagsMask, format: "%X");
-
-                            ImGui.Separator();
-                            var applyType = (int)_selectedKeyframe->ApplyType;
-                            var interpType = (int)_selectedKeyframe->InterpolationType;
-                            ImGui.Combo("Apply Type", ref applyType, Enum.GetNames(typeof(ApplyType)), (int)ApplyType.Count);
-                            ImGui.Combo("Interpolation Type", ref interpType, Enum.GetNames(typeof(InterpType)), (int)InterpType.Count);
-                            _selectedKeyframe->ApplyType = (ApplyType)applyType;
-                            _selectedKeyframe->InterpolationType = (InterpType)interpType;
-
-                            DisplayBitMappings();
                         }
 
                         if (ImGui.BeginPopup("Add New Keyframe##popup"))
@@ -749,8 +688,86 @@ namespace PlayerAnimationViewer
                     }
                 }
 
+                ImGui.EndChild();
+
+                ImGui.BeginChild("##keyframe editor");
+
+                if (_selectedKeyframe is not null)
+                {
+                    if (ImGui.Button("Duplicate Keyframe") ||
+                        ImGui.IsKeyDown(ImGuiKey.LeftCtrl) && ImGui.IsKeyPressed(ImGuiKey.D))
+                    {
+                        DuplicateSelectedKeyframe();
+                        ImGuiExtensions.NotificationInfo("Duplicated Keyframe");
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button("Delete Keyframe") || ImGui.IsKeyPressed(ImGuiKey.Delete))
+                    {
+                        if (_selectedParamMember->KeyframeNum > 1)
+                        {
+                            DeleteSelectedKeyframe();
+                            ImGuiExtensions.NotificationInfo("Deleted Keyframe");
+                        }
+                        else
+                        {
+                            ImGuiExtensions.NotificationError("Cannot delete last Keyframe");
+                        }
+                    }
+
+                    switch (_selectedKeyframeType)
+                    {
+                        case PropType.Bool:
+                            ImGui.Checkbox("Value", ref _selectedKeyframe->BoolValue);
+                            break;
+                        case PropType.S32:
+                            ImGui.InputInt("Value", ref _selectedKeyframe->IntValue);
+                            break;
+                        case PropType.U32:
+                            ImGuiExtensions.InputScalar("Value", ref _selectedKeyframe->UIntValue,
+                                format: _selectedKeyframe->ApplyType == ApplyType.Flags ? "%X" : "%u");
+                            break;
+                        case PropType.Color:
+                            {
+                                var vec4 = _selectedKeyframe->ColorValue.ToVector4();
+                                ImGui.ColorEdit4("Value", ref vec4);
+                                _selectedKeyframe->ColorValue = MtColor.FromVector4(vec4);
+                                break;
+                            }
+                        case PropType.F32:
+                            ImGui.InputFloat("Value", ref _selectedKeyframe->FloatValue);
+                            break;
+                        default:
+                            ImGui.Text($"Unsupported type: {_selectedKeyframeType}");
+                            break;
+                    }
+
+                    ImGui.Separator();
+                    ImGui.InputFloat("Bounce Forward Limit", ref _selectedKeyframe->BounceForwardLimit);
+                    ImGui.InputFloat("Bounce Back Limit", ref _selectedKeyframe->BounceBackLimit);
+                    ImGui.Separator();
+                    ImGui.InputFloat("Frame", ref _selectedKeyframe->Frame);
+
+                    if (_selectedKeyframe->ApplyType == ApplyType.Flags)
+                        ImGuiExtensions.InputScalar("Flags Mask", ref _selectedKeyframe->FlagsMask, format: "%X");
+
+                    ImGui.Separator();
+                    var applyType = (int)_selectedKeyframe->ApplyType;
+                    var interpType = (int)_selectedKeyframe->InterpolationType;
+                    ImGui.Combo("Apply Type", ref applyType, Enum.GetNames(typeof(ApplyType)), (int)ApplyType.Count);
+                    ImGui.Combo("Interpolation Type", ref interpType, Enum.GetNames(typeof(InterpType)), (int)InterpType.Count);
+                    _selectedKeyframe->ApplyType = (ApplyType)applyType;
+                    _selectedKeyframe->InterpolationType = (InterpType)interpType;
+
+                    DisplayBitMappings();
+                }
+
+                ImGui.EndChild();
+
                 ImGui.TreePop();
             }
+
+
         }
 
         private void DisplayBitMappings()

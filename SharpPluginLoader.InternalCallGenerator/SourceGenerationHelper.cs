@@ -272,6 +272,9 @@ public static class SourceGenerationHelper
                     case TypeConversionKind.WideString:
                         methodBodySb.AppendLine("return MemoryUtil.ReadString(__result, Encoding.Unicode);");
                         break;
+                    case TypeConversionKind.BoolReturn:
+                        methodBodySb.AppendLine("return __result != 0;");
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -456,6 +459,11 @@ public static class SourceGenerationHelper
                         ? ("byte*", TypeConversionKind.WideString) 
                         : ("byte*", TypeConversionKind.String);
                 }
+
+                if (namedType.SpecialType == SpecialType.System_Boolean)
+                {
+                    return ("byte", TypeConversionKind.BoolReturn);
+                }
                 
                 if (namedType.IsGenericType || !namedType.IsValueType)
                 {
@@ -567,5 +575,6 @@ internal enum TypeConversionKind
     WideString = 4,
     Span = 5,
     List = 6,
-    Memory = 7
+    Memory = 7,
+    BoolReturn = 8
 }

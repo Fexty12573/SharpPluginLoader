@@ -94,4 +94,7 @@ public partial class InternalCalls
 
     [InternalCall]
     public static partial void InParameterTest(in Vector2 vec);
+
+    [InternalCall]
+    public static partial bool BoolTest();
 }

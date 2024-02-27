@@ -13,9 +13,9 @@ public static unsafe partial class Matchmaking
     public static void AddRequestLobbyListDistanceFilter(LobbyDistanceFilter filter)
     {
         var iface = GetSteamMatchmakingInterface();
-        new NativeAction<LobbyDistanceFilter>(
+        new NativeAction<nint, LobbyDistanceFilter>(
             GetVirtualFunction(iface, VirtualFunctionIndex.AddRequestLobbyListDistanceFilter)
-        ).Invoke(filter);
+        ).Invoke(iface, filter);
     }
 
     /// <summary>
@@ -25,9 +25,9 @@ public static unsafe partial class Matchmaking
     public static void AddRequestLobbyListFilterSlotsAvailable(int slotsAvailable)
     {
         var iface = GetSteamMatchmakingInterface();
-        new NativeAction<int>(
+        new NativeAction<nint, int>(
             GetVirtualFunction(iface, VirtualFunctionIndex.AddRequestLobbyListFilterSlotsAvailable)
-        ).Invoke(slotsAvailable);
+        ).Invoke(iface, slotsAvailable);
     }
 
     /// <summary>
@@ -42,9 +42,9 @@ public static unsafe partial class Matchmaking
     public static void AddRequestLobbyListNearValueFilter(string keyToMatch, int valueToBeCloseTo)
     {
         var iface = GetSteamMatchmakingInterface();
-        new NativeAction<string, int>(
+        new NativeAction<nint, string, int>(
             GetVirtualFunction(iface, VirtualFunctionIndex.AddRequestLobbyListNearValueFilter)
-        ).Invoke(keyToMatch, valueToBeCloseTo);
+        ).Invoke(iface, keyToMatch, valueToBeCloseTo);
     }
 
     /// <summary>
@@ -56,9 +56,9 @@ public static unsafe partial class Matchmaking
     public static void AddRequestLobbyListNumericalFilter(string keyToMatch, int valueToMatch, LobbyComparison comparison)
     {
         var iface = GetSteamMatchmakingInterface();
-        new NativeAction<string, int, LobbyComparison>(
+        new NativeAction<nint, string, int, LobbyComparison>(
             GetVirtualFunction(iface, VirtualFunctionIndex.AddRequestLobbyListNumericalFilter)
-        ).Invoke(keyToMatch, valueToMatch, comparison);
+        ).Invoke(iface, keyToMatch, valueToMatch, comparison);
     }
 
     /// <summary>
@@ -70,57 +70,61 @@ public static unsafe partial class Matchmaking
     public static void AddRequestLobbyListStringFilter(string keyToMatch, string valueToMatch, LobbyComparison comparison)
     {
         var iface = GetSteamMatchmakingInterface();
-        new NativeAction<string, string, LobbyComparison>(
+        new NativeAction<nint, string, string, LobbyComparison>(
             GetVirtualFunction(iface, VirtualFunctionIndex.AddRequestLobbyListStringFilter)
-        ).Invoke(keyToMatch, valueToMatch, comparison);
+        ).Invoke(iface, keyToMatch, valueToMatch, comparison);
     }
 
     #region Internal
 
-    private static unsafe nint GetVirtualFunction(nint iface, VirtualFunctionIndex func)
+    private static nint GetVirtualFunction(nint iface, VirtualFunctionIndex func)
     {
-        var vtable = **(nint**)iface;
+        var vtable = *(nint*)iface;
         return MemoryUtil.Read<nint>(vtable + (int)func * nint.Size);
     }
 
     private static nint GetSteamMatchmakingInterface()
     {
-        return SteamInternal_ContextInit(_steamMatchmakingInterfaceGetter);
+        return MemoryUtil.Read<nint>(SteamInternal_ContextInit(_steamMatchmakingInterfaceGetter));
     }
 
-    static Matchmaking()
+    internal static void Initialize()
     {
-        SearchLobbiesHook = Hook.Create<SearchLobbiesDelegate>(
+        _searchLobbiesHook = Hook.Create<SearchLobbiesDelegate>(
             AddressRepository.Get("Matchmaking:StartRequest"), (netCore, netRequest) =>
         {
             var phase = MemoryUtil.Read<int>(netRequest + 0xE0);
             if (phase != 0)
-                return SearchLobbiesHook!.Original(netCore, netRequest);
+                return _searchLobbiesHook!.Original(netCore, netRequest);
 
             ref int maxResults = ref MemoryUtil.GetRef<int>(netRequest + 0x60);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnLobbySearch))
                 plugin.OnLobbySearch(ref maxResults);
 
-            return SearchLobbiesHook!.Original(netCore, netRequest);
+            return _searchLobbiesHook!.Original(netCore, netRequest);
         });
 
-        ResultCountSanityCheckPath = new Patch(
+        _resultCountSanityCheckPath = new Patch(
             AddressRepository.Get("Matchmaking:StartRequest") + 212,
             [0xEB, 0x10],
             true
         );
 
-        var getterFunc = PatternScanner.FindFirst(Pattern.FromString("48 89 03 48 83 c4 20 5b c3")) - 30;
-        var pattern = Pattern.FromBytes(BitConverter.GetBytes(getterFunc));
-        _steamMatchmakingInterfaceGetter = PatternScanner.FindFirst(pattern);
+        var leaInstruction = PatternScanner.FindFirst(Pattern.FromString("48 8B D6 48 8B 08 48 8B 01 FF 90 88 00 00 00")) - 13;
+        Log.Info($"[Matchmaking] Found lea instruction at 0x{leaInstruction:X}");
+        var afterLeaInstruction = leaInstruction + 4;
+        var offset = MemoryUtil.Read<int>(leaInstruction);
+        Log.Info($"[Matchmaking] Found offset {offset:X}");
+        _steamMatchmakingInterfaceGetter = afterLeaInstruction + offset;
+        Log.Info($"[Matchmaking] Found SteamMatchmaking interface getter at 0x{_steamMatchmakingInterfaceGetter:X}");
     }
 
     [LibraryImport("steam_api64.dll")]
     private static partial nint SteamInternal_ContextInit(nint request);
 
     private delegate int SearchLobbiesDelegate(nint netCore, nint netRequest);
-    private static readonly Hook<SearchLobbiesDelegate> SearchLobbiesHook;
-    private static readonly Patch ResultCountSanityCheckPath;
+    private static Hook<SearchLobbiesDelegate> _searchLobbiesHook = null!;
+    private static Patch _resultCountSanityCheckPath;
 
     private static nint _steamMatchmakingInterfaceGetter;
 

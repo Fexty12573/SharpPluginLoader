@@ -17,8 +17,8 @@
 		<PackageReadmeFile>$(ProjectDir)README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/Fexty12573/SharpPluginLoader</RepositoryUrl>
 		<AssemblyVersion></AssemblyVersion>
-		<FileVersion>1.1.1</FileVersion>
-		<Version>1.1.1</Version>
+		<FileVersion>1.1.2</FileVersion>
+		<Version>1.1.2</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

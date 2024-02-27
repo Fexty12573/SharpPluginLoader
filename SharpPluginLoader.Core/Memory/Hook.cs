@@ -3,6 +3,30 @@ using Reloaded.Hooks.Definitions;
 
 namespace SharpPluginLoader.Core.Memory
 {
+    /// <summary>
+    /// Used to mark a method as a hook.
+    /// </summary>
+    /// <remarks>
+    /// Methods marked with this attribute must be in a class marked with <see cref="HookProviderAttribute"/>.
+    /// Additionally, the method must be static <b>unless</b> it is inside an <see cref="IPlugin"/> class.
+    /// </remarks>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class HookAttribute : Attribute
+    {
+        public long Address { get; init; }
+        public string? Pattern { get; init; }
+        public int Offset { get; init; }
+        public bool Cache { get; init; }
+    }
+
+    /// <summary>
+    /// Used to mark a class as a hook provider. Classes marked with this attribute are allowed
+    /// to contain methods marked with <see cref="HookAttribute"/>. All hooks in the class will be
+    /// automatically registered when the plugin is loaded, and unregistered when the plugin is unloaded.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class HookProviderAttribute : Attribute;
+
     public static class Hook
     {
         /// <summary>
@@ -22,6 +46,9 @@ namespace SharpPluginLoader.Core.Memory
     /// Represents a native function hook.
     /// </summary>
     /// <typeparam name="TFunction">The type of the hooked function</typeparam>
+    /// <remarks>
+    /// Use <see cref="Hook.Create{TFunction}(long, TFunction)"/> to create a new hook.
+    /// </remarks>
     public class Hook<TFunction> : IDisposable
     {
         /// <summary>

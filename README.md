@@ -1,5 +1,12 @@
 # SharpPluginLoader
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/deploy-mkdocs.yml?label=docs)
+![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.Core?logo=nuget&label=SharpPluginLoader.Core)
+![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.ImGui?logo=nuget&label=SharpPluginLoader.ImGui)
+![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.InternalCallGenerator?logo=nuget&label=SharpPluginLoader.InternalCallGenerator)
+
+
 A C# plugin loader for Monster Hunter World based on .NET 8.0.
 
 For more detailed documentation and tutorials, visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/).

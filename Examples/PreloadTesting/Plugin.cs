@@ -9,6 +9,7 @@ namespace PreloadTesting
     public class Plugin : IPlugin
     {
         public string Name => "Preload Testing";
+        public string Author => "Ando";
 
         private delegate void StaticinitializerMtObjectDTI();
         private Hook<StaticinitializerMtObjectDTI> _staticinitializerMtObjectDTIHook = null!;
@@ -16,11 +17,7 @@ namespace PreloadTesting
         public PluginData Initialize()
         {
             Log.Debug("PreloadTesting->Initialize called!");
-            return new PluginData
-            {
-                OnPreMain = true,
-                OnWinMain = true
-            };
+            return new PluginData();
         }
 
         private unsafe void StaticinitializerMtObjectDTIHook()

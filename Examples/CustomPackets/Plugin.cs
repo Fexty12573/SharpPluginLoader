@@ -7,19 +7,7 @@ namespace CustomPackets
     public class Plugin : IPlugin
     {
         public string Name => "CustomPackets";
-
-        public PluginData Initialize()
-        {
-            return new PluginData
-            {
-                OnUpdate = true,
-                OnReceivePacket = true
-            };
-        }
-
-        public void OnLoad()
-        {
-        }
+        public string Author => "Fexty";
 
         public void OnUpdate(float deltaTime)
         {

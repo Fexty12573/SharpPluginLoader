@@ -167,6 +167,15 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public void OnLoad() { } // Not marked as a plugin event because it's always called
 
+        /// <summary>
+        /// Gets called when the plugin is unloaded. This is where you can clean up any resources used by your plugin.
+        /// For example, threads, file handles, etc.
+        /// </summary>
+        /// <remarks>
+        /// Note: IDisposable fields are automatically disposed when the plugin is unloaded.
+        /// </remarks>
+        public void OnUnload() { }
+
 
         #region Pre-Main Events
         /// <summary>
@@ -471,7 +480,12 @@ namespace SharpPluginLoader.Core
             foreach (var field in GetType().GetAllFields())
             {
                 if (field.GetValue(this) is IDisposable disposable)
+                {
+                    if (disposable is null)
+                        continue;
+
                     disposable.Dispose();
+                }
             }
         }
 

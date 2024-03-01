@@ -563,6 +563,7 @@ namespace SharpPluginLoader.Core
                 if (key is null)
                     return;
 
+                _contexts[key].Plugin.OnUnload();
                 _contexts[key].Dispose();
                 _contexts.Remove(key);
             }

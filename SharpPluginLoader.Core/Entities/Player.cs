@@ -36,7 +36,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The currently equipped weapon type
         /// </summary>
-        public WeaponType CurrentWeaponType => CurrentWeapon?.Type ?? WeaponType.None;
+        public unsafe WeaponType CurrentWeaponType => GetWeaponTypeFunc.InvokeUnsafe(Instance);
 
         /// <inheritdoc/>
         public override void CreateShell(uint index, Vector3 target, Vector3? origin = null)
@@ -92,6 +92,7 @@ namespace SharpPluginLoader.Core.Entities
         private static Hook<ChangeWeaponDelegate> _changeWeaponHook = null!;
         private static readonly NativeFunction<nint, nint> FindMasterPlayerFunc = new(AddressRepository.Get("Player:FindMasterPlayer"));
         private static readonly NativeFunction<nint, nint, nint, nint, nint> CreateShellFunc = new(AddressRepository.Get("Player:CreateShell"));
+        private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(AddressRepository.Get("Player:GetWeaponType"));
     }
 
     public enum WeaponType

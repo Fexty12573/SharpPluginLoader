@@ -21,7 +21,7 @@ namespace SharpPluginLoader.Core.Weapons
         /// <summary>
         /// Gets the type of the weapon
         /// </summary>
-        public unsafe WeaponType Type => GetWeaponTypeFunc.InvokeUnsafe(Instance);
+        public unsafe WeaponType Type => Get<WeaponType>(0x9F8);
 
         /// <summary>
         /// Gets the holder of the weapon if it has one
@@ -44,7 +44,6 @@ namespace SharpPluginLoader.Core.Weapons
 
         internal nint ObjCollisionComponent => Get<nint>(0x6A8);
 
-        private static readonly NativeFunction<nint, WeaponType> GetWeaponTypeFunc = new(AddressRepository.Get("Weapon:GetWeaponType"));
         private static readonly NativeAction<nint, nint, uint, bool> RegisterObjCollisionFunc = new(AddressRepository.Get("Weapon:RegisterCol"));
     }
 }

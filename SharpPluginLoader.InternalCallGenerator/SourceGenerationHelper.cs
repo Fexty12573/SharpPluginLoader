@@ -21,6 +21,8 @@ public static class SourceGenerationHelper
     public const string FullOptionsEnumName = $"{GeneratorNamespace}.{OptionsEnumName}";
     public const string FullWideStringAttributeName = $"{GeneratorNamespace}.{WideStringAttributeName}";
     public const string Attribute = $$"""
+                                    #nullable enable
+
                                     namespace {{GeneratorNamespace}};
                                     
                                     public enum InternalCallOptions
@@ -70,6 +72,7 @@ public static class SourceGenerationHelper
 
         var containingNamespace = internalCalls[0].Method.ContainingNamespace.ToDisplayString();
 
+        sb.AppendLine("#nullable enable");
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Text;");
         sb.AppendLine("using System.Runtime.InteropServices;");

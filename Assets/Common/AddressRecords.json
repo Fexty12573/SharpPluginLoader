@@ -95,7 +95,7 @@
         "Offset": 0
     },
     {
-        "Name": "Weapon:GetWeaponType",
+        "Name": "Player:GetWeaponType",
         "Pattern": "8B 80 F8 09 00 00 C3",
         "Offset": -18
     },

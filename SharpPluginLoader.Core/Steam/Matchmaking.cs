@@ -75,11 +75,22 @@ public static unsafe partial class Matchmaking
         ).Invoke(iface, keyToMatch, valueToMatch, comparison);
     }
 
+    /// <summary>
+    /// Returns the address of a virtual function in the SteamMatchmaking interface.
+    /// </summary>
+    /// <param name="func">The virtual function to get the address of.</param>
+    /// <returns>The address of the virtual function.</returns>
+    public static nint GetVirtualFunction(VirtualFunctionIndex func)
+    {
+        var iface = GetSteamMatchmakingInterface();
+        return GetVirtualFunction(iface, func);
+    }
+
     #region Internal
 
     private static nint GetVirtualFunction(nint iface, VirtualFunctionIndex func)
     {
-        var vtable = *(nint*)iface;
+        var vtable = MemoryUtil.Read<nint>(iface);
         return MemoryUtil.Read<nint>(vtable + (int)func * nint.Size);
     }
 
@@ -97,26 +108,24 @@ public static unsafe partial class Matchmaking
             if (phase != 0)
                 return _searchLobbiesHook!.Original(netCore, netRequest);
 
-            ref int maxResults = ref MemoryUtil.GetRef<int>(netRequest + 0x60);
+            ref var maxResults = ref MemoryUtil.GetRef<int>(netRequest + 0x60);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnLobbySearch))
                 plugin.OnLobbySearch(ref maxResults);
 
             return _searchLobbiesHook!.Original(netCore, netRequest);
         });
 
-        _resultCountSanityCheckPath = new Patch(
+        _resultCountSanityCheckPatch = new Patch(
             AddressRepository.Get("Matchmaking:StartRequest") + 212,
             [0xEB, 0x10],
             true
         );
 
         var leaInstruction = PatternScanner.FindFirst(Pattern.FromString("48 8B D6 48 8B 08 48 8B 01 FF 90 88 00 00 00")) - 13;
-        Log.Info($"[Matchmaking] Found lea instruction at 0x{leaInstruction:X}");
         var afterLeaInstruction = leaInstruction + 4;
         var offset = MemoryUtil.Read<int>(leaInstruction);
-        Log.Info($"[Matchmaking] Found offset {offset:X}");
         _steamMatchmakingInterfaceGetter = afterLeaInstruction + offset;
-        Log.Info($"[Matchmaking] Found SteamMatchmaking interface getter at 0x{_steamMatchmakingInterfaceGetter:X}");
+        Log.Debug($"[Matchmaking] Found SteamMatchmaking interface getter at 0x{_steamMatchmakingInterfaceGetter:X}");
     }
 
     [LibraryImport("steam_api64.dll")]
@@ -124,11 +133,13 @@ public static unsafe partial class Matchmaking
 
     private delegate int SearchLobbiesDelegate(nint netCore, nint netRequest);
     private static Hook<SearchLobbiesDelegate> _searchLobbiesHook = null!;
-    private static Patch _resultCountSanityCheckPath;
+    private static Patch _resultCountSanityCheckPatch;
 
     private static nint _steamMatchmakingInterfaceGetter;
 
-    private enum VirtualFunctionIndex
+    #endregion
+
+    public enum VirtualFunctionIndex
     {
         GetFavoriteGameCount = 0,
         GetFavoriteGame = 1,
@@ -169,6 +180,4 @@ public static unsafe partial class Matchmaking
         SetLobbyOwner = 36,
         SetLinkedLobby = 37,
     }
-
-    #endregion
 }

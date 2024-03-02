@@ -10,7 +10,7 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public static unsafe class Utility
     {
-        private static readonly NativeFunction<string, int, uint> Crc32Func = new(0x1421e5830); // TODO
+        private static readonly uint* Crc32Table = (uint*)AddressRepository.Get("Crc32Table");
         private static readonly NativeFunction<uint, nint> FindDtiFunc = new(AddressRepository.Get("MtDti:Find"));
         private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0); // TODO
         private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(AddressRepository.Get("MtArray:Reserve"));
@@ -28,9 +28,18 @@ namespace SharpPluginLoader.Core
         /// <returns>The CRC hash of the string</returns>
         public static uint Crc32(string str, int crc = -1)
         {
-            return Crc32Func.InvokeUnsafe(str, crc);
+            var ucrc = unchecked((uint)crc);
+            foreach (var c in str)
+                ucrc = (ucrc >> 8) ^ Crc32Table[(ucrc & 0xFF) ^ c];
+
+            return ucrc;
         }
 
+        /// <summary>
+        /// Returns the DTI ID for the specified name.
+        /// </summary>
+        /// <param name="name">The name of the class</param>
+        /// <returns>The DTI ID</returns>
         public static uint MakeDtiId(string name) => Crc32(name) & 0x7FFFFFFF;
 
         internal static nint FindDti(uint id) => FindDtiFunc.Invoke(id);

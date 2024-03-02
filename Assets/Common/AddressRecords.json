@@ -215,6 +215,11 @@
         "Offset": -26
     },
     {
+        "Name": "Crc32Table",
+        "Pattern": "00 00 00 00 96 30 07 77 2c 61 0e ee ba 51 09",
+        "Offset": 0
+    },
+    {
         "Name": "MtDti:Find",
         "Pattern": "39 48 34 74 0B 48 8B 40 28",
         "Offset": -19

@@ -10,9 +10,9 @@ namespace SharpPluginLoader.Core
     /// </summary>
     public static unsafe class Utility
     {
+        private static readonly nint* EmDtiTable;
         private static readonly uint* Crc32Table = (uint*)AddressRepository.Get("Crc32Table");
         private static readonly NativeFunction<uint, nint> FindDtiFunc = new(AddressRepository.Get("MtDti:Find"));
-        private static readonly NativeFunction<uint, nint> GetMonsterDtiFunc = new(0x14139eaf0); // TODO
         private static readonly NativeAction<nint, uint> ResizeArrayFunc = new(AddressRepository.Get("MtArray:Reserve"));
         private static readonly NativeAction<nint, bool> ClearArrayFunc = new(AddressRepository.Get("MtArray:Clear"));
         private static readonly NativeAction<nint, nint, int> ArrayInsertFunc = new(AddressRepository.Get("MtArray:Insert"));
@@ -44,7 +44,7 @@ namespace SharpPluginLoader.Core
 
         internal static nint FindDti(uint id) => FindDtiFunc.Invoke(id);
 
-        internal static nint GetMonsterDti(uint monsterId) => GetMonsterDtiFunc.InvokeUnsafe(monsterId);
+        internal static nint GetMonsterDti(MonsterType type) => EmDtiTable[(int)type];
 
         internal static void ResizeArray<T>(MtArray<T> array, uint newSize) where T : MtObject, new()
         {
@@ -89,6 +89,28 @@ namespace SharpPluginLoader.Core
             }
 
             return sb.ToString();
+        }
+
+        static Utility()
+        {
+            var getEmIdStrFunc = PatternScanner.FindFirst(Pattern.FromString("E9 CA 00 00 00 48 8B 50 08 48 8D 44 24 20"));
+            if (getEmIdStrFunc == 0)
+            {
+                Log.Error("Failed to find GetEmIdStr function");
+                return;
+            }
+
+            var getEmDtiCall = getEmIdStrFunc - 16;
+            var getEmDtiOffset = MemoryUtil.Read<int>(getEmDtiCall);
+            var getEmDtiFunc = getEmDtiCall + 4 + getEmDtiOffset;
+            Log.Debug($"Found GetMonsterDti function at 0x{getEmDtiFunc:X}");
+
+            // Skipping:
+            // 8b c1        mov    eax, ecx
+            // 48 8d 0d ... lea    rcx, [rip + ...]
+            var tableOffset = MemoryUtil.Read<int>(getEmDtiFunc + 5);
+            EmDtiTable = (nint*)(getEmDtiFunc + 9 + tableOffset);
+            Log.Debug($"Found EmDtiTable at 0x{(nint)EmDtiTable:X}");
         }
     }
 }

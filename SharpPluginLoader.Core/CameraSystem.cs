@@ -10,7 +10,7 @@ namespace SharpPluginLoader.Core;
 
 public static class CameraSystem
 {
-    public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c21c0);
+    public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhCamera")!;
 
     /// <summary>
     /// Gets the main viewport.
@@ -25,6 +25,6 @@ public static class CameraSystem
     public static Viewport GetViewport(int index)
     {
         Ensure.IsTrue(index is >= 0 and < 8);
-        return new MtObject(SingletonInstance).GetInlineObject<Viewport>(0x50 + index * 0x1A0);
+        return SingletonInstance.GetInlineObject<Viewport>(0x50 + index * 0x1A0);
     }
 }

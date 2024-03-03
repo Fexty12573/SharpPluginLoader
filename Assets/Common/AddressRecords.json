@@ -220,6 +220,11 @@
         "Offset": -20
     },
     {
+        "Name": "ResourceManager:Ctor",
+        "Pattern": "48 8D 9F 1A 9F 21 00 48 89 AF D0 9C 21 00 8B F5 48 89 AF 10 9D 21 00",
+        "Offset": -54
+    },
+    {
         "Name": "ResourceManager:GetResource",
         "Pattern": "48 83 EC 30 80 B9 7B 80 20 00 00",
         "Offset": -26

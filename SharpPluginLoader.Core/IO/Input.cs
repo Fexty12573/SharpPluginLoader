@@ -72,19 +72,19 @@ namespace SharpPluginLoader.Core.IO
             var vk = KbVkTable[(int)key];
             return (state->Chg[vk >> 5] & 1u << (vk & 0x1F)) != 0;
         }
-        
-        
-        private static nint Pad => MemoryUtil.Read<nint>(0x1451c2318);
-        private static nint Keyboard => MemoryUtil.Read<nint>(0x1451c3170);
 
-        private static uint PadDown => MemoryUtil.Read<uint>(Pad + 0x198);
-        private static uint PadOld => MemoryUtil.Read<uint>(Pad + 0x19C);
-        private static uint PadTrg => MemoryUtil.Read<uint>(Pad + 0x1A0);
-        private static uint PadRel => MemoryUtil.Read<uint>(Pad + 0x1A4);
-        private static uint PadChg => MemoryUtil.Read<uint>(Pad + 0x1A8);
 
-        private static unsafe KeyboardState* KbState => (KeyboardState*)(Keyboard + 0x138);
-        private static unsafe byte* KbVkTable => (byte*)(Keyboard + 0x38);
+        private static MtObject Pad => SingletonManager.GetSingleton("sMhSteamController")!;
+        private static MtObject Keyboard => SingletonManager.GetSingleton("sMhKeyboard")!;
+
+        private static uint PadDown => MemoryUtil.Read<uint>(Pad.Instance + 0x198);
+        private static uint PadOld => MemoryUtil.Read<uint>(Pad.Instance + 0x19C);
+        private static uint PadTrg => MemoryUtil.Read<uint>(Pad.Instance + 0x1A0);
+        private static uint PadRel => MemoryUtil.Read<uint>(Pad.Instance + 0x1A4);
+        private static uint PadChg => MemoryUtil.Read<uint>(Pad.Instance + 0x1A8);
+
+        private static unsafe KeyboardState* KbState => (KeyboardState*)(Keyboard.Instance + 0x138);
+        private static unsafe byte* KbVkTable => (byte*)(Keyboard.Instance + 0x38);
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

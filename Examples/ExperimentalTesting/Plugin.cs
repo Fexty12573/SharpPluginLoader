@@ -8,6 +8,7 @@ using ImGuiNET;
 using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Experimental;
+using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Steam;
@@ -64,6 +65,22 @@ namespace ExperimentalTesting
             Log.Info($"OnLobbySearch: {resultCount}");
 
             Matchmaking.AddRequestLobbyListDistanceFilter(LobbyDistanceFilter.WorldWide);
+        }
+
+        public void OnUpdate(float dt)
+        {
+            if (Input.IsDown(Key.LeftAlt) && Input.IsPressed(Key.J))
+            {
+                Gui.DisplayYesNoDialog("Test Dialog", res =>
+                {
+                    Gui.DisplayMessage(res switch
+                    {
+                        DialogResult.Yes => "Yes",
+                        DialogResult.No => "No",
+                        _ => "Cancel"
+                    });
+                });
+            }
         }
 
         public void OnImGuiRender()

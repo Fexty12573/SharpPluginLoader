@@ -15,7 +15,7 @@ namespace SharpPluginLoader.Core.Networking
         /// <summary>
         /// The sMhNetwork singleton instance.
         /// </summary>
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c2478);
+        public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhNetwork")!;
 
         /// <summary>
         /// Sends a packet to other people in the specified session.
@@ -32,7 +32,7 @@ namespace SharpPluginLoader.Core.Networking
             {
                 var dst = broadcast ? 0xC0 : memberIndex;
                 var option = broadcast ? 0x10u : 0x30u;
-                SendPacketFunc.Invoke(SingletonInstance, (nint)ptr, dst, option, (uint)targetSession);
+                SendPacketFunc.Invoke(SingletonInstance.Instance, (nint)ptr, dst, option, (uint)targetSession);
             }
         }
 

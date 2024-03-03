@@ -13,7 +13,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// The singleton instance of the sMhGUI class.
         /// </summary>
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c2400);
+        public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhGUI")!;
 
         /// <summary>
         /// Displays a popup message on the screen.
@@ -34,7 +34,7 @@ namespace SharpPluginLoader.Core
             if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
 
-            DisplayPopupFunc.Invoke(SingletonInstance, messagePtr, durationSeconds, delaySeconds, false, xOff, yOff);
+            DisplayPopupFunc.Invoke(SingletonInstance.Instance, messagePtr, durationSeconds, delaySeconds, false, xOff, yOff);
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace SharpPluginLoader.Core
         public static unsafe void DisplayMessage(string message, TimeSpan? delay = null, bool isImportant = false)
         {
             var delaySeconds = delay?.Milliseconds / 1000.0f ?? 0.0f;
-            DisplayMessageFunc.Invoke(ChatInstance, message, delaySeconds, 0, isImportant);
+            DisplayMessageFunc.Invoke(SingletonManager.GetSingleton("sChat")!.Instance, message, delaySeconds, 0, isImportant);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace SharpPluginLoader.Core
             if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
 
-            DisplayMessageWindowFunc.Invoke(SingletonInstance, msgPtr, 0, (nint)offsetPtr, false);
+            DisplayMessageWindowFunc.Invoke(SingletonInstance.Instance, msgPtr, 0, (nint)offsetPtr, false);
         }
 
         public static unsafe void DisplayAlert(string message)
@@ -106,7 +106,6 @@ namespace SharpPluginLoader.Core
             _chatMessageSentHook = Hook.Create<ChatMessageSentDelegate>(AddressRepository.Get("Chat:MessageSent"), ChatMessageSentHook);
         }
 
-        private static unsafe nint ChatInstance => *(nint*)0x14500ac30;
         private static readonly Queue<DialogCallback> DialogCallbacks = new();
         private static readonly Queue<nint> CachedMessages = new();
         private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(AddressRepository.Get("Gui:DisplayPopup"));

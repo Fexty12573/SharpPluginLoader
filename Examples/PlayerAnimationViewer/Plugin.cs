@@ -122,9 +122,6 @@ namespace PlayerAnimationViewer
 
         public void OnUpdate(float deltaTime)
         {
-            if (Monster.SingletonInstance == 0)
-                return;
-
             var player = Player.MainPlayer;
             if (player is null)
                 return;

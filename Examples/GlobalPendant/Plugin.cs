@@ -15,7 +15,7 @@ namespace GlobalPendant
         private unsafe void ChangePendantHook(nint equipCharmPtr, int pendantIndex, nint unk)
         {
             var getEquipBox = (delegate* unmanaged<nint, nint>)0x1410f6eb0;
-            var equipBox = new GuiEquipBox(getEquipBox(Gui.SingletonInstance));
+            var equipBox = new GuiEquipBox(getEquipBox(Gui.SingletonInstance.Instance));
             var equipCharm = new GuiEquipCharm(equipCharmPtr);
             var pendantId = equipCharm.GetPendantIdAt(pendantIndex);
             var selectedEquip = equipCharm.SelectedEquipment;

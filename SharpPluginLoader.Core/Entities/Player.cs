@@ -14,7 +14,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The sPlayer singleton instance
         /// </summary>
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x14500ca60);
+        public static MtObject SingletonInstance => SingletonManager.GetSingleton("sPlayer")!;
 
         /// <summary>
         /// The main player
@@ -23,7 +23,7 @@ namespace SharpPluginLoader.Core.Entities
         {
             get
             {
-                var player = FindMasterPlayerFunc.InvokeUnsafe(SingletonInstance);
+                var player = FindMasterPlayerFunc.InvokeUnsafe(SingletonInstance.Instance);
                 return player == 0 ? null : new Player(player);
             }
         }

@@ -21,7 +21,7 @@ public static class SingletonManager
     {
         if (!_initialized)
         {
-            Log.Warn("Singletons not initialized");
+            Log.Error("SingletonManager: Singletons are not yet initialized!");
             return null;
         }
 

@@ -7,12 +7,12 @@ namespace SharpPluginLoader.Core;
 /// </summary>
 public static class Area
 {
-    public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c2078);
+    public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhArea")!;
 
     /// <summary>
     /// Gets the current area id.
     /// </summary>
-    public static Stage CurrentStage => MemoryUtil.Read<Stage>(SingletonInstance + 0xD328);
+    public static Stage CurrentStage => SingletonInstance.Get<Stage>(0xD328);
 }
 
 /// <summary>

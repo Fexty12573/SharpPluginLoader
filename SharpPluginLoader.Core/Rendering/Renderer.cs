@@ -53,9 +53,9 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        internal static nint Initialize(Size viewportSize, Size windowSize, bool d3d12)
+        internal static nint Initialize(Size viewportSize, Size windowSize, byte d3d12)
         {
-            IsDirectX12 = d3d12;
+            IsDirectX12 = d3d12 != 0;
 
             _viewportSize = new Vector2(viewportSize.Width, viewportSize.Height);
             _windowSize = new Vector2(windowSize.Width, windowSize.Height);

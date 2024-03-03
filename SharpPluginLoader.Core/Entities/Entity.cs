@@ -234,10 +234,12 @@ namespace SharpPluginLoader.Core.Entities
 
         internal unsafe struct ShellCreationParams
         {
-            public static ref ShellCreationParams Default() => ref MemoryUtil.GetRef<ShellCreationParams>(0x143f939e0);
+            private static readonly ShellCreationParams* _default;
+            public static ref ShellCreationParams Default() => ref *_default;
+
             public static ShellCreationParams Create(Vector3 target, Vector3 origin)
             {
-                ShellCreationParams defaultParams = Default();
+                var defaultParams = Default();
                 defaultParams.Populate(target, origin);
 
                 return defaultParams;
@@ -291,6 +293,15 @@ namespace SharpPluginLoader.Core.Entities
                 ivals[0] = 0x12;
                 ivals[1] = -1;
                 ivals[2] = -1;
+            }
+
+            static ShellCreationParams()
+            {
+                var access = PatternScanner.FindFirst(Pattern.FromString(
+                    "F3 0F 10 05 BE 20 7B 03 F3 0F 10 0D BA 20 7B 03 F3 0F 11 44 24 30 F3 0F 10 05 B0 20 7B 03"
+                ));
+                var offset = MemoryUtil.Read<int>(access + 4);
+                _default = (ShellCreationParams*)(access + 8 + offset);
             }
         }
     }

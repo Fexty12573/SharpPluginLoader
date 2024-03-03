@@ -33,7 +33,7 @@ namespace SharpPluginLoader.Core.Resources
         /// This class automatically increments and decrements the reference counter when it is created/destroyed.
         /// You should not have to call this method explicitly.
         /// </remarks>
-        public unsafe void AddRef() => AddRefFunc.Invoke(ResourceManager.SingletonInstance, Instance);
+        public unsafe void AddRef() => AddRefFunc.Invoke(ResourceManager.SingletonInstance.Instance, Instance);
 
         /// <summary>
         /// Decrements the reference count of this resource. If the reference count reaches 0, the resource is unloaded.
@@ -42,7 +42,7 @@ namespace SharpPluginLoader.Core.Resources
         /// This class automatically increments and decrements the reference counter when it is created/destroyed.
         /// You should not have to call this method explicitly.
         /// </remarks>
-        public unsafe void Release() => ReleaseFunc.Invoke(ResourceManager.SingletonInstance, Instance);
+        public unsafe void Release() => ReleaseFunc.Invoke(ResourceManager.SingletonInstance.Instance, Instance);
 
         /// <summary>
         /// Gets the file path of this resource without the extension.

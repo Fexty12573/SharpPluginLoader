@@ -9,7 +9,7 @@ namespace SharpPluginLoader.Core.Entities
         /// <summary>
         /// The sEnemy singleton instance
         /// </summary>
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x14500ad00);
+        public static MtObject SingletonInstance => SingletonManager.GetSingleton("sEnemy")!;
 
         /// <summary>
         /// Gets a list of all monsters in the game
@@ -20,7 +20,7 @@ namespace SharpPluginLoader.Core.Entities
             if (SingletonInstance == 0)
                 yield break;
 
-            var enemyList = new NativeArray<nint>(SingletonInstance + 0x38, 128);
+            var enemyList = new NativeArray<nint>(SingletonInstance.Instance + 0x38, 128);
             foreach (var aiData in enemyList)
             {
                 if (aiData == 0)

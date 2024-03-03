@@ -97,8 +97,8 @@ private:
         DirectX::XMFLOAT4 Color;
     };
 
-    static constexpr u32 MAX_INSTANCES = 128;
-    static constexpr u32 MAX_LINES = 256;
+    static constexpr u32 MAX_INSTANCES = 512;
+    static constexpr u32 MAX_LINES = 512;
 
     void*(*m_get_singleton)(const char* name) = nullptr;
     sMhCamera* m_camera = nullptr;

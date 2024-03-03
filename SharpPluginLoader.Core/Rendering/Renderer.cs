@@ -22,7 +22,7 @@ namespace SharpPluginLoader.Core.Rendering
         public static bool DemoShown => _showDemo;
 #endif
 
-        public static bool IsDirectX12 => MemoryUtil.Read<bool>(0x1451c9e40);
+        public static bool IsDirectX12 { get; private set; }
 
         /// <summary>
         /// Loads a texture from the specified path.
@@ -80,6 +80,13 @@ namespace SharpPluginLoader.Core.Rendering
                 });
             }
             
+            var callIsD3D12 = PatternScanner.FindFirst(
+                Pattern.FromString("05 7D 14 00 4C 8B 8D D8 08 00 00 84 C0 0F B6 85 F0 08 00 00")
+            );
+            var offset = MemoryUtil.Read<int>(callIsD3D12);
+            var isD3D12 = new NativeFunction<bool>(callIsD3D12 + 4 + offset);
+            Log.Debug($"Found cD3DRender::isD3D12 at 0x{isD3D12.NativePointer:X}");
+            unsafe { IsDirectX12 = isD3D12.Invoke(); }
 
             Log.Debug("Renderer.Initialize");
 

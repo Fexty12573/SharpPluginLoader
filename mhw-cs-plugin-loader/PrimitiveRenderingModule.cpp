@@ -147,11 +147,14 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     // Spheres ------------------------------
     if (!m_spheres.empty()) {
         // Build Instance Data
+        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        auto data = (Instance*)msr.pData;
+
         for (const auto& sphere : m_spheres) {
             const XMMATRIX scale = XMMatrixScaling(sphere.sphere.r, sphere.sphere.r, sphere.sphere.r);
             const XMMATRIX translation = XMMatrixTranslation(sphere.sphere.pos.x, sphere.sphere.pos.y, sphere.sphere.pos.z);
 
-            m_instances[i++] = {
+            data[i++] = {
                 .Transform = XMMatrixTranspose(scale * translation),
                 .Color = { sphere.color.r, sphere.color.g, sphere.color.b, sphere.color.a }
             };
@@ -161,10 +164,6 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
             }
         }
 
-        // Copy Instance Data to GPU
-        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
-
-        std::memcpy(msr.pData, m_instances.data(), sizeof(Instance) * i);
         context->Unmap(m_d3d11_transform_buffer.Get(), 0);
 
         // Set up pipeline
@@ -183,11 +182,14 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     if (!m_cubes.empty()) {
         // Build Instance Data
         i = 0;
+        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        auto data = (Instance*)msr.pData;
+
         for (const auto& cube : m_cubes) {
             const XMMATRIX scale = XMMatrixScaling(cube.obb.extent.x, cube.obb.extent.y, cube.obb.extent.z);
             const XMMATRIX translation_rotation{ cube.obb.coord.ptr() };
 
-            m_instances[i++] = {
+            data[i++] = {
                 .Transform = XMMatrixTranspose(scale * translation_rotation),
                 .Color = { cube.color.r, cube.color.g, cube.color.b, cube.color.a }
             };
@@ -197,10 +199,6 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
             }
         }
 
-        // Copy Instance Data to GPU
-        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
-
-        std::memcpy(msr.pData, m_instances.data(), sizeof(Instance) * i);
         context->Unmap(m_d3d11_transform_buffer.Get(), 0);
 
         // Set up pipeline
@@ -219,6 +217,14 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     if (!m_capsules.empty()) {
         // Build Instance Data
         i = 0;
+        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        HandleResult(context->Map(m_d3d11_htop_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+        HandleResult(context->Map(m_d3d11_hbottom_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+
+        auto data = (Instance*)msr.pData;
+        auto data_htop = (Instance*)msr.pData;
+        auto data_hbottom = (Instance*)msr.pData;
+
         for (const auto& capsule : m_capsules) {
             // Translation
             XMVECTOR p0{ capsule.capsule.p0.x, capsule.capsule.p0.y, capsule.capsule.p0.z, 1.0f };
@@ -270,15 +276,15 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
                 capsule.capsule.r
             );
 
-            m_instances[i] = {
+            data[i] = {
                 .Transform = XMMatrixTranspose(scale_cylinder * rotation * translation_cylinder),
                 .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
             };
-            m_instances_hemisphere_top[i] = {
+            data_htop[i] = {
                 .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_htop),
                 .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
             };
-            m_instances_hemisphere_bottom[i] = {
+            data_hbottom[i] = {
                 .Transform = XMMatrixTranspose(scale_hemisphere * rotation * translation_hbottom),
                 .Color = { capsule.color.r, capsule.color.g, capsule.color.b, capsule.color.a }
             };
@@ -290,11 +296,6 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         }
 
         // Top Hemisphere
-        HandleResult(context->Map(m_d3d11_htop_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
-
-        std::memcpy(msr.pData, m_instances_hemisphere_top.data(), sizeof(Instance) * i);
-        context->Unmap(m_d3d11_htop_transform_buffer.Get(), 0);
-
         context->IASetIndexBuffer(m_d3d11_hemisphere_top.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
         buffers[0] = m_d3d11_hemisphere_top.VertexBuffer.Get();
@@ -306,11 +307,6 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         );
 
         // Bottom Hemisphere
-        HandleResult(context->Map(m_d3d11_hbottom_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
-
-        std::memcpy(msr.pData, m_instances_hemisphere_bottom.data(), sizeof(Instance) * i);
-        context->Unmap(m_d3d11_hbottom_transform_buffer.Get(), 0);
-
         context->IASetIndexBuffer(m_d3d11_hemisphere_bottom.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
         buffers[0] = m_d3d11_hemisphere_bottom.VertexBuffer.Get();
@@ -322,11 +318,6 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         );
 
         // Cylinder
-        HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
-
-        std::memcpy(msr.pData, m_instances.data(), sizeof(Instance) * i);
-        context->Unmap(m_d3d11_transform_buffer.Get(), 0);
-
         context->IASetIndexBuffer(m_d3d11_cylinder.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
         buffers[0] = m_d3d11_cylinder.VertexBuffer.Get();

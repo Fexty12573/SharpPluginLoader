@@ -44,6 +44,11 @@ void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
         &m_draw_primitives_as_lines
     };
 
+    m_get_singleton = coreclr->get_method<void* (const char*)>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.SingletonManager",
+        L"GetSingletonNative"
+    );
     const auto set_rendering_options = coreclr->get_method<void(RenderingOptionPointers*)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
@@ -67,6 +72,8 @@ void PrimitiveRenderingModule::late_init(D3DModule* d3dmodule, IDXGISwapChain* s
     } else {
         late_init_d3d11(d3dmodule);
     }
+
+    m_camera = (sMhCamera*)m_get_singleton("sMhCamera");
 }
 
 void PrimitiveRenderingModule::render_sphere(const MtSphere& sphere, MtVector4 color) {
@@ -111,10 +118,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     context->OMSetBlendState(m_d3d11_blend_state.Get(), nullptr, 0xFFFFFFFF);
 
     // Store VP data
-    const auto camera = sMhCamera::get();
     const ViewProj viewproj = {
-        .View = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mViewMat.ptr())),
-        .Proj = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mProjMat.ptr()))
+        .View = XMMatrixTranspose(XMMATRIX(m_camera->mViewports[0].mViewMat.ptr())),
+        .Proj = XMMatrixTranspose(XMMATRIX(m_camera->mViewports[0].mProjMat.ptr()))
     };
 
     D3D11_MAPPED_SUBRESOURCE msr{};
@@ -431,12 +437,10 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     );
 
     // Store VP data
-    const auto camera = sMhCamera::get();
-
     ViewProj12* vp = nullptr;
     HandleResult(m_d3d12_viewproj_buffer->Map(0, nullptr, (void**)&vp));
-    vp->View = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mViewMat.ptr()));
-    vp->Proj = XMMatrixTranspose(XMMATRIX(camera->mViewports[0].mProjMat.ptr()));
+    vp->View = XMMatrixTranspose(XMMATRIX(m_camera->mViewports[0].mViewMat.ptr()));
+    vp->Proj = XMMatrixTranspose(XMMATRIX(m_camera->mViewports[0].mProjMat.ptr()));
 
     m_d3d12_viewproj_buffer->Unmap(0, nullptr);
 

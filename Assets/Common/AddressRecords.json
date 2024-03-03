@@ -140,6 +140,16 @@
         "Offset": -112
     },
     {
+        "Name": "Gui:DisplayYesNoDialog",
+        "Pattern": "48 81 EC 20 02 00 00 48 8B F9 48 89 8D 80 00 00 00 48 8D 8D 90 00 00 00",
+        "Offset": -19
+    },
+    {
+        "Name": "Gui:LoadDialogVTable",
+        "Pattern": "48 89 44 24 20 48 8D 44 24 20 48 89 44 24 58 C7 45 18 0B 00 00 00 48 89 5C 24 28",
+        "Offset": -4
+    },
+    {
         "Name": "Chat:MessageSent",
         "Pattern": "45 33 C0 48 8D 81 08 10 00 00",
         "Offset": 0
@@ -378,5 +388,15 @@
         "Name": "Matchmaking:StartRequest",
         "Pattern": "48 83 ec 68 8b 42 54 33 ed 4c 8b f2",
         "Offset": -7
+    },
+    {
+        "Name": "Main:Update",
+        "Pattern": "48 8B 8B 88 F8 0A 00 48 8B 01 FF 50 48",
+        "Offset": -25
+    },
+    {
+        "Name": "GUITitle:Play",
+        "Pattern": "48 89 83 D8 1C 00 00 48 8D BB 08 29 00 00",
+        "Offset": -42
     }
 ]

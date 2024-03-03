@@ -4,12 +4,6 @@
 #include "Log.h"
 #include "NativePluginFramework.h"
 
-#include <utility/game_functions.h>
-
-static void test_icall() {
-    dlog::info("Hello from internal call!");
-}
-
 void CoreModule::initialize(CoreClr* coreclr) {
     m_plugin_on_update = coreclr->get_method<void(float)>(
         config::SPL_CORE_ASSEMBLY_NAME,
@@ -17,10 +11,10 @@ void CoreModule::initialize(CoreClr* coreclr) {
         L"OnUpdate"
     );
 
-    dlog::debug("Retrieved OnUpdate: {:p}, Adding internal call...", (void*)m_plugin_on_update);
-    coreclr->add_internal_call("TestInternalCall", test_icall);
+    const auto update = (void*)NativePluginFramework::get_repository_address("Main:Update");
+    m_main_update_hook = safetyhook::create_inline(update, main_update_hook);
 
-    m_main_update_hook = safetyhook::create_inline(MH::sMhMain::move, main_update_hook);
+    dlog::debug("sMhMain::move: {:p}", update);
 }
 
 void CoreModule::shutdown() {

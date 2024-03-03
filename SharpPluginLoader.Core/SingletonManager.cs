@@ -1,4 +1,5 @@
 ﻿
+using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core;
@@ -36,6 +37,18 @@ public static class SingletonManager
     /// <inheritdoc cref="GetSingleton(string)"/>
     /// <param name="dti">The DTI of the singleton</param>
     public static MtObject? GetSingleton(MtDti dti) => GetSingleton(dti.Name);
+
+    /// <summary>
+    /// Gets a singleton by name. Only serves to be called from native code.
+    /// Obtain a function pointer to this method using <c>CoreClr::get_method</c>.
+    /// </summary>
+    /// <param name="name">The name of the singleton, as a UTF-8 string</param>
+    /// <returns>The singleton, or null if it doesn't exist</returns>
+    [UnmanagedCallersOnly]
+    internal static unsafe nint GetSingletonNative(sbyte* name)
+    {
+        return GetSingleton(new string(name))?.Instance ?? 0;
+    }
 
     internal static void MapSingletons()
     {

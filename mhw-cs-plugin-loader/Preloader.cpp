@@ -16,7 +16,6 @@
 #include "Preloader.h"
 #include "PatternScan.h"
 #include "LoaderConfig.h"
-#include "utility/game_functions.h"
 
 #pragma intrinsic(_ReturnAddress)
 

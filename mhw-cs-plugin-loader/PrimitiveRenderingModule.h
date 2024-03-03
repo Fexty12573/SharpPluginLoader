@@ -11,6 +11,7 @@
 #include <dxgi1_4.h>
 #include <vector>
 
+struct sMhCamera;
 class D3DModule;
 
 class PrimitiveRenderingModule final : public NativeModule {
@@ -98,6 +99,9 @@ private:
 
     static constexpr u32 MAX_INSTANCES = 128;
     static constexpr u32 MAX_LINES = 256;
+
+    void*(*m_get_singleton)(const char* name) = nullptr;
+    sMhCamera* m_camera = nullptr;
 
     std::vector<primitives::Sphere> m_spheres;
     std::vector<primitives::OBB> m_cubes;

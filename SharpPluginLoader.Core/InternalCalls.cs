@@ -7,7 +7,6 @@ namespace SharpPluginLoader.Core
     internal static unsafe class InternalCalls
     {
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        public static delegate* unmanaged<void> TestInternalCallPtr;
         public static delegate* unmanaged<nint, void> QueueYesNoDialogPtr;
 
         public static delegate* unmanaged<string, void> LoadChunkPtr;
@@ -46,7 +45,6 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<sbyte*> GetGameRevisionPtr;
 #pragma warning restore CS0649
 
-        public static void TestInternalCall() => TestInternalCallPtr();
         public static void QueueYesNoDialog(nint messagePtr) => QueueYesNoDialogPtr(messagePtr);
 
         public static void LoadChunk(string name) => LoadChunkPtr(name);

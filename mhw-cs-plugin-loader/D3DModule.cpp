@@ -9,7 +9,6 @@
 
 #include <Windows.h>
 #include <imgui_impl.h>
-#include <utility/game_functions.h>
 
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_dx11.h"
@@ -50,7 +49,8 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"Initialize"
     );
 
-    m_title_menu_ready_hook = safetyhook::create_inline(MH::uGUITitle::play, title_menu_ready_hook);
+    const auto play = (void*)NativePluginFramework::get_repository_address("GUITitle:Play");
+    m_title_menu_ready_hook = safetyhook::create_inline(play, title_menu_ready_hook);
 
     coreclr->add_internal_call("LoadTexture", (void*)load_texture);
     coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);

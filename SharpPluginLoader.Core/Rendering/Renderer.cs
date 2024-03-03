@@ -67,7 +67,19 @@ namespace SharpPluginLoader.Core.Rendering
 
             SetupImGuiStyle();
 
-            _getCursorPositionHook = Hook.Create<GetCursorPositionDelegate>(0x1422e7010, GetCursorPositionHook);
+            var sMhMouse = SingletonManager.GetSingleton("sMhMouse");
+            if (sMhMouse is not null)
+            {
+                _mouseUpdateHook = Hook.Create<MouseUpdateDelegate>(sMhMouse.GetVirtualFunction(6), m =>
+                {
+                    // Prevent the game from doing any mouse updates if an ImGui window is focused.
+                    if (ImGui.GetIO().MouseDrawCursor)
+                        return;
+
+                    _mouseUpdateHook.Original(m);
+                });
+            }
+            
 
             Log.Debug("Renderer.Initialize");
 
@@ -283,7 +295,9 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         private delegate nint GetCursorPositionDelegate(nint app, out Point pos);
+        private delegate void MouseUpdateDelegate(nint sMhMouse);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
+        private static Hook<MouseUpdateDelegate> _mouseUpdateHook = null!;
         private static bool _showMenu = false;
         private static bool _showDemo = false;
         private static RenderingOptionPointers _renderingOptionPointers;

@@ -422,13 +422,21 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     m_d3d12_command_list->SetGraphicsRootSignature(m_d3d12_root_signature.Get());
     m_d3d12_command_list->SetPipelineState(m_d3d12_pipeline_state.Get());
 
-    constexpr float clear_color[] = { 1.f, 0.f, 1.f, 1.0f };
     m_d3d12_command_list->RSSetViewports(1, &m_d3d12_viewport);
     m_d3d12_command_list->RSSetScissorRects(1, &m_d3d12_scissor_rect);
     m_d3d12_command_list->OMSetRenderTargets(
         1,     
         &frame_context.RenderTargetDescriptor, 
         false, 
+        &m_d3d12_depth_stencil_view
+    );
+
+    m_d3d12_command_list->ClearDepthStencilView(
+        m_d3d12_depth_stencil_view,
+        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+        1.0f,
+        0,
+        0,
         nullptr
     );
 
@@ -1069,11 +1077,11 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         // Per Vertex (Buffer 1)
         {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         // Per Instance (Buffer 2)
-        {"INSTANCE_TRANSFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
-        {"INSTANCE_TRANSFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
-        {"INSTANCE_TRANSFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
-        {"INSTANCE_TRANSFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
-        {"INSTANCE_COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"TRANSFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1},
     };
 
     // Raseterizer State
@@ -1086,24 +1094,24 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
 
     // Depth Stencil State
     D3D12_DEPTH_STENCIL_DESC depth_stencil_desc{};
-    depth_stencil_desc.DepthEnable = false; // TODO
+    depth_stencil_desc.DepthEnable = true;
     depth_stencil_desc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
     depth_stencil_desc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
     depth_stencil_desc.StencilEnable = false;
 
     // Blend State
+    
     D3D12_BLEND_DESC blend_desc{};
-    for (auto& rtv : blend_desc.RenderTarget) {
-        rtv.BlendEnable = true;
-        rtv.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-        rtv.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-        rtv.BlendOp = D3D12_BLEND_OP_ADD;
-        rtv.SrcBlendAlpha = D3D12_BLEND_ONE;
-        rtv.DestBlendAlpha = D3D12_BLEND_ZERO;
-        rtv.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-        rtv.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    }
-
+    blend_desc.IndependentBlendEnable = false;
+    blend_desc.RenderTarget[0].BlendEnable = true;
+    blend_desc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    blend_desc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+    blend_desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    
     // Pipeline State
     const auto sc3 = (IDXGISwapChain3*)swap_chain;
     DXGI_SWAP_CHAIN_DESC swap_chain_desc{};
@@ -1115,8 +1123,8 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     pso_desc.PS = CD3DX12_SHADER_BYTECODE(ps_blob.Get());
     pso_desc.InputLayout = { input_element_desc, _countof(input_element_desc) };
     pso_desc.RasterizerState = rasterizer_desc;
-    pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-    //pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    pso_desc.DepthStencilState = depth_stencil_desc;
+    pso_desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     pso_desc.BlendState = blend_desc;
     pso_desc.SampleMask = UINT_MAX;
     pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -1124,7 +1132,6 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     for (u32 i = 0; i < swap_chain_desc.BufferCount; ++i) {
         pso_desc.RTVFormats[i] = swap_chain_desc.BufferDesc.Format;
     }
-    pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     pso_desc.SampleDesc.Count = 1;
 
     HandleResult(d3dmodule->m_d3d12_device->CreateGraphicsPipelineState(
@@ -1158,6 +1165,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     line_pso_desc.InputLayout = { line_input_element_desc, _countof(line_input_element_desc) };
     line_pso_desc.RasterizerState = rasterizer_desc;
     line_pso_desc.DepthStencilState = depth_stencil_desc;
+    line_pso_desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     line_pso_desc.BlendState = blend_desc;
     line_pso_desc.SampleMask = UINT_MAX;
     line_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
@@ -1165,7 +1173,6 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     for (u32 i = 0; i < swap_chain_desc.BufferCount; ++i) {
         line_pso_desc.RTVFormats[i] = swap_chain_desc.BufferDesc.Format;
     }
-    line_pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     line_pso_desc.SampleDesc.Count = 1;
 
     HandleResult(d3dmodule->m_d3d12_device->CreateGraphicsPipelineState(
@@ -1286,7 +1293,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     }
 
     D3D12_RESOURCE_DESC texture_desc = CD3DX12_RESOURCE_DESC::Tex2D(
-        DXGI_FORMAT_D32_FLOAT,
+        DXGI_FORMAT_D24_UNORM_S8_UINT,
         rect.right - rect.left,
         rect.bottom - rect.top,
         1, 1, 1, 0,
@@ -1307,8 +1314,9 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     );
 
     D3D12_CLEAR_VALUE depth_clear_value{};
-    depth_clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+    depth_clear_value.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     depth_clear_value.DepthStencil.Depth = 1.0f;
+    depth_clear_value.DepthStencil.Stencil = 0;
     
     const auto default_heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
@@ -1320,13 +1328,9 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         IID_PPV_ARGS(m_d3d12_depth_stencil_texture.GetAddressOf())
     ));
 
-    D3D12_DEPTH_STENCIL_VIEW_DESC depth_stencil_view_desc{};
-    depth_stencil_view_desc.Format = DXGI_FORMAT_D32_FLOAT;
-    depth_stencil_view_desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-
     d3dmodule->m_d3d12_device->CreateDepthStencilView(
         m_d3d12_depth_stencil_texture.Get(),
-        &depth_stencil_view_desc,
+        nullptr,
         m_d3d12_depth_stencil_view
     );
 

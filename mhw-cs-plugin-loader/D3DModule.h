@@ -57,7 +57,7 @@ private:
     };
 
 private:
-    bool m_is_d3d12 = false;
+    static inline bool m_is_d3d12 = false;
     bool m_is_initialized = false;
     bool m_is_inside_present = false;
 
@@ -104,7 +104,7 @@ private:
     HWND m_temp_window = nullptr;
     WNDCLASSEX* m_temp_window_class = nullptr;
 
-    ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size) = nullptr;
+    ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size, MtSize window_size, bool d3d12) = nullptr;
     ImDrawData*(*m_core_imgui_render)() = nullptr;
     void(*m_core_render)() = nullptr;
 

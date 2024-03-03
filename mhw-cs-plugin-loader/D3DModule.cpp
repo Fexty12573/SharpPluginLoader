@@ -20,6 +20,7 @@
 #include "ChunkModule.h"
 #include "HResultHandler.h"
 #include "LoaderConfig.h"
+#include "PatternScan.h"
 
 // DirectXTK12 References SerializeRootSignature so we need to link this
 #pragma comment(lib, "d3d12.lib")
@@ -43,7 +44,7 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ImGuiRender"
     );
-    m_core_initialize_imgui = coreclr->get_method<ImGuiContext*(MtSize)>(
+    m_core_initialize_imgui = coreclr->get_method<ImGuiContext*(MtSize, MtSize, bool)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Initialize"
@@ -67,7 +68,14 @@ void D3DModule::shutdown() {
 }
 
 void D3DModule::common_initialize() {
-    m_is_d3d12 = is_d3d12();
+    const uintptr_t callIsD3D12 = PatternScanner::find_first(
+        Pattern::from_string("05 7D 14 00 4C 8B 8D D8 08 00 00 84 C0 0F B6 85 F0 08 00 00")
+    );
+    const auto offset = *(int*)callIsD3D12;
+    const auto isD3D12 = (bool(*)())(callIsD3D12 + 4 + offset);
+    m_is_d3d12 = isD3D12();
+    dlog::debug("Found cD3DRender::isD3D12 at {:p}", (void*)isD3D12);
+
     m_title_menu_ready_hook.reset();
 
     dlog::debug("Initializing D3D module for {}", m_is_d3d12 ? "D3D12" : "D3D11");
@@ -335,8 +343,18 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         dlog::error("Failed to get DXGI swap chain description");
         return;
     }
+
+    RECT client_rect;
+    GetClientRect(desc.OutputWindow, &client_rect);
+
+    const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
+    const MtSize window_size = { 
+        (u32)(client_rect.right - client_rect.left), 
+        (u32)(client_rect.bottom - client_rect.top) 
+    };
     
-    const auto context = m_core_initialize_imgui({ desc.BufferDesc.Width, desc.BufferDesc.Height });
+    const auto context = m_core_initialize_imgui(viewport_size, window_size, true);
+
     igSetCurrentContext(context);
 
     imgui_load_fonts();
@@ -458,7 +476,16 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    const auto context = m_core_initialize_imgui({ desc.BufferDesc.Width, desc.BufferDesc.Height });
+    RECT client_rect;
+    GetClientRect(desc.OutputWindow, &client_rect);
+
+    const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
+    const MtSize window_size = { 
+        (u32)(client_rect.right - client_rect.left), 
+        (u32)(client_rect.bottom - client_rect.top) 
+    };
+
+    const auto context = m_core_initialize_imgui(viewport_size, window_size, false);
     igSetCurrentContext(context);
 
     imgui_load_fonts();
@@ -564,7 +591,7 @@ void D3DModule::unload_texture(TextureHandle handle) {
 }
 
 bool D3DModule::is_d3d12() {
-    return *(bool*)0x1451c9e40;
+    return m_is_d3d12;
 }
 
 void D3DModule::title_menu_ready_hook(void* gui) {

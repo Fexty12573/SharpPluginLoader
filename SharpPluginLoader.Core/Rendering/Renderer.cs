@@ -22,6 +22,9 @@ namespace SharpPluginLoader.Core.Rendering
         public static bool DemoShown => _showDemo;
 #endif
 
+        /// <summary>
+        /// Indicates whether the game is currently running in DirectX 12 mode.
+        /// </summary>
         public static bool IsDirectX12 { get; private set; }
 
         /// <summary>
@@ -50,10 +53,22 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        internal static nint Initialize(Size viewportSize)
+        internal static nint Initialize(Size viewportSize, Size windowSize, bool d3d12)
         {
+            IsDirectX12 = d3d12;
+
             _viewportSize = new Vector2(viewportSize.Width, viewportSize.Height);
-            Log.Debug($"Renderer Initialized with Viewport Size: {viewportSize.Width}x{viewportSize.Height}");
+            _windowSize = new Vector2(windowSize.Width, windowSize.Height);
+            Log.Debug($"""
+                       Initializing Renderer with
+                           Viewport Size: {viewportSize.Width}x{viewportSize.Height}
+                           Window Size: {windowSize.Width}x{windowSize.Height}
+                       """);
+
+            _mousePosScalingFactor = new Vector2(
+                _viewportSize.X / _windowSize.X,
+                _viewportSize.Y / _windowSize.Y
+            );
 
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
@@ -79,14 +94,6 @@ namespace SharpPluginLoader.Core.Rendering
                     _mouseUpdateHook.Original(m);
                 });
             }
-            
-            var callIsD3D12 = PatternScanner.FindFirst(
-                Pattern.FromString("05 7D 14 00 4C 8B 8D D8 08 00 00 84 C0 0F B6 85 F0 08 00 00")
-            );
-            var offset = MemoryUtil.Read<int>(callIsD3D12);
-            var isD3D12 = new NativeFunction<bool>(callIsD3D12 + 4 + offset);
-            Log.Debug($"Found cD3DRender::isD3D12 at 0x{isD3D12.NativePointer:X}");
-            unsafe { IsDirectX12 = isD3D12.Invoke(); }
 
             Log.Debug("Renderer.Initialize");
 
@@ -107,7 +114,7 @@ namespace SharpPluginLoader.Core.Rendering
                 _showMenu = !_showMenu;
             if (Input.IsPressed(Key.F10))
                 _showDemo = !_showDemo;
-
+            
             var io = ImGui.GetIO();
             var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
             var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
@@ -289,6 +296,7 @@ namespace SharpPluginLoader.Core.Rendering
         private static nint GetCursorPositionHook(nint app, out Point pos)
         {
             var result = _getCursorPositionHook.Original(app, out pos);
+            _mousePos = new Vector2(pos.X, pos.Y);
             if (ImGui.GetCurrentContext() == 0)
                 return result;
 
@@ -309,6 +317,9 @@ namespace SharpPluginLoader.Core.Rendering
         private static bool _showDemo = false;
         private static RenderingOptionPointers _renderingOptionPointers;
         private static Vector2 _viewportSize;
+        private static Vector2 _windowSize;
+        private static Vector2 _mousePos;
+        private static Vector2 _mousePosScalingFactor;
         private static float _fontScale = 1.0f;
     }
 

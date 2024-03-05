@@ -19,23 +19,6 @@
 PrimitiveRenderingModule::PrimitiveRenderingModule() = default;
 
 void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
-    if (!preloader::LoaderConfig::get().get_primitive_rendering_enabled()) {
-        auto disabled = [](void*, void*) {
-            dlog::warn("Primitive rendering is disabled");
-        };
-
-        coreclr->add_internal_call("RenderSphere", &disabled);
-        coreclr->add_internal_call("RenderObb", &disabled);
-        coreclr->add_internal_call("RenderCapsule", &disabled);
-        coreclr->add_internal_call("RenderLine", &disabled);
-        return;
-    }
-
-    coreclr->add_internal_call("RenderSphere", render_sphere_api);
-    coreclr->add_internal_call("RenderObb", render_obb_api);
-    coreclr->add_internal_call("RenderCapsule", render_capsule_api);
-    coreclr->add_internal_call("RenderLine", render_line_api);
-
     struct RenderingOptionPointers {
         float* LineThickness;
         bool* DrawPrimitivesAsLines;
@@ -44,6 +27,16 @@ void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
         &m_draw_primitives_as_lines
     };
 
+    m_retrieve_primitives = coreclr->get_method<std::remove_pointer_t<decltype(m_retrieve_primitives)>>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Primitives",
+        L"RetrievePrimitives"
+    );
+    m_release_primitives = coreclr->get_method<std::remove_pointer_t<decltype(m_release_primitives)>>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Primitives",
+        L"ReleasePrimitives"
+    );
     m_get_singleton = coreclr->get_method<void* (const char*)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.SingletonManager",
@@ -77,28 +70,51 @@ void PrimitiveRenderingModule::late_init(D3DModule* d3dmodule, IDXGISwapChain* s
 }
 
 void PrimitiveRenderingModule::render_sphere(const MtSphere& sphere, MtVector4 color) {
-    m_spheres.emplace_back(sphere, color);
+    throw std::runtime_error("Not implemented");
 }
 
 void PrimitiveRenderingModule::render_obb(const MtOBB& obb, MtVector4 color) {
-    m_cubes.emplace_back(obb, color);
+    throw std::runtime_error("Not implemented");
 }
 
 void PrimitiveRenderingModule::render_capsule(const MtCapsule& capsule, MtVector4 color) {
-    m_capsules.emplace_back(capsule, color);
+    throw std::runtime_error("Not implemented");
 }
 
 void PrimitiveRenderingModule::render_line(const MtLineSegment& line, MtVector4 color) {
-    m_lines.emplace_back(line, color);
+    throw std::runtime_error("Not implemented");
 }
 
 void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* context) {
     using namespace DirectX;
 
-    if (m_spheres.empty() && 
-        m_cubes.empty() && 
-        m_capsules.empty() &&
-        m_lines.empty()) {
+    primitives::Sphere* spheres = nullptr;
+    primitives::OBB* cubes = nullptr;
+    primitives::Capsule* capsules = nullptr;
+    primitives::Line* lines = nullptr;
+
+    m_retrieve_primitives(
+        &spheres, &m_sphere_count,
+        &cubes, &m_cube_count,
+        &capsules, &m_capsule_count,
+        &lines, &m_line_count
+    );
+
+    m_spheres = std::span(spheres, m_sphere_count);
+    m_cubes = std::span(cubes, m_cube_count);
+    m_capsules = std::span(capsules, m_capsule_count);
+    m_lines = std::span(lines, m_line_count);
+
+    //if (m_spheres.empty() && 
+    //    m_cubes.empty() && 
+    //    m_capsules.empty() &&
+    //    m_lines.empty()) {
+    //    return;
+    //}
+    if (m_sphere_count == 0 &&
+        m_cube_count == 0 &&
+        m_capsule_count == 0 &&
+        m_line_count == 0) {
         return;
     }
 
@@ -145,7 +161,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     };
 
     // Spheres ------------------------------
-    if (!m_spheres.empty()) {
+    if (m_sphere_count != 0) {
         // Build Instance Data
         HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
         auto data = (Instance*)msr.pData;
@@ -179,7 +195,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     }
 
     // OBBs ---------------------------------
-    if (!m_cubes.empty()) {
+    if (m_cube_count != 0) {
         // Build Instance Data
         i = 0;
         HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
@@ -214,7 +230,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     }
 
     // Capsules -----------------------------
-    if (!m_capsules.empty()) {
+    if (m_capsule_count != 0) {
         // Build Instance Data
         i = 0;
         HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
@@ -330,7 +346,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     }
 
     // Lines --------------------------------
-    if (!m_lines.empty()) {
+    if (m_line_count != 0) {
         context->IASetInputLayout(m_d3d11_line_input_layout.Get());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
@@ -373,23 +389,48 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         context->DrawInstanced(
             2,
-            (u32)m_lines.size(), 0, 0
+            (u32)m_line_count, 0, 0
         );
     }
 
-    m_spheres.clear();
-    m_cubes.clear();
-    m_capsules.clear();
-    m_lines.clear();
+    m_release_primitives();
+
+    //m_spheres.clear();
+    //m_cubes.clear();
+    //m_capsules.clear();
+    //m_lines.clear();
 }
 
 void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap_chain, ID3D12CommandQueue* command_queue) {
     using namespace DirectX;
 
-    if (m_spheres.empty() && 
-        m_cubes.empty() &&
-        m_capsules.empty() &&
-        m_lines.empty()) {
+    primitives::Sphere* spheres = nullptr;
+    primitives::OBB* cubes = nullptr;
+    primitives::Capsule* capsules = nullptr;
+    primitives::Line* lines = nullptr;
+
+    m_retrieve_primitives(
+        &spheres, &m_sphere_count,
+        &cubes, &m_cube_count,
+        &capsules, &m_capsule_count,
+        &lines, &m_line_count
+    );
+
+    m_spheres = std::span(spheres, m_sphere_count);
+    m_cubes = std::span(cubes, m_cube_count);
+    m_capsules = std::span(capsules, m_capsule_count);
+    m_lines = std::span(lines, m_line_count);
+
+    //if (m_spheres.empty() && 
+    //    m_cubes.empty() &&
+    //    m_capsules.empty() &&
+    //    m_lines.empty()) {
+    //    return;
+    //}
+    if (m_sphere_count == 0 &&
+        m_cube_count == 0 &&
+        m_capsule_count == 0 &&
+        m_line_count == 0) {
         return;
     }
 
@@ -451,11 +492,11 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     std::array<D3D12_VERTEX_BUFFER_VIEW, 2> views{};
 
     // Spheres ------------------------------
-    if (!m_spheres.empty()) {
+    if (m_sphere_count != 0) {
         // Build Instance Data
         const D3D12_RANGE range{ 
             0, 
-            sizeof(Instance) * std::min<u32>((u32)m_spheres.size(), MAX_INSTANCES)
+            sizeof(Instance) * std::min<u32>((u32)m_sphere_count, MAX_INSTANCES)
         };
         Instance* data = nullptr;
         HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
@@ -489,12 +530,12 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     }
 
     // OBBs ---------------------------------
-    if (!m_cubes.empty()) {
+    if (m_cube_count != 0) {
         // Build Instance Data
         i = 0;
         const D3D12_RANGE range{
             0,
-            sizeof(Instance) * std::min<u32>((u32)m_cubes.size(), MAX_INSTANCES)
+            sizeof(Instance) * std::min<u32>((u32)m_cube_count, MAX_INSTANCES)
         };
         Instance* data = nullptr;
         HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
@@ -528,12 +569,12 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     }
 
     // Capsules -----------------------------
-    if (!m_capsules.empty()) {
+    if (m_capsule_count != 0) {
         // Build Instance Data
         i = 0;
         const D3D12_RANGE range{
             0,
-            sizeof(Instance) * std::min<u32>((u32)m_capsules.size(), MAX_INSTANCES)
+            sizeof(Instance) * std::min<u32>((u32)m_capsule_count, MAX_INSTANCES)
         };
         Instance* data = nullptr;
         Instance* data_htop = nullptr;
@@ -652,7 +693,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     }
 
     // Lines --------------------------------
-    if (!m_lines.empty()) {
+    if (m_line_count != 0) {
         // Set up line pipeline state
         m_d3d12_command_list->SetPipelineState(m_d3d12_line_pipeline_state.Get());
         m_d3d12_command_list->SetGraphicsRootSignature(m_d3d12_line_root_signature.Get());
@@ -671,7 +712,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         // Set up line vertex buffer
         const D3D12_RANGE range{
             0,
-            sizeof(LineVertex) * m_lines.size() * 2
+            sizeof(LineVertex) * m_line_count * 2
         };
 
         LineVertex* data = nullptr;
@@ -697,10 +738,8 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
         m_d3d12_command_list->IASetVertexBuffers(0, 1, views.data());
         m_d3d12_command_list->DrawInstanced(
             2,
-            (u32)m_lines.size(), 0, 0
+            (u32)m_line_count, 0, 0
         );
-
-        m_lines.clear();
     }
 
     // Close command list
@@ -712,9 +751,12 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
 
     command_queue->ExecuteCommandLists(1, CommandListCast(m_d3d12_command_list.GetAddressOf()));
 
-    m_spheres.clear();
-    m_cubes.clear();
-    m_capsules.clear();
+    m_release_primitives();
+
+    //m_spheres.clear();
+    //m_cubes.clear();
+    //m_capsules.clear();
+    //m_lines.clear();
 }
 
 void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
@@ -1497,20 +1539,4 @@ void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::
     out.IndexBufferView.BufferLocation = out.IndexBuffer->GetGPUVirtualAddress();
     out.IndexBufferView.SizeInBytes = sizeof(u32) * (u32)mesh.Indices.size();
     out.IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-}
-
-void PrimitiveRenderingModule::render_sphere_api(const MtSphere* sphere, const MtVector4* color) {
-    NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_sphere(*sphere, *color);
-}
-
-void PrimitiveRenderingModule::render_obb_api(const MtOBB* obb, const MtVector4* color) {
-    NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_obb(*obb, *color);
-}
-
-void PrimitiveRenderingModule::render_capsule_api(const MtCapsule* capsule, const MtVector4* color) {
-    NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_capsule(*capsule, *color);
-}
-
-void PrimitiveRenderingModule::render_line_api(const MtLineSegment* line, const MtVector4* color) {
-    NativePluginFramework::get_module<PrimitiveRenderingModule>()->render_line(*line, *color);
 }

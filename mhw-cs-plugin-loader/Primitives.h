@@ -10,6 +10,7 @@ struct Sphere {
     MtColorF color;
     Sphere(const MtSphere& sphere, const MtColorF& color) : sphere(sphere), color(color) {}
 };
+dti_size_assert(Sphere, 0x20);
 
 dti_offset_assert(MtCapsule, p1, 0x10);
 dti_offset_assert(MtCapsule, r, 0x20);
@@ -18,6 +19,7 @@ struct Capsule {
     MtColorF color;
     Capsule(const MtCapsule& capsule, const MtColorF& color) : capsule(capsule), color(color) {}
 };
+dti_size_assert(Capsule, 0x40);
 
 dti_offset_assert(MtOBB, extent, 0x40);
 dti_size_assert(MtOBB, 0x50);
@@ -26,6 +28,7 @@ struct OBB {
     MtColorF color;
     OBB(const MtOBB& obb, const MtColorF& color) : obb(obb), color(color) {}
 };
+dti_size_assert(OBB, 0x60);
 
 dti_offset_assert(MtLineSegment, p1, 0x10);
 dti_size_assert(MtLineSegment, 0x20);
@@ -34,5 +37,6 @@ struct Line {
     MtColorF color;
     Line(const MtLineSegment& line, const MtColorF& color) : line(line), color(color) {}
 };
+dti_size_assert(Line, 0x30);
 
 }

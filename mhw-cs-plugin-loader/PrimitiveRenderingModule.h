@@ -9,6 +9,7 @@
 
 #include <array>
 #include <dxgi1_4.h>
+#include <span>
 #include <vector>
 
 struct sMhCamera;
@@ -58,11 +59,6 @@ private:
     static void load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out);
     static void load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out);
 
-    static void render_sphere_api(const MtSphere* sphere, const MtVector4* color);
-    static void render_obb_api(const MtOBB* obb, const MtVector4* color);
-    static void render_capsule_api(const MtCapsule* capsule, const MtVector4* color);
-    static void render_line_api(const MtLineSegment* line, const MtVector4* color);
-
     static DirectX::XMMATRIX XMMatrixAdd(DirectX::FXMMATRIX M1, DirectX::CXMMATRIX M2) {
         DirectX::XMMATRIX m;
         m.r[0] = DirectX::XMVectorAdd(M1.r[0], M2.r[0]);
@@ -100,13 +96,24 @@ private:
     static constexpr u32 MAX_INSTANCES = 512;
     static constexpr u32 MAX_LINES = 512;
 
+    void(*m_retrieve_primitives)(
+        primitives::Sphere** spheres, size_t* sphere_count,
+        primitives::OBB** cubes, size_t* cube_count,
+        primitives::Capsule** capsules, size_t* capsule_count,
+        primitives::Line** lines, size_t* line_count) = nullptr;
+    void(*m_release_primitives)() = nullptr;
     void*(*m_get_singleton)(const char* name) = nullptr;
     sMhCamera* m_camera = nullptr;
 
-    std::vector<primitives::Sphere> m_spheres;
-    std::vector<primitives::OBB> m_cubes;
-    std::vector<primitives::Capsule> m_capsules;
-    std::vector<primitives::Line> m_lines;
+    std::span<primitives::Sphere> m_spheres;
+    std::span<primitives::OBB> m_cubes;
+    std::span<primitives::Capsule> m_capsules;
+    std::span<primitives::Line> m_lines;
+
+    size_t m_sphere_count = 0;
+    size_t m_cube_count = 0;
+    size_t m_capsule_count = 0;
+    size_t m_line_count = 0;
 
     std::array<Instance, MAX_INSTANCES> m_instances{};
     std::array<Instance, MAX_INSTANCES> m_instances_hemisphere_top{};

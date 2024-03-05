@@ -93,8 +93,8 @@ private:
         DirectX::XMFLOAT4 Color;
     };
 
-    static constexpr u32 MAX_INSTANCES = 512;
-    static constexpr u32 MAX_LINES = 512;
+    static constexpr u32 MAX_INSTANCES = 2048;
+    static constexpr u32 MAX_LINES = 2048;
 
     void(*m_retrieve_primitives)(
         primitives::Sphere** spheres, size_t* sphere_count,

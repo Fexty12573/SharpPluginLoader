@@ -44,6 +44,7 @@ public enum LobbyComparison
 
 /// <summary>
 /// The different distance filters for lobbies. See <see href="https://partner.steamgames.com/doc/api/ISteamMatchmaking#ELobbyDistanceFilter"/>
+/// </summary>
 public enum LobbyDistanceFilter
 {
     /// <summary>

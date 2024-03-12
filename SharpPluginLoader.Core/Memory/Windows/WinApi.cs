@@ -30,6 +30,9 @@ namespace SharpPluginLoader.Core.Memory.Windows
         [LibraryImport("kernel32.dll", EntryPoint = "GetProcAddress")]
         public static partial nint GetProcAddress(nint hModule, [MarshalAs(UnmanagedType.LPStr)] string lpProcName);
 
+        [LibraryImport("kernel32.dll", EntryPoint = "GetLastError")]
+        public static partial uint GetLastError();
+
         public static bool IsManagedAssembly(string path)
         {
             // Repeatedly try to open the file for reading, with a timeout of 3 seconds.

@@ -383,7 +383,7 @@ namespace SharpPluginLoader.Core
             var nativePlugin = WinApi.LoadLibrary(path);
             if (nativePlugin == 0)
             {
-                Log.Error($"Failed to load native plugin for {plugin.Name}");
+                Log.Error($"Failed to load native plugin for {plugin.Name} ({WinApi.GetLastError()})");
                 return ([], 0);
             }
 

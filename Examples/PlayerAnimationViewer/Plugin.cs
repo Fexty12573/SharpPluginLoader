@@ -69,6 +69,8 @@ namespace PlayerAnimationViewer
         private ImFontPtr _supplementalFont;
         private int _fontLoadStatus = 0;
 
+        private MotionList? _pendingLmt;
+
         private static string LmtBitMappingFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/FlagMapping.json";
         private static string SupplementalFontFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/CascadiaCode.ttf";
 
@@ -293,9 +295,22 @@ namespace PlayerAnimationViewer
 
         public void OnImGuiRender()
         {
+            var entities = GetEntityList();
+            if (_selectedModel is not null && !entities.Contains(_selectedModel))
+            {
+                _selectedModel = null;
+                _selectedAnimLayer = null;
+                _selectedDti = null;
+                _selectedAnimLayer = null;
+                _lmtPlayer = null;
+                _timlPlayer = null;
+                _timelineGroupExpandedMap.Clear();
+            }
+
+            ImGui.BeginGroup();
+
             if (ImGui.BeginCombo("Selected Entity", _selectedDti?.Name ?? "None"))
             {
-                var entities = GetEntityList();
                 var dtis = entities.Select(e => e.GetDti()).ToArray();
 
                 for (var i = 0; i < dtis.Length; i++)
@@ -328,6 +343,7 @@ namespace PlayerAnimationViewer
             if (_selectedModel is null || _selectedAnimLayer is null)
             {
                 ImGui.TextColored(new Vector4(1, 1, 0, 1), "No Entity selected");
+                ImGui.EndGroup();
                 return;
             }
 
@@ -387,6 +403,8 @@ namespace PlayerAnimationViewer
                 {
                     ImGui.TextColored(new Vector4(1, 1, 0, 1), "No LMT Player");
                     ImGui.TreePop();
+                    ImGui.EndGroup();
+
                     return;
                 }
 
@@ -407,6 +425,8 @@ namespace PlayerAnimationViewer
                 {
                     ImGui.TextColored(new Vector4(1, 1, 0, 1), "No LMT selected");
                     ImGui.TreePop();
+                    ImGui.EndGroup();
+
                     return;
                 }
                 
@@ -764,7 +784,59 @@ namespace PlayerAnimationViewer
                 ImGui.TreePop();
             }
 
+            ImGui.EndGroup();
 
+            if (ImGui.BeginDragDropTarget())
+            {
+                var payload = ImGui.AcceptDragDropPayload("AssetBrowser_Item");
+                if (payload.NativePtr != null)
+                {
+                    var path = Encoding.UTF8.GetString((byte*)payload.Data, payload.DataSize);
+                    Log.Info($"Dropped {path}");
+                    var lmt = ResourceManager.GetResource<MotionList>(path, MtDti.Find("rMotionList")!);
+                    if (lmt is not null && lmt.Header.MotionCount > 0)
+                    {
+                        _pendingLmt = lmt;
+                        ImGui.OpenPopup("LMT Without Object");
+                    }
+                }
+
+                ImGui.EndDragDropTarget();
+            }
+
+            ImGui.SetNextWindowSize(new Vector2(500, 200), ImGuiCond.Appearing);
+            if (ImGui.BeginPopupModal("LMT Without Object"))
+            {
+                ImGui.TextWrapped("Warning: This LMT does not have an associated object. " +
+                           "It is possible that certain LMT Parameters will " +
+                           "not be shown accordingly.");
+                ImGui.Text("Do you want to load it anyway?");
+
+                ImGui.BeginHorizontal("##drag-drop-popup");
+
+                ImGui.Spring(-1f);
+
+                if (ImGui.Button("Yes"))
+                {
+                    _selectedLmt = _pendingLmt;
+                    _pendingLmt = null;
+                    ImGui.CloseCurrentPopup();
+                }
+
+                if (ImGui.Button("No"))
+                {
+                    _pendingLmt = null;
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.EndHorizontal();
+
+                ImGui.EndPopup();
+            }
+            else
+            {
+                _pendingLmt = null;
+            }
         }
 
         private void DisplayBitMappings()
@@ -964,6 +1036,10 @@ namespace PlayerAnimationViewer
                 var weapon = player.CurrentWeapon;
                 if (weapon is not null)
                     list.Add(weapon);
+
+                var claw = player.GetObject<Model>(0x8918);
+                if (claw is not null)
+                    list.Add(claw);
             }
                 
             list.AddRange(Monster.GetAllMonsters());

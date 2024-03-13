@@ -71,6 +71,11 @@ namespace PlayerAnimationViewer
 
         private MotionList? _pendingLmt;
 
+        private readonly List<(int MotionId, bool Append, int OverrideId)> _importAnimations = [];
+        private int _importAnimationId;
+        private bool _importAppend;
+        private int _importOverrideId;
+
         private static string LmtBitMappingFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/FlagMapping.json";
         private static string SupplementalFontFile => "nativePC/plugins/CSharp/PlayerAnimationViewer/CascadiaCode.ttf";
 
@@ -797,11 +802,28 @@ namespace PlayerAnimationViewer
                     if (lmt is not null && lmt.Header.MotionCount > 0)
                     {
                         _pendingLmt = lmt;
-                        ImGui.OpenPopup("LMT Without Object");
+                        ImGui.OpenPopup("Import Action");
                     }
                 }
 
                 ImGui.EndDragDropTarget();
+            }
+
+            if (ImGui.BeginPopupModal("Import Action"))
+            {
+                ImGui.TextWrapped("What do you want to do with this LMT?");
+
+                if (ImGui.Button("Load as New LMT"))
+                {
+                    ImGui.CloseCurrentPopup();
+                    ImGui.OpenPopup("LMT Without Object");
+                }
+
+                if (ImGui.Button("Import Animations"))
+                {
+                    ImGui.CloseCurrentPopup();
+                    ImGui.OpenPopup("Animation Import");
+                }
             }
 
             ImGui.SetNextWindowSize(new Vector2(500, 200), ImGuiCond.Appearing);
@@ -813,8 +835,6 @@ namespace PlayerAnimationViewer
                 ImGui.Text("Do you want to load it anyway?");
 
                 ImGui.BeginHorizontal("##drag-drop-popup");
-
-                ImGui.Spring(-1f);
 
                 if (ImGui.Button("Yes"))
                 {
@@ -836,6 +856,68 @@ namespace PlayerAnimationViewer
             else
             {
                 _pendingLmt = null;
+            }
+
+            if (ImGui.BeginPopupModal("Animation Import"))
+            {
+                ImGui.TextWrapped("Add the animations to import below");
+
+                ImGui.BeginHorizontal("##import-animations");
+                ImGui.InputInt("Animation ID", ref _importAnimationId);
+                ShowToolTip("The ID of the animation to import");
+                ImGui.InputInt("Override ID", ref _importOverrideId);
+                ShowToolTip("The ID of the animation to override");
+                if (ImGui.Checkbox("Append", ref _importAppend) && _importAppend)
+                    _importOverrideId = -1;
+                ShowToolTip("Append the animation to the end of the list");
+                ImGui.EndHorizontal();
+
+                if (ImGui.Button("Add Animation"))
+                {
+                    _importAnimations.Add((_importAnimationId, _importAppend, _importOverrideId));
+                }
+
+                ImGui.LabelText("Animations to Import", $"{_importAnimations.Count}");
+                ImGui.BeginGroup();
+
+                foreach (var (id, append, overrideId) in _importAnimations)
+                {
+                    var clicked = false;
+                    if (append)
+                        clicked = ImGui.Selectable($"Append Animation {id}");
+                    else
+                        clicked = ImGui.Selectable($"Override Animation {overrideId} with {id}");
+                }
+
+                ImGui.EndGroup();
+
+                var drawList = ImGui.GetWindowDrawList();
+                drawList.AddRect(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 0xFFFFFFFF);
+
+                if (ImGui.Button("Import"))
+                {
+                    foreach (var (id, append, overrideId) in _importAnimations)
+                    {
+                        if (append)
+                            _selectedLmt!.AppendAnimation(id);
+                        else
+                            _selectedLmt!.OverrideAnimation(overrideId, id);
+                    }
+
+                    _importAnimations.Clear();
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.EndPopup();
+            }
+
+            static void ShowToolTip(string text)
+            {
+                if (ImGui.BeginItemTooltip())
+                {
+                    ImGui.TextWrapped(text);
+                    ImGui.EndTooltip();
+                }
             }
         }
 

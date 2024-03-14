@@ -23,6 +23,9 @@ namespace SharpPluginLoader.Core.Memory.Windows
         [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryW")]
         public static partial nint LoadLibrary([MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
 
+        [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryExW")]
+        public static partial nint LoadLibraryEx([MarshalAs(UnmanagedType.LPWStr)] string lpFileName, nint hFile, uint dwFlags);
+
         [LibraryImport("kernel32.dll", EntryPoint = "FreeLibrary")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool FreeLibrary(nint hModule);
@@ -84,6 +87,12 @@ namespace SharpPluginLoader.Core.Memory.Windows
         public const uint PageGuard = 0x100;
         public const uint PageNoCache = 0x200;
         public const uint PageWriteCombine = 0x400;
+
+        public const uint LoadLibrarySearchDllLoadDir = 0x100;
+        public const uint LoadLibrarySearchApplicationDir = 0x200;
+        public const uint LoadLibrarySearchUserDirs = 0x400;
+        public const uint LoadLibrarySearchSystem32 = 0x800;
+        public const uint LoadLibrarySearchDefaultDirs = 0x1000;
     }
 
     [StructLayout(LayoutKind.Sequential)]

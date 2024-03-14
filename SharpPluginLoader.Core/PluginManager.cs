@@ -12,6 +12,13 @@ namespace SharpPluginLoader.Core
         public static PluginManager Instance { get; } = new();
         public static string DefaultPluginDirectory => "nativePC/plugins/CSharp";
 
+        private const uint NativeComponentLoadFlags =
+            Constants.LoadLibrarySearchDllLoadDir
+            | Constants.LoadLibrarySearchApplicationDir
+            | Constants.LoadLibrarySearchUserDirs
+            | Constants.LoadLibrarySearchSystem32
+            | Constants.LoadLibrarySearchDefaultDirs;
+
         private class PluginContext
         {
             public required PluginLoadContext Context { get; init; }
@@ -380,7 +387,7 @@ namespace SharpPluginLoader.Core
                 return ([], 0);
             }
 
-            var nativePlugin = WinApi.LoadLibrary(path);
+            var nativePlugin = WinApi.LoadLibraryEx(path, 0, NativeComponentLoadFlags);
             if (nativePlugin == 0)
             {
                 Log.Error($"Failed to load native plugin for {plugin.Name} ({WinApi.GetLastError()})");

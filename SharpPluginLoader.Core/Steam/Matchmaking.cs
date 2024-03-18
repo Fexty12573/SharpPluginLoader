@@ -86,17 +86,17 @@ public static unsafe partial class Matchmaking
         return GetVirtualFunction(iface, func);
     }
 
+    public static nint GetSteamMatchmakingInterface()
+    {
+        return MemoryUtil.Read<nint>(SteamInternal_ContextInit(_steamMatchmakingInterfaceGetter));
+    }
+
     #region Internal
 
     private static nint GetVirtualFunction(nint iface, VirtualFunctionIndex func)
     {
         var vtable = MemoryUtil.Read<nint>(iface);
         return MemoryUtil.Read<nint>(vtable + (int)func * nint.Size);
-    }
-
-    private static nint GetSteamMatchmakingInterface()
-    {
-        return MemoryUtil.Read<nint>(SteamInternal_ContextInit(_steamMatchmakingInterfaceGetter));
     }
 
     internal static void Initialize()

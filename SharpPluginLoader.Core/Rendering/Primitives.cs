@@ -26,7 +26,8 @@ public static class Primitives
     {
         var sphere = new MtSphere { Center = position, Radius = radius };
         var color4 = (Vector4)color;
-        Spheres.Add(new ColoredSphere { Sphere = sphere, Color = color4 });
+        var index = Interlocked.Increment(ref _sphereIndex) - 1;
+        Spheres[index] = new ColoredSphere { Sphere = sphere, Color = color4 };
     }
 
     /// <summary>
@@ -39,7 +40,8 @@ public static class Primitives
     public static void RenderSphere(Vector3 position, float radius, Vector4 color)
     {
         var sphere = new MtSphere { Center = position, Radius = radius };
-        Spheres.Add(new ColoredSphere { Sphere = sphere, Color = color });
+        var index = Interlocked.Increment(ref _sphereIndex) - 1;
+        Spheres[index] = new ColoredSphere { Sphere = sphere, Color = color };
     }
 
     /// <summary>
@@ -51,7 +53,8 @@ public static class Primitives
     public static void RenderSphere(MtSphere sphere, MtColor color)
     {
         var color4 = (Vector4)color;
-        Spheres.Add(new ColoredSphere { Sphere = sphere, Color = color4 });
+        var index = Interlocked.Increment(ref _sphereIndex) - 1;
+        Spheres[index] = new ColoredSphere { Sphere = sphere, Color = color4 };
     }
 
     /// <summary>
@@ -62,7 +65,8 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderSphere(MtSphere sphere, Vector4 color)
     {
-        Spheres.Add(new ColoredSphere { Sphere = sphere, Color = color });
+        var index = Interlocked.Increment(ref _sphereIndex) - 1;
+        Spheres[index] = new ColoredSphere { Sphere = sphere, Color = color };
     }
 
 
@@ -75,7 +79,8 @@ public static class Primitives
     public static void RenderObb(MtObb obb, MtColor color)
     {
         var color4 = (Vector4)color;
-        Obbs.Add(new ColoredObb { Obb = obb, Color = color4 });
+        var index = Interlocked.Increment(ref _obbIndex) - 1;
+        Obbs[index] = new ColoredObb { Obb = obb, Color = color4 };
     }
 
     /// <summary>
@@ -86,7 +91,8 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderObb(MtObb obb, Vector4 color)
     {
-        Obbs.Add(new ColoredObb { Obb = obb, Color = color });
+        var index = Interlocked.Increment(ref _obbIndex) - 1;
+        Obbs[index] = new ColoredObb { Obb = obb, Color = color };
     }
 
 
@@ -98,7 +104,9 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderCapsule(MtCapsule capsule, MtColor color)
     {
-        Capsules.Add(new ColoredCapsule { Capsule = capsule, Color = color.ToVector4() });
+        var color4 = (Vector4)color;
+        var index = Interlocked.Increment(ref _capsuleIndex) - 1;
+        Capsules[index] = new ColoredCapsule { Capsule = capsule, Color = color4 };
     }
 
     /// <summary>
@@ -109,7 +117,8 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderCapsule(MtCapsule capsule, Vector4 color)
     {
-        Capsules.Add(new ColoredCapsule { Capsule = capsule, Color = color });
+        var index = Interlocked.Increment(ref _capsuleIndex) - 1;
+        Capsules[index] = new ColoredCapsule { Capsule = capsule, Color = color };
     }
 
     /// <summary>
@@ -123,7 +132,8 @@ public static class Primitives
     {
         var line = new MtLineSegment { Point1 = start, Point2 = end };
         var color4 = (Vector4)color;
-        Lines.Add(new ColoredLine { Line = line, Color = color4 });
+        var index = Interlocked.Increment(ref _lineIndex) - 1;
+        Lines[index] = new ColoredLine { Line = line, Color = color4 };
     }
 
     /// <inheritdoc cref="RenderLine(Vector3,Vector3,MtColor)"/>
@@ -131,7 +141,8 @@ public static class Primitives
     public static void RenderLine(Vector3 start, Vector3 end, Vector4 color)
     {
         var line = new MtLineSegment { Point1 = start, Point2 = end };
-        Lines.Add(new ColoredLine { Line = line, Color = color });
+        var index = Interlocked.Increment(ref _lineIndex) - 1;
+        Lines[index] = new ColoredLine { Line = line, Color = color };
     }
 
     /// <summary>
@@ -142,14 +153,16 @@ public static class Primitives
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderLine(MtLineSegment line, MtColor color)
     {
-        Lines.Add(new ColoredLine { Line = line, Color = color.ToVector4() });
+        var index = Interlocked.Increment(ref _lineIndex) - 1;
+        Lines[index] = new ColoredLine { Line = line, Color = color.ToVector4() };
     }
 
     /// <inheritdoc cref="RenderLine(MtLineSegment,MtColor)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RenderLine(MtLineSegment line, Vector4 color)
     {
-        Lines.Add(new ColoredLine { Line = line, Color = color });
+        var index = Interlocked.Increment(ref _lineIndex) - 1;
+        Lines[index] = new ColoredLine { Line = line, Color = color };
     }
 
     [UnmanagedCallersOnly]
@@ -159,84 +172,37 @@ public static class Primitives
         ColoredCapsule** outCapsules, long* capsuleCount,
         ColoredLine** outLines, long* lineCount)
     {
-        _sphereMemory = new Memory<ColoredSphere>(ListExtensions.UnderlyingArray(Spheres));
-        _obbMemory = new Memory<ColoredObb>(ListExtensions.UnderlyingArray(Obbs));
-        _capsuleMemory = new Memory<ColoredCapsule>(ListExtensions.UnderlyingArray(Capsules));
-        _lineMemory = new Memory<ColoredLine>(ListExtensions.UnderlyingArray(Lines));
+        *outSpheres = Spheres.Pointer;
+        *outObbs = Obbs.Pointer;
+        *outCapsules = Capsules.Pointer;
+        *outLines = Lines.Pointer;
 
-        _sphereHandle = _sphereMemory.Pin();
-        _obbHandle = _obbMemory.Pin();
-        _capsuleHandle = _capsuleMemory.Pin();
-        _lineHandle = _lineMemory.Pin();
-
-        *outSpheres = (ColoredSphere*)_sphereHandle.Pointer;
-        *outObbs = (ColoredObb*)_obbHandle.Pointer;
-        *outCapsules = (ColoredCapsule*)_capsuleHandle.Pointer;
-        *outLines = (ColoredLine*)_lineHandle.Pointer;
-
-        *sphereCount = Spheres.Count;
-        *obbCount = Obbs.Count;
-        *capsuleCount = Capsules.Count;
-        *lineCount = Lines.Count;
+        *sphereCount = _sphereIndex;
+        *obbCount = _obbIndex;
+        *capsuleCount = _capsuleIndex;
+        *lineCount = _lineIndex;
     }
 
     [UnmanagedCallersOnly]
     private static void ReleasePrimitives()
     {
-        _sphereHandle.Dispose();
-        _obbHandle.Dispose();
-        _capsuleHandle.Dispose();
-        _lineHandle.Dispose();
-
-        Spheres.Clear();
-        Obbs.Clear();
-        Capsules.Clear();
-        Lines.Clear();
+        _sphereIndex = 0;
+        _obbIndex = 0;
+        _capsuleIndex = 0;
+        _lineIndex = 0;
     }
 
-    private static readonly List<ColoredSphere> Spheres = [];
-    private static readonly List<ColoredObb> Obbs = [];
-    private static readonly List<ColoredCapsule> Capsules = [];
-    private static readonly List<ColoredLine> Lines = [];
+    private const int MaxPrimitives = 2048;
 
-    private static Memory<ColoredSphere> _sphereMemory;
-    private static Memory<ColoredObb> _obbMemory;
-    private static Memory<ColoredCapsule> _capsuleMemory;
-    private static Memory<ColoredLine> _lineMemory;
+    private static readonly NativeArray<ColoredSphere> Spheres = NativeArray<ColoredSphere>.Create(MaxPrimitives);
+    private static readonly NativeArray<ColoredObb> Obbs = NativeArray<ColoredObb>.Create(MaxPrimitives);
+    private static readonly NativeArray<ColoredCapsule> Capsules = NativeArray<ColoredCapsule>.Create(MaxPrimitives);
+    private static readonly NativeArray<ColoredLine> Lines = NativeArray<ColoredLine>.Create(MaxPrimitives);
 
-    private static MemoryHandle _sphereHandle;
-    private static MemoryHandle _obbHandle;
-    private static MemoryHandle _capsuleHandle;
-    private static MemoryHandle _lineHandle;
-}
-
-file static class ListExtensions
-{
-    public static T[] UnderlyingArray<T>(List<T> list) => ArrayAccessor<T>.Get(list);
-
-    private static class ArrayAccessor<T>
-    {
-        public static readonly Func<List<T>, T[]> Get;
-
-        static ArrayAccessor()
-        {
-            var dm = new DynamicMethod(
-                "get",
-                MethodAttributes.Static | MethodAttributes.Public,
-                CallingConventions.Standard,
-                typeof(T[]),
-                [typeof(List<T>)],
-                typeof(ArrayAccessor<T>),
-                true
-            );
-            var gen = dm.GetILGenerator();
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, typeof(List<T>)
-                .GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance)!);
-            gen.Emit(OpCodes.Ret);
-            Get = (Func<List<T>, T[]>)dm.CreateDelegate(typeof(Func<List<T>, T[]>));
-        }
-    }
+    private static int _sphereIndex;
+    private static int _obbIndex;
+    private static int _capsuleIndex;
+    private static int _lineIndex;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x20)]

@@ -10,8 +10,8 @@ namespace preloader
         bool OutputEveryPath;
         bool EnablePluginLoader;
         struct {
-            bool ImGuiRenderingEnabled;
-            bool PrimitiveRenderingEnabled;
+            bool ImGuiRenderingEnabled = true;
+            bool PrimitiveRenderingEnabled = true;
         };
     };
     void to_json(nlohmann::json& j, const ConfigFile& c);

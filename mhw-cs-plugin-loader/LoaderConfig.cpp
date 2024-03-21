@@ -55,6 +55,16 @@ namespace preloader
             json data = json::parse(file);
             this->config = data.get<ConfigFile>();
             file.close();
+
+            if (!data.contains("SPL")) {
+                // Add missing SPL section
+                std::ofstream outfile(config::SPL_LOADER_CONFIG_FILE);
+                if (outfile.is_open()) {
+                    json data = this->config;
+                    outfile << std::setw(4) << data << "\n";
+                    outfile.close();
+                }
+            }
         }
         else
         {

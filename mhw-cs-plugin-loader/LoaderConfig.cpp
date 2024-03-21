@@ -18,7 +18,8 @@ namespace preloader
             {"enablePluginLoader", c.EnablePluginLoader},
             {"SPL", {
                 {"ImGuiRenderingEnabled", c.ImGuiRenderingEnabled},
-                {"PrimitiveRenderingEnabled", c.PrimitiveRenderingEnabled}
+                {"PrimitiveRenderingEnabled", c.PrimitiveRenderingEnabled},
+                {"MenuKey", c.MenuKey},
             }}
         };
     }
@@ -31,8 +32,10 @@ namespace preloader
         j.at("enablePluginLoader").get_to(c.EnablePluginLoader);
 
         if (j.contains("SPL")) {
-            j.at("SPL").at("ImGuiRenderingEnabled").get_to(c.ImGuiRenderingEnabled);
-            j.at("SPL").at("PrimitiveRenderingEnabled").get_to(c.PrimitiveRenderingEnabled);
+            const json& spl = j.at("SPL");
+            spl.at("ImGuiRenderingEnabled").get_to(c.ImGuiRenderingEnabled);
+            spl.at("PrimitiveRenderingEnabled").get_to(c.PrimitiveRenderingEnabled);
+            spl.at("MenuKey").get_to(c.MenuKey);
         }
         else {
             c.ImGuiRenderingEnabled = true;

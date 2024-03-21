@@ -4,14 +4,15 @@
 namespace preloader
 {
     struct ConfigFile {
-        bool LogFile;
-        bool LogCmd;
-        std::string LogLevel;
-        bool OutputEveryPath;
-        bool EnablePluginLoader;
+        bool LogFile = true;
+        bool LogCmd = false;
+        std::string LogLevel = "ERROR";
+        bool OutputEveryPath = false;
+        bool EnablePluginLoader = true;
         struct {
             bool ImGuiRenderingEnabled = true;
             bool PrimitiveRenderingEnabled = true;
+            std::string MenuKey = "F9";
         };
     };
     void to_json(nlohmann::json& j, const ConfigFile& c);
@@ -37,5 +38,6 @@ namespace preloader
         inline bool get_enable_plugin_loader() const { return this->config.EnablePluginLoader; }
         inline bool get_imgui_rendering_enabled() const { return this->config.ImGuiRenderingEnabled; }
         inline bool get_primitive_rendering_enabled() const { return this->config.PrimitiveRenderingEnabled; }
+        inline std::string get_menu_key() const { return this->config.MenuKey; }
     };
 } // namespace preloader

@@ -53,9 +53,22 @@ namespace SharpPluginLoader.Core.Rendering
         }
 
         [UnmanagedCallersOnly]
-        internal static nint Initialize(Size viewportSize, Size windowSize, byte d3d12)
+        internal static nint Initialize(Size viewportSize, Size windowSize, byte d3d12, nint menuKey)
         {
             IsDirectX12 = d3d12 != 0;
+
+            if (menuKey != 0)
+            {
+                var keyStr = MemoryUtil.ReadString(menuKey);
+                if (Enum.TryParse<Key>(keyStr, out var key))
+                {
+                    _menuKey = key;
+                }
+                else
+                {
+                    Log.Warn($"Invalid menu key: {keyStr}, falling back to {DefaultMenuKey}");
+                }
+            }
 
             _viewportSize = new Vector2(viewportSize.Width, viewportSize.Height);
             _windowSize = new Vector2(windowSize.Width, windowSize.Height);
@@ -110,9 +123,9 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         internal static unsafe nint ImGuiRender()
         {
-            if (Input.IsPressed(Key.F9))
+            if (Input.IsPressed(_menuKey))
                 _showMenu = !_showMenu;
-            if (Input.IsPressed(Key.F10))
+            if (Input.IsPressed(_demoKey))
                 _showDemo = !_showDemo;
             
             var io = ImGui.GetIO();
@@ -321,6 +334,11 @@ namespace SharpPluginLoader.Core.Rendering
         private static Vector2 _mousePos;
         private static Vector2 _mousePosScalingFactor;
         private static float _fontScale = 1.0f;
+        private static Key _menuKey = DefaultMenuKey;
+        private static Key _demoKey = DefaultDemoKey;
+
+        private const Key DefaultMenuKey = Key.F9;
+        private const Key DefaultDemoKey = Key.F10;
     }
 
     [StructLayout(LayoutKind.Sequential)]

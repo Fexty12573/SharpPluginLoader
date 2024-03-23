@@ -7,7 +7,7 @@
 
 namespace preloader
 {
-    using json = nlohmann::json;
+    using json = nlohmann::ordered_json;
 
     void to_json(json& j, const ConfigFile& c) {
         j = json{

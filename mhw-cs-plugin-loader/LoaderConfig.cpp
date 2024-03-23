@@ -35,7 +35,7 @@ namespace preloader
             const json& spl = j.at("SPL");
             spl.at("ImGuiRenderingEnabled").get_to(c.ImGuiRenderingEnabled);
             spl.at("PrimitiveRenderingEnabled").get_to(c.PrimitiveRenderingEnabled);
-            spl.at("MenuKey").get_to(c.MenuKey);
+            c.MenuKey = spl.value("MenuKey", "F9");
         }
         else {
             c.ImGuiRenderingEnabled = true;
@@ -58,16 +58,6 @@ namespace preloader
             json data = json::parse(file);
             this->config = data.get<ConfigFile>();
             file.close();
-
-            if (!data.contains("SPL")) {
-                // Add missing SPL section
-                std::ofstream outfile(config::SPL_LOADER_CONFIG_FILE);
-                if (outfile.is_open()) {
-                    json data = this->config;
-                    outfile << std::setw(4) << data << "\n";
-                    outfile.close();
-                }
-            }
         }
         else
         {
@@ -80,14 +70,14 @@ namespace preloader
                 .OutputEveryPath = false,
                 .EnablePluginLoader = true,
             };
+        }
 
-            std::ofstream file(config::SPL_LOADER_CONFIG_FILE);
-            if (file.is_open())
-            {
-                json data = this->config;
-                file << std::setw(4) << data << "\n";
-                file.close();
-            }
+        // Make sure any new options are added to the config file
+        std::ofstream outfile(config::SPL_LOADER_CONFIG_FILE);
+        if (outfile.is_open()) {
+            json data = this->config;
+            outfile << std::setw(4) << data << "\n";
+            outfile.close();
         }
     }
 } // namespace preloader

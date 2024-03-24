@@ -1,0 +1,1799 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://fexty12573.github.io/SharpPluginLoader/API/SharpPluginLoader.Core.Networking.NetBuffer/">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>NetBuffer - SharpPluginLoader Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="slate-blue" data-md-color-accent="sky-blue">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#netbuffer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="SharpPluginLoader Documentation" class="md-header__button md-logo" aria-label="SharpPluginLoader Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SharpPluginLoader Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NetBuffer
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="slate-blue" data-md-color-accent="sky-blue"  aria-label="Default"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Default" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="slate-blue" data-md-color-accent="sky-blue"  aria-label="Slate"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Slate" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Fexty12573/SharpPluginLoader/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Fexty12573/SharpPluginLoader
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../Installation/" class="md-tabs__link">
+      Installation
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../Development/" class="md-tabs__link">
+        Plugin Development
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        API Reference
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../Examples/" class="md-tabs__link">
+        Examples
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SharpPluginLoader Documentation" class="md-nav__button md-logo" aria-label="SharpPluginLoader Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    SharpPluginLoader Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Fexty12573/SharpPluginLoader/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Fexty12573/SharpPluginLoader
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../Development/">Plugin Development</a>
+          
+            <label for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Plugin Development" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Plugin Development
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/GettingStarted/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/GameObjects/" class="md-nav__link">
+        Game Objects
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/FunctionHooking/" class="md-nav__link">
+        Function Hooking
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/CallingNativeFuncs/" class="md-nav__link">
+        Calling Native Functions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/ImGui/" class="md-nav__link">
+        Rendering with ImGui
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/Rendering/" class="md-nav__link">
+        Rendering
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Development/NativeComponents/" class="md-nav__link">
+        Native Components
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+        
+          
+            
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">API Reference</a>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../Examples/">Examples</a>
+          
+            <label for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_5_2" tabindex="0" aria-expanded="false">
+          API Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API Examples" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          API Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/API/DirectMemoryAccess/" class="md-nav__link">
+        Direct Memory Access
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/API/Logging/" class="md-nav__link">
+        Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/API/UserInput/" class="md-nav__link">
+        User Input
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5_3" type="checkbox" id="__nav_5_3" >
+      
+      
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_5_3" tabindex="0" aria-expanded="false">
+          Plugin Examples
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Plugin Examples" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Plugin Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Examples/Plugins/QuestEndSkip/" class="md-nav__link">
+        Quest End Skip
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#buffer" class="md-nav__link">
+    Buffer
+  </a>
+  
+    <nav class="md-nav" aria-label="Buffer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#property-value" class="md-nav__link">
+    Property Value
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#size" class="md-nav__link">
+    Size
+  </a>
+  
+    <nav class="md-nav" aria-label="Size">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#property-value_1" class="md-nav__link">
+    Property Value
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constructors" class="md-nav__link">
+    Constructors
+  </a>
+  
+    <nav class="md-nav" aria-label="Constructors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#netbufferreadonlyspanbyte" class="md-nav__link">
+    NetBuffer(ReadOnlySpan&lt;Byte&gt;)
+  </a>
+  
+    <nav class="md-nav" aria-label="NetBuffer(ReadOnlySpan&lt;Byte&gt;)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netbufferbyte" class="md-nav__link">
+    NetBuffer(Byte[])
+  </a>
+  
+    <nav class="md-nav" aria-label="NetBuffer(Byte[])">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netbufferint32" class="md-nav__link">
+    NetBuffer(Int32)
+  </a>
+  
+    <nav class="md-nav" aria-label="NetBuffer(Int32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    Methods
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#writebytebyte" class="md-nav__link">
+    WriteByte(Byte)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteByte(Byte)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeuint16uint16" class="md-nav__link">
+    WriteUInt16(UInt16)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteUInt16(UInt16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeuint32uint32" class="md-nav__link">
+    WriteUInt32(UInt32)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteUInt32(UInt32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeuint64uint64" class="md-nav__link">
+    WriteUInt64(UInt64)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteUInt64(UInt64)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writesbytesbyte" class="md-nav__link">
+    WriteSByte(SByte)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteSByte(SByte)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeint16int16" class="md-nav__link">
+    WriteInt16(Int16)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteInt16(Int16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeint32int32" class="md-nav__link">
+    WriteInt32(Int32)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteInt32(Int32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writeint64int64" class="md-nav__link">
+    WriteInt64(Int64)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteInt64(Int64)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writefloatsingle" class="md-nav__link">
+    WriteFloat(Single)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteFloat(Single)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writedoubledouble" class="md-nav__link">
+    WriteDouble(Double)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteDouble(Double)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writebooleanboolean" class="md-nav__link">
+    WriteBoolean(Boolean)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteBoolean(Boolean)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writebytesreadonlyspanbyte" class="md-nav__link">
+    WriteBytes(ReadOnlySpan&lt;Byte&gt;)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteBytes(ReadOnlySpan&lt;Byte&gt;)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writestringstring" class="md-nav__link">
+    WriteString(String)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteString(String)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writestringstring-encoding" class="md-nav__link">
+    WriteString(String, Encoding)
+  </a>
+  
+    <nav class="md-nav" aria-label="WriteString(String, Encoding)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readbyte" class="md-nav__link">
+    ReadByte()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadByte()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readuint16" class="md-nav__link">
+    ReadUInt16()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadUInt16()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readuint32" class="md-nav__link">
+    ReadUInt32()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadUInt32()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readuint64" class="md-nav__link">
+    ReadUInt64()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadUInt64()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readsbyte" class="md-nav__link">
+    ReadSByte()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadSByte()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readint16" class="md-nav__link">
+    ReadInt16()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadInt16()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readint32" class="md-nav__link">
+    ReadInt32()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadInt32()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readint64" class="md-nav__link">
+    ReadInt64()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadInt64()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readfloat" class="md-nav__link">
+    ReadFloat()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadFloat()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_8" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readdouble" class="md-nav__link">
+    ReadDouble()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadDouble()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_9" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readboolean" class="md-nav__link">
+    ReadBoolean()
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadBoolean()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returns_10" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readbytesint32" class="md-nav__link">
+    ReadBytes(Int32)
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadBytes(Int32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_11" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readstringint32" class="md-nav__link">
+    ReadString(Int32)
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadString(Int32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_12" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readstringint32-encoding" class="md-nav__link">
+    ReadString(Int32, Encoding)
+  </a>
+  
+    <nav class="md-nav" aria-label="ReadString(Int32, Encoding)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_13" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="netbuffer">NetBuffer</h1>
+<p>Namespace: SharpPluginLoader.Core.Networking</p>
+<p>Represents a network buffer used for reading and writing data.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">NetBuffer</span>
+</code></pre></div>
+<p>Inheritance <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> → <a href="./">NetBuffer</a></p>
+<h2 id="properties">Properties</h2>
+<h3 id="buffer"><strong>Buffer</strong></h3>
+<p>Gets the buffer.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="n">ReadOnlySpan</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Buffer</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h4 id="property-value">Property Value</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.ReadOnlySpan-1">ReadOnlySpan&lt;Byte&gt;</a><br></p>
+<h3 id="size"><strong>Size</strong></h3>
+<p>Gets the size of the buffer.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Size</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h4 id="property-value_1">Property Value</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br></p>
+<h2 id="constructors">Constructors</h2>
+<h3 id="netbufferreadonlyspanbyte"><strong>NetBuffer(ReadOnlySpan&lt;Byte&gt;)</strong></h3>
+<p>Initializes a new instance of the <a href="./">NetBuffer</a> class with the specified buffer.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="nf">NetBuffer</span><span class="p">(</span><span class="n">ReadOnlySpan</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters">Parameters</h4>
+<p><code>buffer</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.ReadOnlySpan-1">ReadOnlySpan&lt;Byte&gt;</a><br>
+The buffer to use.</p>
+<h3 id="netbufferbyte"><strong>NetBuffer(Byte[])</strong></h3>
+<p>Initializes a new instance of the <a href="./">NetBuffer</a> class with the specified buffer.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="nf">NetBuffer</span><span class="p">(</span><span class="n">Byte</span><span class="p">[]</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_1">Parameters</h4>
+<p><code>buffer</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Byte">Byte[]</a><br>
+The buffer to use.</p>
+<h3 id="netbufferint32"><strong>NetBuffer(Int32)</strong></h3>
+<p>Initializes a new instance of the <a href="./">NetBuffer</a> class with the specified size.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="nf">NetBuffer</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_2">Parameters</h4>
+<p><code>size</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The size of the buffer.</p>
+<h2 id="methods">Methods</h2>
+<h3 id="writebytebyte"><strong>WriteByte(Byte)</strong></h3>
+<p>Writes a byte to the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteByte</span><span class="p">(</span><span class="kt">byte</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_3">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Byte">Byte</a><br>
+The byte value to write.</p>
+<h3 id="writeuint16uint16"><strong>WriteUInt16(UInt16)</strong></h3>
+<p>Writes an unsigned 16-bit integer to the buffer and advances the position by 2.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteUInt16</span><span class="p">(</span><span class="kt">ushort</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_4">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt16">UInt16</a><br>
+The unsigned 16-bit integer value to write.</p>
+<h3 id="writeuint32uint32"><strong>WriteUInt32(UInt32)</strong></h3>
+<p>Writes an unsigned 32-bit integer to the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteUInt32</span><span class="p">(</span><span class="kt">uint</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_5">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt32">UInt32</a><br>
+The unsigned 32-bit integer value to write.</p>
+<h3 id="writeuint64uint64"><strong>WriteUInt64(UInt64)</strong></h3>
+<p>Writes an unsigned 64-bit integer to the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteUInt64</span><span class="p">(</span><span class="kt">ulong</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_6">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt64">UInt64</a><br>
+The unsigned 64-bit integer value to write.</p>
+<h3 id="writesbytesbyte"><strong>WriteSByte(SByte)</strong></h3>
+<p>Writes a signed byte to the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteSByte</span><span class="p">(</span><span class="kt">sbyte</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_7">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.SByte">SByte</a><br>
+The signed byte value to write.</p>
+<h3 id="writeint16int16"><strong>WriteInt16(Int16)</strong></h3>
+<p>Writes a signed 16-bit integer to the buffer and advances the position by 2.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteInt16</span><span class="p">(</span><span class="kt">short</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_8">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int16">Int16</a><br>
+The signed 16-bit integer value to write.</p>
+<h3 id="writeint32int32"><strong>WriteInt32(Int32)</strong></h3>
+<p>Writes a signed 32-bit integer to the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteInt32</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_9">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The signed 32-bit integer value to write.</p>
+<h3 id="writeint64int64"><strong>WriteInt64(Int64)</strong></h3>
+<p>Writes a signed 64-bit integer to the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteInt64</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_10">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int64">Int64</a><br>
+The signed 64-bit integer value to write.</p>
+<h3 id="writefloatsingle"><strong>WriteFloat(Single)</strong></h3>
+<p>Writes a single-precision floating-point value to the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteFloat</span><span class="p">(</span><span class="kt">float</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_11">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Single">Single</a><br>
+The single-precision floating-point value to write.</p>
+<h3 id="writedoubledouble"><strong>WriteDouble(Double)</strong></h3>
+<p>Writes a double-precision floating-point value to the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteDouble</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_12">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Double">Double</a><br>
+The double-precision floating-point value to write.</p>
+<h3 id="writebooleanboolean"><strong>WriteBoolean(Boolean)</strong></h3>
+<p>Writes a boolean value to the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteBoolean</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_13">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Boolean">Boolean</a><br>
+The boolean value to write.</p>
+<h3 id="writebytesreadonlyspanbyte"><strong>WriteBytes(ReadOnlySpan&lt;Byte&gt;)</strong></h3>
+<p>Writes a byte array to the buffer and advances the position by the length of the array.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteBytes</span><span class="p">(</span><span class="n">ReadOnlySpan</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bytes</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_14">Parameters</h4>
+<p><code>bytes</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.ReadOnlySpan-1">ReadOnlySpan&lt;Byte&gt;</a><br>
+The byte array to write.</p>
+<h3 id="writestringstring"><strong>WriteString(String)</strong></h3>
+<p>Writes a string encoded in UTF-8 to the buffer and advances the position by the length of the string.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteString</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="k">value</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_15">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a><br>
+The string value to write.</p>
+<h3 id="writestringstring-encoding"><strong>WriteString(String, Encoding)</strong></h3>
+<p>Writes a string encoded in the specified encoding to the buffer and advances the position by the length of the string.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">WriteString</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="k">value</span><span class="p">,</span><span class="w"> </span><span class="n">Encoding</span><span class="w"> </span><span class="n">encoding</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_16">Parameters</h4>
+<p><code>value</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a><br>
+The string value to write.</p>
+<p><code>encoding</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Text.Encoding">Encoding</a><br>
+The encoding to use.</p>
+<h3 id="readbyte"><strong>ReadByte()</strong></h3>
+<p>Reads a byte from the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">byte</span><span class="w"> </span><span class="nf">ReadByte</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Byte">Byte</a><br>
+The byte value read from the buffer.</p>
+<h3 id="readuint16"><strong>ReadUInt16()</strong></h3>
+<p>Reads an unsigned 16-bit integer from the buffer and advances the position by 2.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">ushort</span><span class="w"> </span><span class="nf">ReadUInt16</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_1">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt16">UInt16</a><br>
+The unsigned 16-bit integer value read from the buffer.</p>
+<h3 id="readuint32"><strong>ReadUInt32()</strong></h3>
+<p>Reads an unsigned 32-bit integer from the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">uint</span><span class="w"> </span><span class="nf">ReadUInt32</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_2">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt32">UInt32</a><br>
+The unsigned 32-bit integer value read from the buffer.</p>
+<h3 id="readuint64"><strong>ReadUInt64()</strong></h3>
+<p>Reads an unsigned 64-bit integer from the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">ulong</span><span class="w"> </span><span class="nf">ReadUInt64</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_3">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.UInt64">UInt64</a><br>
+The unsigned 64-bit integer value read from the buffer.</p>
+<h3 id="readsbyte"><strong>ReadSByte()</strong></h3>
+<p>Reads a signed byte from the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">sbyte</span><span class="w"> </span><span class="nf">ReadSByte</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_4">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.SByte">SByte</a><br>
+The signed byte value read from the buffer.</p>
+<h3 id="readint16"><strong>ReadInt16()</strong></h3>
+<p>Reads a signed 16-bit integer from the buffer and advances the position by 2.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="nf">ReadInt16</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_5">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int16">Int16</a><br>
+The signed 16-bit integer value read from the buffer.</p>
+<h3 id="readint32"><strong>ReadInt32()</strong></h3>
+<p>Reads a signed 32-bit integer from the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">ReadInt32</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_6">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The signed 32-bit integer value read from the buffer.</p>
+<h3 id="readint64"><strong>ReadInt64()</strong></h3>
+<p>Reads a signed 64-bit integer from the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">ReadInt64</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_7">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int64">Int64</a><br>
+The signed 64-bit integer value read from the buffer.</p>
+<h3 id="readfloat"><strong>ReadFloat()</strong></h3>
+<p>Reads a single-precision floating-point value from the buffer and advances the position by 4.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="nf">ReadFloat</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_8">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Single">Single</a><br>
+The single-precision floating-point value read from the buffer.</p>
+<h3 id="readdouble"><strong>ReadDouble()</strong></h3>
+<p>Reads a double-precision floating-point value from the buffer and advances the position by 8.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="nf">ReadDouble</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_9">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Double">Double</a><br>
+The double-precision floating-point value read from the buffer.</p>
+<h3 id="readboolean"><strong>ReadBoolean()</strong></h3>
+<p>Reads a boolean value from the buffer and advances the position by 1.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">ReadBoolean</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="returns_10">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Boolean">Boolean</a><br>
+The boolean value read from the buffer.</p>
+<h3 id="readbytesint32"><strong>ReadBytes(Int32)</strong></h3>
+<p>Reads a specified number of bytes from the buffer and advances the position by the number of bytes read.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="n">Byte</span><span class="p">[]</span><span class="w"> </span><span class="nf">ReadBytes</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_17">Parameters</h4>
+<p><code>count</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The number of bytes to read.</p>
+<h4 id="returns_11">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Byte">Byte[]</a><br>
+A byte array containing the bytes read from the buffer.</p>
+<h3 id="readstringint32"><strong>ReadString(Int32)</strong></h3>
+<p>Reads a string from the buffer encoded in UTF-8 and advances the position by the length of the string.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">ReadString</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_18">Parameters</h4>
+<p><code>count</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The number of bytes to read.</p>
+<h4 id="returns_12">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a><br>
+The string value read from the buffer.</p>
+<h3 id="readstringint32-encoding"><strong>ReadString(Int32, Encoding)</strong></h3>
+<p>Reads a string from the buffer encoded in the specified encoding and advances the position by the length of the string.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">ReadString</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="n">Encoding</span><span class="w"> </span><span class="n">encoding</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_19">Parameters</h4>
+<p><code>count</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Int32">Int32</a><br>
+The number of bytes to read.</p>
+<p><code>encoding</code> <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Text.Encoding">Encoding</a><br>
+The encoding to use.</p>
+<h4 id="returns_13">Returns</h4>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a><br>
+The string value read from the buffer.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.path", "navigation.indexes", "toc.follow", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>

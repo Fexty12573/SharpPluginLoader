@@ -24,8 +24,11 @@ struct ManagedFunctionPointersInternal {
 
 CoreClr::CoreClr() {
     using namespace config;
-    char_t buffer[MAX_PATH];
-    size_t buffer_size = MAX_PATH;
+
+    constexpr size_t BUFFER_SIZE = 1024;
+
+    char_t buffer[BUFFER_SIZE];
+    size_t buffer_size = BUFFER_SIZE;
     if (get_hostfxr_path(buffer, &buffer_size, nullptr) != 0) {
         dlog::error("Failed to get hostfxr path");
         return;

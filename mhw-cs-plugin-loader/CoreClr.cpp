@@ -29,8 +29,9 @@ CoreClr::CoreClr() {
 
     char_t buffer[BUFFER_SIZE];
     size_t buffer_size = BUFFER_SIZE;
-    if (get_hostfxr_path(buffer, &buffer_size, nullptr) != 0) {
-        dlog::error("Failed to get hostfxr path");
+    const int result = get_hostfxr_path(buffer, &buffer_size, nullptr);
+    if (result != 0) {
+        dlog::error("Failed to get hostfxr path: {}", result);
         return;
     }
 

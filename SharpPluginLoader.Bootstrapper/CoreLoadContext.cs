@@ -49,9 +49,18 @@ namespace SharpPluginLoader.Bootstrapper
         public Assembly LoadNoLock(AssemblyName assemblyName)
         {
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
-            if (assemblyPath == null)
-                return Default.LoadFromAssemblyName(assemblyName);
+            return assemblyPath is null 
+                ? Default.LoadFromAssemblyName(assemblyName) 
+                : LoadNoLock(assemblyPath);
+        }
 
+        /// <summary>
+        /// Loads an assembly without locking the file
+        /// </summary>
+        /// <param name="assemblyPath">The path to the assembly</param>
+        /// <returns>The loaded assembly</returns>
+        public Assembly LoadNoLock(string assemblyPath)
+        {
             var bytes = File.ReadAllBytes(assemblyPath);
             return LoadFromStream(new MemoryStream(bytes));
         }

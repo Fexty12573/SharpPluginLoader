@@ -501,13 +501,6 @@ namespace SharpPluginLoader.Core.Rendering
         public bool* DrawPrimitivesAsWireframe;
     }
 
-    internal struct CustomFont
-    {
-        public string Path;
-        public float Size;
-
-    }
-
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct CustomFontNative
     {

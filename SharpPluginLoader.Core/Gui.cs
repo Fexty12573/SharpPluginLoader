@@ -23,10 +23,10 @@ namespace SharpPluginLoader.Core
         /// <param name="delay">The delay before the popup is displayed</param>
         /// <param name="xOff">The horizontal offset from the center of the screen</param>
         /// <param name="yOff">The vertical offset from the center of the screen</param>
-        public static unsafe void DisplayPopup(string message, TimeSpan? duration = null, TimeSpan? delay = null, float xOff = 0.0f, float yOff = 0.0f)
+        public static unsafe void DisplayPopup(string message, TimeSpan duration, TimeSpan delay, float xOff = 0.0f, float yOff = 0.0f)
         {
-            var durationSeconds = duration?.Milliseconds / 1000.0f ?? 3.0f;
-            var delaySeconds = delay?.Milliseconds / 1000.0f ?? 0.0f;
+            var durationSeconds = (float)duration.TotalSeconds;
+            var delaySeconds = (float)delay.TotalSeconds;
 
             var messagePtr = Marshal.StringToHGlobalAnsi(message);
             CachedMessages.Enqueue(messagePtr);
@@ -37,16 +37,34 @@ namespace SharpPluginLoader.Core
             DisplayPopupFunc.Invoke(SingletonInstance.Instance, messagePtr, durationSeconds, delaySeconds, false, xOff, yOff);
         }
 
+        /// <inheritdoc cref="DisplayPopup(string,TimeSpan,TimeSpan,float,float)"/>
+        public static void DisplayPopup(string message, TimeSpan duration, float xOff = 0, float yOff = 0)
+        {
+            DisplayPopup(message, duration, TimeSpan.Zero, xOff, yOff);
+        }
+
+        /// <inheritdoc cref="DisplayPopup(string,TimeSpan,TimeSpan,float,float)"/>
+        public static void DisplayPopup(string message, float xOff = 0, float yOff = 0)
+        {
+            DisplayPopup(message, TimeSpan.FromSeconds(3), xOff, yOff);
+        }
+
         /// <summary>
         /// Displays a blue/purple message in the chat box.
         /// </summary>
         /// <param name="message">The message to display</param>
         /// <param name="delay">The delay before the message is displayed</param>
         /// <param name="isImportant">Whether the message should be displayed in purple</param>
-        public static unsafe void DisplayMessage(string message, TimeSpan? delay = null, bool isImportant = false)
+        public static unsafe void DisplayMessage(string message, TimeSpan delay, bool isImportant = false)
         {
-            var delaySeconds = delay?.Milliseconds / 1000.0f ?? 0.0f;
+            var delaySeconds = (float)delay.TotalSeconds;
             DisplayMessageFunc.Invoke(SingletonManager.GetSingleton("sChat")!.Instance, message, delaySeconds, 0, isImportant);
+        }
+
+        /// <inheritdoc cref="DisplayMessage(string,TimeSpan,bool)"/>
+        public static void DisplayMessage(string message, bool isImportant = false)
+        {
+            DisplayMessage(message, TimeSpan.Zero, isImportant);
         }
 
         /// <summary>

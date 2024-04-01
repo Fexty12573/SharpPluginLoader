@@ -56,6 +56,15 @@ private:
         D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptor = { 0 };
     };
 
+    struct CustomFont {
+        const char* Path;
+        const char* Name;
+        float Size;
+        ImFontConfig* Config;
+        const ImWchar* GlyphRanges;
+        ImFont* Font;
+    };
+
 private:
     static inline bool m_is_d3d12 = false;
     bool m_is_initialized = false;
@@ -107,6 +116,8 @@ private:
     ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size, MtSize window_size, bool d3d12, const char* menu_key) = nullptr;
     ImDrawData*(*m_core_imgui_render)() = nullptr;
     void(*m_core_render)() = nullptr;
+    int(*m_core_get_custom_fonts)(CustomFont** out_fonts) = nullptr;
+    void(*m_core_resolve_custom_fonts)() = nullptr;
 
     friend class PrimitiveRenderingModule;
 

@@ -49,6 +49,16 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Initialize"
     );
+    m_core_get_custom_fonts = coreclr->get_method<int(CustomFont**)>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Renderer",
+        L"GetCustomFonts"
+    );
+    m_core_resolve_custom_fonts = coreclr->get_method<void()>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Renderer",
+        L"ResolveCustomFonts"
+    );
 
     const auto play = (void*)NativePluginFramework::get_repository_address("GUITitle:Play");
     m_title_menu_ready_hook = safetyhook::create_inline(play, title_menu_ready_hook);
@@ -534,6 +544,9 @@ void D3DModule::imgui_load_fonts() {
     const auto& io = *igGetIO();
     ImFontAtlas_Clear(io.Fonts);
 
+    CustomFont* custom_fonts;
+    const int custom_font_count = m_core_get_custom_fonts(&custom_fonts);
+
     const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
     const auto& default_chunk = chunk_module->request_chunk("Default");
     const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
@@ -548,9 +561,18 @@ void D3DModule::imgui_load_fonts() {
     font_cfg->MergeMode = true;
     ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
     ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, fa6->Contents.data(), (i32)fa6->size(), 16.0f, font_cfg, icons_ranges);
+
+    for (int i = 0; i < custom_font_count; ++i) {
+        auto& font = custom_fonts[i];
+        font.Font = ImFontAtlas_AddFontFromFileTTF(io.Fonts, font.Path, font.Size, font.Config, font.GlyphRanges);
+        dlog::debug("Loaded custom font: {} - {}", font.Name, font.Path);
+    }
+
     ImFontAtlas_Build(io.Fonts);
 
     ImFontConfig_destroy(font_cfg);
+
+    m_core_resolve_custom_fonts();
 }
 
 TextureHandle D3DModule::register_texture(void* texture) {

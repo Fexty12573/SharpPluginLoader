@@ -1,6 +1,8 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using ImGuiNET;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
@@ -50,6 +52,140 @@ namespace SharpPluginLoader.Core.Rendering
         public static TextureHandle LoadTexture(string path, out uint width, out uint height)
         {
             return new TextureHandle(InternalCalls.LoadTexture(path, out width, out height));
+        }
+
+        /// <summary>
+        /// Registers a custom font to be used by ImGui. This font can later be retrieved using <see cref="GetFont"/>.
+        /// </summary>
+        /// <param name="name">The name of the font.</param>
+        /// <param name="path">The path to the font file.</param>
+        /// <param name="size">The size of the font, in pixels.</param>
+        /// <param name="glyphRanges">The glyph ranges to include in the font.</param>
+        /// <param name="merge">Whether to merge the font with the default fonts.</param>
+        /// <param name="oversampleV">The vertical oversampling factor.</param>
+        /// <param name="oversampleH">The horizontal oversampling factor.</param>
+        /// <remarks>
+        /// Fonts must be registered before the first call to <see cref="ImGuiRender"/>.
+        /// Ideally, fonts should be registered in the <see cref="IPlugin.OnLoad"/> method.
+        /// </remarks>
+        public static unsafe void RegisterFont(string name, string path, float size, nint glyphRanges = 0, 
+            bool merge = false, int oversampleV = 0, int oversampleH = 0)
+        {
+            if (_fontsSubmitted)
+            {
+                Log.Error("Fonts have already been submitted.");
+                return;
+            }
+
+            ImFontConfig* config;
+            if (merge || oversampleV != 0 || oversampleH != 0)
+            {
+                config = MemoryUtil.Alloc<ImFontConfig>();
+                NativeMemory.Clear(config, (nuint)sizeof(ImFontConfig));
+
+                config->SizePixels = size;
+                config->OversampleV = oversampleV == 0 ? 1 : oversampleV;
+                config->OversampleH = oversampleH == 0 ? 2 : oversampleH;
+                config->MergeMode = merge ? (byte)1 : (byte)0;
+                config->GlyphRanges = (ushort*)glyphRanges;
+                config->FontDataOwnedByAtlas = 1;
+                config->RasterizerMultiply = 1.0f;
+                config->RasterizerDensity = 1.0f;
+                config->EllipsisChar = 0xFFFF;
+                config->GlyphMaxAdvanceX = float.MaxValue;
+            }
+            else
+            {
+                config = null;
+            }
+
+            if (CustomFonts.Length == 0)
+                CustomFonts = NativeArray<CustomFontNative>.Create(1);
+            else
+                CustomFonts.Resize(CustomFonts.Length + 1);
+
+            CustomFonts[^1] = new CustomFontNative
+            {
+                Path = Utf8StringMarshaller.ConvertToUnmanaged(path),
+                Name = Utf8StringMarshaller.ConvertToUnmanaged(name),
+                Size = size,
+                Config = config,
+                GlyphRanges = (ushort*)glyphRanges,
+                Font = null
+            };
+
+            Fonts[name] = null;
+        }
+
+        /// <summary>
+        /// Retrieves a font by its name.
+        /// </summary>
+        /// <param name="name">The name of the font.</param>
+        /// <returns>The font with the specified name, or <c>null</c> if the font was not found.</returns>
+        /// <remarks>
+        /// You can register custom fonts using <see cref="RegisterFont"/>.
+        /// Registered fonts can only be retrieved after the first call to <see cref="ImGuiRender"/>.
+        /// </remarks>
+        public static ImFontPtr GetFont(string name)
+        {
+            if (!Fonts.TryGetValue(name, out var font))
+            {
+                Log.Error($"Font '{name}' not found.");
+                return null;
+            }
+
+            unsafe
+            {
+                if (font.NativePtr == null)
+                {
+                    Log.Error($"Font '{name}' has not been loaded yet.");
+                    return null;
+                }
+            }
+
+            return font;
+        }
+
+        public static nint GetGlyphRanges(GlyphRanges ranges)
+        {
+            if (ranges is < 0 or >= GlyphRanges.Count)
+            {
+                Log.Error($"Invalid glyph range: {ranges}");
+                return 0;
+            }
+
+            return BuiltinGlyphRanges[(int)ranges];
+        }
+
+        [UnmanagedCallersOnly]
+        internal static unsafe int GetCustomFonts(CustomFontNative** fonts)
+        {
+            *fonts = CustomFonts.Pointer;
+            return CustomFonts.Length;
+        }
+
+        [UnmanagedCallersOnly]
+        internal static unsafe void ResolveCustomFonts()
+        {
+            foreach (var font in CustomFonts)
+            {
+                var name = Utf8StringMarshaller.ConvertToManaged(font.Name);
+                if (name is null)
+                {
+                    Log.Error("Failed to convert font name to managed string.");
+                    continue;
+                }
+
+                Fonts[name] = font.Font;
+
+                Utf8StringMarshaller.Free(font.Name);
+                Utf8StringMarshaller.Free(font.Path);
+
+                MemoryUtil.Free(font.Config);
+            }
+
+            CustomFonts.Dispose();
+            _fontsSubmitted = true;
         }
 
         [UnmanagedCallersOnly]
@@ -107,7 +243,7 @@ namespace SharpPluginLoader.Core.Rendering
                     _mouseUpdateHook.Original(m);
                 });
             }
-
+            
             Log.Debug("Renderer.Initialize");
 
             return ImGui.GetCurrentContext();
@@ -336,6 +472,23 @@ namespace SharpPluginLoader.Core.Rendering
         private static float _fontScale = 1.0f;
         private static Key _menuKey = DefaultMenuKey;
         private static Key _demoKey = DefaultDemoKey;
+        private static bool _fontsSubmitted = false;
+
+        private static NativeArray<CustomFontNative> CustomFonts;
+        private static readonly Dictionary<string, ImFontPtr> Fonts = [];
+
+        private static readonly nint[] BuiltinGlyphRanges =
+        [
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Default),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Greek),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Korean),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Japanese),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.ChineseFull),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.ChineseSimplifiedCommon),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Cyrillic),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Thai),
+            GlyphRangeFactory.CreateGlyphRanges(GlyphRanges.Vietnamese)
+        ];
 
         private const Key DefaultMenuKey = Key.F9;
         private const Key DefaultDemoKey = Key.F10;
@@ -346,5 +499,23 @@ namespace SharpPluginLoader.Core.Rendering
     {
         public float* LineThickness;
         public bool* DrawPrimitivesAsWireframe;
+    }
+
+    internal struct CustomFont
+    {
+        public string Path;
+        public float Size;
+
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct CustomFontNative
+    {
+        public byte* Path;
+        public byte* Name;
+        public float Size;
+        public ImFontConfig* Config;
+        public ushort* GlyphRanges;
+        public ImFont* Font;
     }
 }

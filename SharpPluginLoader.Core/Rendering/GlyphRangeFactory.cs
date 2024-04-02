@@ -7,7 +7,7 @@ using GlyphRange = (ushort start, ushort end);
 /// <summary>
 /// A class for creating glyph ranges for ImGui.
 /// </summary>
-internal static class GlyphRangeFactory
+public static class GlyphRangeFactory
 {
     /// <summary>
     /// Creates a new set of glyph ranges from the provided ranges, with a null terminator at the end.

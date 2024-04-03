@@ -248,6 +248,11 @@
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\dependencies\cimgui\cimgui.vcxproj">
+      <Project>{743a0102-7fe7-3112-8926-3d52be17cffa}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

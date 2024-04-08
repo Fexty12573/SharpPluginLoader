@@ -13,7 +13,7 @@ For more detailed documentation and tutorials, visit the [wiki](https://fexty125
 
 ## How to use
 1. Install [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (Get the **.NET Desktop Runtime 8.0.x**)
-2. Download the latest release from the [releases page]() and extract it into your Monster Hunter World directory.
+2. Download the latest release from the [releases page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into your Monster Hunter World directory.
 
 ## Plugin Development
 For more detailed instructions visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/Development/).

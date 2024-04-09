@@ -47,8 +47,8 @@ using (var myArray = NativeArray<int>.Create(10))
     // Do something with the array
 } // The array is freed here
 ```
-!!! warning
-    If you don't use `using`, you have to call `Dispose` manually, otherwise the array will not be freed.
+> [!WARNING]
+> If you don't use `using`, you have to call `Dispose` manually, otherwise the array will not be freed.
 
 If performance is critical, you can also use `Span<T>` to wrap existing arrays.
 ```csharp
@@ -105,8 +105,8 @@ MemoryUtil.GetRef<int>(memory + 0x10) = 42;
 // Free the memory
 MemoryUtil.Free(memory); // Do not forget this!
 ```
-!!! warning
-    Allocating native memory is dangerous, as it can cause memory leaks if not freed properly.
+> [!WARNING]
+> Allocating native memory is dangerous, as it can cause memory leaks if not freed properly.
     
 ## Utility
 There are some utility methods in the `MemoryUtil` class that can be helpful in certain scenarios.

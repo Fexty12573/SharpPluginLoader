@@ -11,9 +11,9 @@ If you installed everything correctly you should now find `winmm.dll` in the sam
 Any C# plugins will be placed directly into the `CSharp` directory. The plugin loader will automatically load all DLLs in this directory.
 Subdirectories are also supported, so you can organize your plugins however you want.
 
-!!! warning
-    Putting plugins inside the `nativePC\plugins\CSharp\Loader` directory will **not** work. The plugin loader will not load them.
-    See [below](#directory-structure-examples) for an example of a valid directory structure.
+> [!NOTE]
+> Putting plugins inside the `nativePC\plugins\CSharp\Loader` directory will **not** work. The plugin loader will not load them.
+> See [below](#directory-structure-examples) for an example of a valid directory structure.
 
 Once you have all your plugins installed you can simply start the game. The plugin loader will automatically load all plugins.
 Depending on the plugins you have installed you might also see an overlay/UI appear on the screen.

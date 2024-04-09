@@ -4,9 +4,9 @@
 The framework already provides access to a lot of game functions, but sometimes something may not be available. 
 In these cases you can call native functions directly from your plugin.
 
-!!! warning
-    Calling native functions can lead to crashes very quickly if done incorrectly.
-    Make sure you know what you're doing and test your code thoroughly.
+> [!WARNING]
+> Calling native functions can lead to crashes very quickly if done incorrectly.
+> Make sure you know what you're doing and test your code thoroughly.
 
 If you're already familiar with calling function pointers in C++, you can just read the API Reference for the [`NativeFunction`]() class and the [`NativeAction`]() class.
 
@@ -51,13 +51,13 @@ var myFunction = new NativeAction<int, float>(0x140000000);
 myFunction.Invoke(1, 2.0f);
 ```
 
-!!! info
-    The framework also provides a `NativeFunction` class, which is identical to `NativeAction` except it returns a value. If your function doesn't return a value, you can use `NativeAction`,
-    otherwise you need to use `NativeFunction`.
-    ```csharp
-    var myFunction = new NativeFunction<int, float, int>(0x140000000);
-    int result = myFunction.Invoke(1, 2.0f);
-    ```
+> [!NOTE]
+> The framework also provides a `NativeFunction` class, which is identical to `NativeAction` except it returns a value. If your function doesn't return a value, you can use `NativeAction`,
+> otherwise you need to use `NativeFunction`.
+> ```csharp
+> var myFunction = new NativeFunction<int, float, int>(0x140000000);
+> int result = myFunction.Invoke(1, 2.0f);
+> ```
 
 You call the native function using the `Invoke` property of the object. This is a bit different from how you would call a normal delegate, but unfortunately, C# doesn't allow overloading the `()` operator so this is the best we can do.
 
@@ -70,9 +70,9 @@ var myFunction = new NativeAction<int, float>(0x140000000);
 myFunction.InvokeUnsafe(1, 2.0f);
 ```
 
-!!! warning
-    `InvokeUnsafe` is unsafe for a reason. When you're calling a function using this there are some things you need to pay attention to. 
-    
-    Due to the fact that the GC does not get transitioned, the native function you are calling is not allowed to call back into managed code. So if the function you are calling happens to be hooked by another C# plugin, your game will crash immediately.
-
-    It also should not run for more than 1 microsecond. You can see a full list of constraints for this [here](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute?view=net-8.0).
+> [!WARNING]
+> `InvokeUnsafe` is unsafe for a reason. When you're calling a function using this there are some things you need to pay attention to. 
+>   
+> Due to the fact that the GC does not get transitioned, the native function you are calling is not allowed to call back into managed code. So if the function you are calling happens to be hooked by another C# plugin, your game will crash immediately.
+>
+> It also should not run for more than 1 microsecond. You can see a full list of constraints for this [here](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute?view=net-8.0).

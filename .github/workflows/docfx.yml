@@ -1,0 +1,43 @@
+on:
+  pull-request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+permissions:
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "docs"
+  cancel-in-progress: false
+
+jobs:
+  publish-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: .NET Setup
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.x
+      
+      - run: dotnet tool install -g docfx
+      - run: docfx docfx.json
+        working-directory: docs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

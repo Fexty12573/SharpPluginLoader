@@ -1,5 +1,8 @@
 ﻿namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Represents a property type, used everywhere in the game where DTI is involved.
+    /// </summary>
     public enum PropType
     {
         Undefined,

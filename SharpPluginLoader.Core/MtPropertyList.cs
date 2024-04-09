@@ -3,6 +3,9 @@ using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Represents a list of properties of an MtObject.
+    /// </summary>
     public class MtPropertyList : MtObject, IEnumerable<MtProperty>
     {
         public MtPropertyList(nint instance) : base(instance) { }
@@ -13,8 +16,15 @@ namespace SharpPluginLoader.Core
             Deleter?.Invoke(this);
         }
 
+        /// <summary>
+        /// The first property in the list.
+        /// </summary>
         public MtProperty? First => GetObject<MtProperty>(0x8);
 
+        /// <summary>
+        /// The number of properties in the list.
+        /// </summary>
+        /// <remarks>This property is not cached, and will iterate through the list to count the properties.</remarks>
         public uint Count
         {
             get
@@ -32,6 +42,9 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        /// <summary>
+        /// Gets all properties in the list.
+        /// </summary>
         public MtProperty[] Properties
         {
             get
@@ -48,24 +61,43 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        /// <summary>
+        /// Finds a property by name.
+        /// </summary>
+        /// <param name="name">The name of the property to find</param>
+        /// <returns>The property, or null if it was not found</returns>
         public unsafe MtProperty? FindProperty(string name)
         {
             var prop = FindPropertyFunc.Invoke(Instance, name);
             return prop == 0 ? null : new MtProperty(prop);
         }
 
+        /// <summary>
+        /// Finds a property by type and name.
+        /// </summary>
+        /// <param name="type">The type of the property</param>
+        /// <param name="name">The name of the property</param>
+        /// <returns>The property, or null if it was not found</returns>
         public unsafe MtProperty? FindProperty(PropType type, string name)
         {
             var prop = FindPropertyOfTypeFunc.Invoke(Instance, (uint)type, name);
             return prop == 0 ? null : new MtProperty(prop);
         }
 
+        /// <summary>
+        /// Finds a property by its hash.
+        /// </summary>
+        /// <param name="hash">The hash of the property to find</param>
+        /// <returns>The property, or null if it was not found</returns>
         public unsafe MtProperty? FindProperty(uint hash)
         {
             var prop = FindPropertyByHashFunc.Invoke(Instance, hash);
             return prop == 0 ? null : new MtProperty(prop);
         }
 
+        /// <summary>
+        /// Gets the property at the specified index.
+        /// </summary>
         public unsafe MtProperty? this[int index]
         {
             get

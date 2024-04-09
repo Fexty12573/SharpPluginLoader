@@ -1,12 +1,34 @@
 ﻿namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// This class represents the base of most game objects, and serves as a wrapper around the native object.
+    /// </summary>
     public class MtObject : NativeWrapper
     {
         public MtObject(nint instance) : base(instance) { }
         public MtObject() { }
 
+        /// <summary>
+        /// Casts this object to the specified MtObject subclass.
+        /// </summary>
+        /// <typeparam name="T">The type to cast to</typeparam>
+        /// <returns>The casted object</returns>
+        /// <remarks>
+        /// This method isn't actually a cast, but rather a construction of a new object of the specified type.
+        /// This is because the actual type of the object is unknown at runtime. That means that the new object will
+        /// have the same instance as this object.
+        /// 
+        /// It is also important to note that this method does not perform any type checking. It is recommended to first
+        /// check the type of the object using the <see cref="Is"/> method before casting, unless you are certain that the
+        /// object is of the correct type.
+        /// </remarks>
         public T As<T>() where T : MtObject, new() => new() { Instance = Instance };
 
+        /// <summary>
+        /// Checks if this object is of the specified type.
+        /// </summary>
+        /// <param name="typeName">The name of the type to check for</param>
+        /// <returns></returns>
         public bool Is(string typeName) => GetDti()?.InheritsFrom(typeName) ?? false;
 
         private unsafe nint* VTable => GetPtr<nint>(0x0);

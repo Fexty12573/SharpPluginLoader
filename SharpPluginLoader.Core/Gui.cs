@@ -6,8 +6,15 @@ using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Represents a callback that is called when the user clicks a button in a dialog.
+    /// </summary>
+    /// <param name="result">The selected button</param>
     public delegate void DialogCallback(DialogResult result);
 
+    /// <summary>
+    /// Exposes functionality related to the game's GUI.
+    /// </summary>
     public static class Gui
     {
         /// <summary>

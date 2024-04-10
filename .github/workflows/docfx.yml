@@ -1,5 +1,5 @@
 on:
-  pull-request:
+  pull_request:
     branches:
       - master
   push:
@@ -38,11 +38,11 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
 
-      - if: steps.extract_branch.outputs.branch == 'master'
-        name: Upload artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           path: docs/_site
+          
       - if: steps.extract_branch.outputs.branch == 'master'
         name: Deploy
         id: deployment

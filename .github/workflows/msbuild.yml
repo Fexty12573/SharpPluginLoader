@@ -34,7 +34,7 @@ jobs:
           msbuild-architecture: x64
 
       - name: Install vcpkg
-        uses: lukka/run-vcpkg@v10.2
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: "${{runner.workspace}}/b/vcpkg"
           vcpkgGitCommitId: "13bde2ff13192e1b2fdd37bd9b475c7665ae6ae5" # github.com/microsoft/vcpkg - Latest commit as of 2024-02-19

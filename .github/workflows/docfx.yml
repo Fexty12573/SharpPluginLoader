@@ -8,7 +8,7 @@ on:
 
 permissions:
   actions: read
-  # pages: write
+  pages: write
   id-token: write
 
 concurrency:
@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   publish-docs:
-    # environment:
-    #   name: github-pages
-    #   url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,3 +41,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: docs/_site
+      
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

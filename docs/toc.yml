@@ -1,8 +1,8 @@
 - name: Installation
-  href: docs/Install/Installation.md
+  href: Install/Installation.md
 - name: Plugin Development
-  href: docs/Development/
+  href: Development/
 - name: API Reference
-  href: docs/API/Generated/
+  href: API/Generated/
 - name: Examples
-  href: docs/Examples/
+  href: Examples/

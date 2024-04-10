@@ -4,12 +4,11 @@ on:
       - master
   push:
     branches:
-      - docfx
       - master
 
 permissions:
   actions: read
-  pages: write
+  # pages: write
   id-token: write
 
 concurrency:
@@ -42,8 +41,3 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: docs/_site
-          
-      - if: steps.extract_branch.outputs.branch == 'master'
-        name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4

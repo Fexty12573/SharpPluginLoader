@@ -39,7 +39,7 @@
     "globalMetadata": {
       "_appName": "SharpPluginLoader",
       "_appTitle": "SharpPluginLoader",
-      "_appLogoPath": "images/SPL_50x50.png",
+      "_appLogoPath": "images/SPL.svg",
       "_appFooter": "SharpPluginLoader is a C# Plugin Loader for Monster Hunter World.",
       "_enableSearch": true,
       "pdf": false

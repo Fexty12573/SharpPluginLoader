@@ -37,9 +37,9 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: "${{runner.workspace}}/b/vcpkg"
-          vcpkgGitCommitId: "1751f9f8c732c2e6f9e81ce56c10e4c4aa265b4a" # github.com/microsoft/vcpkg - Latest commit as of 2024-02-19
+          vcpkgGitCommitId: "13bde2ff13192e1b2fdd37bd9b475c7665ae6ae5" # github.com/microsoft/vcpkg - Latest commit as of 2024-02-19
           vcpkgJsonGlob: "**/vcpkg.json"
-          runVcpkgInstall: true
+          runVcpkgInstall: false
 
       - name: Integrate vcpkg
         working-directory: ${{env.VCPKG_ROOT}}

@@ -11,6 +11,9 @@ namespace SharpPluginLoader.Core
 
 #pragma warning disable CS0649
 
+    /// <summary>
+    /// Contains some configuration data for a plugin. This is returned by <see cref="IPlugin.Initialize"/>.
+    /// </summary>
     public class PluginData
     {
         #region Pre-Main Events
@@ -184,7 +187,7 @@ namespace SharpPluginLoader.Core
         /// This will NOT be called during hot-reloading.
         /// </summary>
         [PluginEvent]
-        public void OnPreMain() => throw new MissingEventException();
+        public void OnPreMain() => throw new NotImplementedException();
 
         /// <summary>
         /// Called after game's static initializers, but before WinMain.
@@ -192,7 +195,7 @@ namespace SharpPluginLoader.Core
         /// This will NOT be called during hot-reloading.
         /// </summary>
         [PluginEvent]
-        public void OnWinMain() => throw new MissingEventException();
+        public void OnWinMain() => throw new NotImplementedException();
         #endregion
 
         #region Generic
@@ -201,20 +204,20 @@ namespace SharpPluginLoader.Core
         /// </summary>
         /// <param name="deltaTime">The time elapsed since the last time this function was called, in seconds</param>
         [PluginEvent]
-        public void OnUpdate(float deltaTime) => throw new MissingEventException();
+        public void OnUpdate(float deltaTime) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the game is saved.
         /// </summary>
         [PluginEvent]
-        public void OnSave() => throw new MissingEventException();
+        public void OnSave() => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player selects a save slot.
         /// </summary>
         /// <param name="slot">The save slot that was selected</param>
         [PluginEvent]
-        public void OnSelectSaveSlot(int slot) => throw new MissingEventException();
+        public void OnSelectSaveSlot(int slot) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a resource is requested/loaded.
@@ -224,14 +227,14 @@ namespace SharpPluginLoader.Core
         /// <param name="path">The file path of the resource, without its extension</param>
         /// <param name="flags">The flags passed to the request</param>
         [PluginEvent]
-        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new MissingEventException();
+        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).
         /// </summary>
         /// <param name="message">The contents of the message</param>
         [PluginEvent]
-        public void OnChatMessageSent(string message) => throw new MissingEventException();
+        public void OnChatMessageSent(string message) => throw new NotImplementedException();
         #endregion
 
         #region Quests
@@ -240,63 +243,63 @@ namespace SharpPluginLoader.Core
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestAccept(int questId) => throw new MissingEventException();
+        public void OnQuestAccept(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a quest is cancelled on the quest board.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestCancel(int questId) => throw new MissingEventException();
+        public void OnQuestCancel(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player departs on a quest.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestDepart(int questId) => throw new MissingEventException();
+        public void OnQuestDepart(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player arrives in the quest area.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestEnter(int questId) => throw new MissingEventException();
+        public void OnQuestEnter(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player leaves the quest area.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestLeave(int questId) => throw new MissingEventException();
+        public void OnQuestLeave(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a quest is completed.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestComplete(int questId) => throw new MissingEventException();
+        public void OnQuestComplete(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a quest is failed.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestFail(int questId) => throw new MissingEventException();
+        public void OnQuestFail(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player selects "Return from Quest" in the menu.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestReturn(int questId) => throw new MissingEventException();
+        public void OnQuestReturn(int questId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player selects "Abandon Quest" in the menu.
         /// </summary>
         /// <param name="questId">The id of the quest</param>
         [PluginEvent]
-        public void OnQuestAbandon(int questId) => throw new MissingEventException();
+        public void OnQuestAbandon(int questId) => throw new NotImplementedException();
         #endregion
 
         #region Monster
@@ -309,7 +312,7 @@ namespace SharpPluginLoader.Core
         /// most of its data is not yet initialized by this point.
         /// </remarks>
         [PluginEvent]
-        public void OnMonsterCreate(Monster monster) => throw new MissingEventException();
+        public void OnMonsterCreate(Monster monster) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called after a monster is initialized.
@@ -317,7 +320,7 @@ namespace SharpPluginLoader.Core
         /// <param name="monster">The monster that was initialized</param>
         /// <remarks>Most data in the monster is ready to be used by this point.</remarks>
         [PluginEvent]
-        public void OnMonsterInitialized(Monster monster) => throw new MissingEventException();
+        public void OnMonsterInitialized(Monster monster) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster does an action.
@@ -326,7 +329,7 @@ namespace SharpPluginLoader.Core
         /// <param name="actionId">The id of the action to be executed</param>
         /// <remarks>The actionId parameter can be modified to change the executed action</remarks>
         [PluginEvent]
-        public void OnMonsterAction(Monster monster, ref int actionId) => throw new MissingEventException();
+        public void OnMonsterAction(Monster monster, ref int actionId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster gets flinched.
@@ -335,35 +338,35 @@ namespace SharpPluginLoader.Core
         /// <param name="actionId">The flinch action it will perform</param>
         /// <returns>False to cancel the flinch</returns>
         [PluginEvent]
-        public bool OnMonsterFlinch(Monster monster, ref int actionId) => throw new MissingEventException();
+        public bool OnMonsterFlinch(Monster monster, ref int actionId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster gets enraged.
         /// </summary>
         /// <param name="monster">The monster getting enraged</param>
         [PluginEvent]
-        public void OnMonsterEnrage(Monster monster) => throw new MissingEventException();
+        public void OnMonsterEnrage(Monster monster) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster leaves its enraged state.
         /// </summary>
         /// <param name="monster">The monster leaving its enraged state</param>
         [PluginEvent]
-        public void OnMonsterUnenrage(Monster monster) => throw new MissingEventException();
+        public void OnMonsterUnenrage(Monster monster) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster dies.
         /// </summary>
         /// <param name="monster">The monster that died</param>
         [PluginEvent]
-        public void OnMonsterDeath(Monster monster) => throw new MissingEventException();
+        public void OnMonsterDeath(Monster monster) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a monster is destroyed (its destructor is called).
         /// </summary>
         /// <param name="monster">The monster that is about to be destroyed</param>
         [PluginEvent]
-        public void OnMonsterDestroy(Monster monster) => throw new MissingEventException();
+        public void OnMonsterDestroy(Monster monster) => throw new NotImplementedException();
         #endregion
 
         #region Player
@@ -374,7 +377,7 @@ namespace SharpPluginLoader.Core
         /// <param name="action">The action to be executed</param>
         /// <remarks>The action parameter can be modified to change the executed action</remarks>
         [PluginEvent]
-        public void OnPlayerAction(Player player, ref ActionInfo action) => throw new MissingEventException();
+        public void OnPlayerAction(Player player, ref ActionInfo action) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the player changes their weapon.
@@ -384,7 +387,7 @@ namespace SharpPluginLoader.Core
         /// <param name="weaponId">The new weapon id</param>
         /// <remarks>This function is called asynchronously.</remarks>
         [PluginEvent]
-        public void OnWeaponChange(Player player, WeaponType weaponType, int weaponId) => throw new MissingEventException();
+        public void OnWeaponChange(Player player, WeaponType weaponType, int weaponId) => throw new NotImplementedException();
         #endregion
 
         #region Entity
@@ -395,7 +398,7 @@ namespace SharpPluginLoader.Core
         /// <param name="action">The action to be executed</param>
         /// <remarks>The action parameter can be modified to change the executed action</remarks>
         [PluginEvent]
-        public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new MissingEventException();
+        public void OnEntityAction(Entity entity, ref ActionInfo action) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when any entity does an animation.
@@ -406,7 +409,7 @@ namespace SharpPluginLoader.Core
         /// <param name="interFrame">The number of frames to use for interpolation between animations</param>
         /// <remarks>Both the animationId and the startFrame parameters can be modified to change the executed animation.</remarks>
         [PluginEvent]
-        public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame, ref float interFrame) => throw new MissingEventException();
+        public void OnEntityAnimation(Entity entity, ref AnimationId animationId, ref float startFrame, ref float interFrame) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when an entity's animation component is updated.
@@ -415,7 +418,7 @@ namespace SharpPluginLoader.Core
         /// <param name="currentAnimation">The current active animation</param>
         /// <param name="deltaTime">The time since the last time this entity's animation component was updated</param>
         [PluginEvent]
-        public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new MissingEventException();
+        public void OnEntityAnimationUpdate(Entity entity, AnimationId currentAnimation, float deltaTime) => throw new NotImplementedException();
         #endregion
 
         #region Network
@@ -426,7 +429,7 @@ namespace SharpPluginLoader.Core
         /// <param name="isBroadcast">Whether the packet is broadcasted to all players in the session or not</param>
         /// <param name="session">The session the packet is sent to</param>
         [PluginEvent]
-        public void OnSendPacket(Packet packet, bool isBroadcast, SessionIndex session) => throw new MissingEventException();
+        public void OnSendPacket(Packet packet, bool isBroadcast, SessionIndex session) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a packet is received.
@@ -436,7 +439,7 @@ namespace SharpPluginLoader.Core
         /// <param name="sourceSession">The session the packet was sent from</param>
         /// <param name="data">The data of the packet</param>
         [PluginEvent]
-        public void OnReceivePacket(uint id, PacketType type, SessionIndex sourceSession, NetBuffer data) => throw new MissingEventException();
+        public void OnReceivePacket(uint id, PacketType type, SessionIndex sourceSession, NetBuffer data) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when the game is about to search for lobbies.
@@ -446,7 +449,7 @@ namespace SharpPluginLoader.Core
         /// To modify the lobby search, take a look at the <see cref="Steam.Matchmaking"/> class
         /// </remarks>
         [PluginEvent]
-        public void OnLobbySearch(ref int maxResults) => throw new MissingEventException();
+        public void OnLobbySearch(ref int maxResults) => throw new NotImplementedException();
         #endregion
 
         #region Rendering
@@ -454,13 +457,13 @@ namespace SharpPluginLoader.Core
         /// The user can use this function to render arbitrary things on the screen (after the game has rendered).
         /// </summary>
         [PluginEvent]
-        public void OnRender() => throw new MissingEventException();
+        public void OnRender() => throw new NotImplementedException();
 
         /// <summary>
         /// The user can use this function to render ImGui widgets on the screen. Widgets rendered here will be inside the main SPL ImGui window.
         /// </summary>
         [PluginEvent]
-        public void OnImGuiRender() => throw new MissingEventException();
+        public void OnImGuiRender() => throw new NotImplementedException();
 
         /// <summary>
         /// The user can use this function to render their own ImGui windows.
@@ -469,7 +472,7 @@ namespace SharpPluginLoader.Core
         /// <b>Note:</b> To render any ImGui widgets inside this function, you <i>must</i> create your own ImGui window.
         /// </remarks>
         [PluginEvent]
-        public void OnImGuiFreeRender() => throw new MissingEventException();
+        public void OnImGuiFreeRender() => throw new NotImplementedException();
         #endregion
 
         #region Internal

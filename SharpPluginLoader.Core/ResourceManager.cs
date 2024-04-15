@@ -3,10 +3,30 @@ using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Provides access to the game's resource manager (sMhResource)
+    /// </summary>
     public static class ResourceManager
     {
+        /// <summary>
+        /// The sMhResource singleton instance.
+        /// </summary>
         public static MtObject SingletonInstance { get; private set; } = null!;
 
+        /// <summary>
+        /// Gets a resource from the game's resource manager.
+        /// 
+        /// If the resource is already loaded, it will return the existing instance.
+        /// Otherwise, it will attempt to load the resource from the specified path.
+        /// Files in nativePC take precedence over files in the chunks.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the resource to get. Use <see cref="Resource"/> if there is no dedicated type in the framework for the resource you're trying to load.
+        /// </typeparam>
+        /// <param name="path">The path to the file, relative to the chunk root and without the extension</param>
+        /// <param name="dti">The dti of the file to load</param>
+        /// <param name="flags">Flags to pass on to the function (mostly undocumented)</param>
+        /// <returns>The resource if it was found, or null</returns>
         public static unsafe T? GetResource<T>(string path, MtDti dti, uint flags = 1) where T : Resource, new()
         {
             var resource = GetResourceFunc.Invoke(SingletonInstance.Instance, dti.Instance, path, flags);

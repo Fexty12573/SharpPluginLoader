@@ -160,6 +160,12 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         internal static unsafe int GetCustomFonts(CustomFontNative** fonts)
         {
+            if (_fontsSubmitted)
+            {
+                *fonts = null;
+                return 0;
+            }
+
             *fonts = CustomFonts.Pointer;
             return CustomFonts.Length;
         }
@@ -167,6 +173,11 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         internal static unsafe void ResolveCustomFonts()
         {
+            if (_fontsSubmitted)
+            {
+                return;
+            }
+
             foreach (var font in CustomFonts)
             {
                 var name = Utf8StringMarshaller.ConvertToManaged(font.Name);

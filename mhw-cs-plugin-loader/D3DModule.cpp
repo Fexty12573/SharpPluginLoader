@@ -541,6 +541,10 @@ void D3DModule::d3d11_deinitialize_imgui() {
 }
 
 void D3DModule::imgui_load_fonts() {
+    if (m_fonts_loaded) {
+        return;
+    }
+
     const auto& io = *igGetIO();
     ImFontAtlas_Clear(io.Fonts);
 
@@ -573,6 +577,8 @@ void D3DModule::imgui_load_fonts() {
     ImFontConfig_destroy(font_cfg);
 
     m_core_resolve_custom_fonts();
+
+    m_fonts_loaded = true;
 }
 
 TextureHandle D3DModule::register_texture(void* texture) {

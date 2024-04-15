@@ -29,7 +29,7 @@ public static class GlyphRangeFactory
     }
 
     /// <summary>
-    /// Destroys the glyph ranges created by <see cref="CreateGlyphRanges"/>.
+    /// Destroys the glyph ranges created by <see cref="CreateGlyphRanges(GlyphRange[])"/>.
     /// </summary>
     /// <param name="ranges">The glyph ranges to destroy</param>
     public static void DestroyGlyphRanges(nint ranges)

@@ -69,6 +69,7 @@ private:
     static inline bool m_is_d3d12 = false;
     bool m_is_initialized = false;
     bool m_is_inside_present = false;
+    bool m_fonts_loaded = false;
 
     safetyhook::InlineHook m_title_menu_ready_hook;
 

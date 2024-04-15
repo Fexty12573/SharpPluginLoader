@@ -1,10 +1,14 @@
-# SharpPluginLoader
-
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/deploy-mkdocs.yml?label=docs)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.Core?logo=nuget&label=SharpPluginLoader.Core)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.ImGui?logo=nuget&label=SharpPluginLoader.ImGui)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.InternalCallGenerator?logo=nuget&label=SharpPluginLoader.InternalCallGenerator)
+<div align="center">
+    <h1>SharpPluginLoader</h1>
+    <img src="docs/images/SPL-256x256.svg"/>
+    <br></br>
+    <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/docfx.yml?label=docs">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.Core?logo=nuget&label=SharpPluginLoader.Core">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.ImGui?logo=nuget&label=SharpPluginLoader.ImGui">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.InternalCallGenerator?logo=nuget&label=SharpPluginLoader.InternalCallGenerator">
+    <br></br>
+</div>
 
 
 A C# plugin loader for Monster Hunter World based on .NET 8.0.

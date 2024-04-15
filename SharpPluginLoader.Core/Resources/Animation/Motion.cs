@@ -44,6 +44,52 @@ namespace SharpPluginLoader.Core.Resources.Animation
 
         public readonly bool HasMetadata => _metadata != null;
 
+        public bool HasLazyOffsets(ref MotionListHeader header)
+        {
+            var motParams = new Span<MotionParam>((void*)Params, (int)ParamNum);
+            foreach (ref var param in motParams)
+            {
+                if (param.Buffer != null &&
+                    (nint)param.Buffer < MemoryUtil.AddressOf(ref header) ||
+                    (nint)param.Bounds < MemoryUtil.AddressOf(ref header))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void ResolveLazyOffsets(ref MotionListHeader header)
+        {
+            var motParams = new Span<MotionParam>((void*)Params, (int)ParamNum);
+            var headerAddr = MemoryUtil.AddressOf(ref header);
+            foreach (ref var param in motParams)
+            {
+                if (param.Buffer != null && (nint)param.Buffer < headerAddr)
+                {
+                    param.Buffer = (byte*)((nint)param.Buffer + headerAddr);
+                }
+
+                if (param.Bounds != null && (nint)param.Bounds < headerAddr)
+                {
+                    param.Bounds = (MotionBounds*)((nint)param.Bounds + headerAddr);
+                }
+            }
+        }
+
+        public bool NeedsParent
+        {
+            readonly get => (Flags & 0x1000000) != 0;
+            set
+            {
+                if (value)
+                    Flags |= 0x1000000;
+                else
+                    Flags &= ~0x1000000U;
+            }
+        }
+
         public bool Mirrored
         {
             readonly get => (Flags & 0x10000000) != 0;

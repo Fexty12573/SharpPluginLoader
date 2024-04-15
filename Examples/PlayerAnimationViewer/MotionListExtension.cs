@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
 
@@ -64,7 +65,7 @@ namespace PlayerAnimationViewer
                 }
                 
                 motionOffsets.Add(ms.Position);
-                SerializeMotion(ref lmt.Header.GetMotion(i), w);
+                SerializeMotion(ref lmt.Header.GetMotion(i), w, ref lmt.Header);
             }
 
             ms.Position = offsetsOffset;
@@ -94,7 +95,7 @@ namespace PlayerAnimationViewer
             }
         }
 
-        private static void SerializeMotion(ref Motion motion, BinaryWriter w)
+        private static void SerializeMotion(ref Motion motion, BinaryWriter w, ref MotionListHeader header)
         {
             var startOffset = w.BaseStream.Position;
             w.Write(0ul); // Placeholder for param offset
@@ -159,7 +160,7 @@ namespace PlayerAnimationViewer
                 ref var param = ref motParams[i];
                 if (param.Buffer == null)
                 {
-                    Log.Warn($"Null Motion Param Buffer for Motion @ 0x{startOffset:X}, Param[{i}]");
+                    Log.Debug($"Null Motion Param Buffer for Motion @ 0x{startOffset:X}, Param[{i}]");
                     bufferOffsets.Add(0);
                     continue;
                 }

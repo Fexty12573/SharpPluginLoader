@@ -50,6 +50,8 @@ namespace PlayerAnimationViewer
                 return;
 
             _referencedMotionLists.Add(sourceList);
+            if (motion.HasLazyOffsets(ref sourceList.Header))
+                motion.ResolveLazyOffsets(ref sourceList.Header);
 
             EnsureMotionCapacity();
 
@@ -98,7 +100,8 @@ namespace PlayerAnimationViewer
                 CustomMotionsList.Resize(CustomMotionsList.Length + 32);
                 _customHeader = (MotionListHeader*)MemoryUtil.Realloc(
                     (nint)_customHeader,
-                    sizeof(MotionListHeader) + CustomMotionsList.Length * sizeof(Motion*)
+                    // -1 because sizeof(MotionListHeader) already includes the first motion pointer
+                    sizeof(MotionListHeader) + (CustomMotionsList.Length - 1) * sizeof(Motion*)
                 );
                 _motionPointers = new NativeArray<nint>((nint)_customHeader + 0x10, CustomMotionsList.Length);
 

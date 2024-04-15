@@ -5,7 +5,6 @@
     "description": "A C# plugin loader for MHW",
     "dependencies": [
         "nethost",
-        "zydis",
         "nlohmann-json",
         "zlib",
         "directxmath",

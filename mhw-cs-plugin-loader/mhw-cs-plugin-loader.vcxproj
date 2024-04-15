@@ -117,10 +117,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS;ZYDIS_STATIC_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include;$(SolutionDir)dependencies\zydis\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -137,10 +137,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;IMGUI_DISABLE_OBSOLETE_KEYIO;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DEFINE_MATH_OPERATORS;ZYDIS_STATIC_BUILD</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\safetyhook\include;$(SolutionDir)dependencies\generic\include;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\cimgui\imgui;$(SolutionDir)dependencies\imgui-notify;$(SolutionDir)dependencies\loader\include;$(SolutionDir)dependencies\zydis\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
     </ClCompile>
@@ -158,6 +158,7 @@
     <ClCompile Include="..\dependencies\imgui\imgui_impl_dx12.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\dependencies\safetyhook\src\safetyhook.cpp" />
+    <ClCompile Include="..\dependencies\zydis\src\Zydis.c" />
     <ClCompile Include="AddressRepository.cpp" />
     <ClCompile Include="Bitfield.cpp" />
     <ClCompile Include="ChunkModule.cpp" />

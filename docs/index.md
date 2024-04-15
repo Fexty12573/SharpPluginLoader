@@ -1,3 +1,7 @@
+---
+_layout: landing
+---
+
 <div align="center">
     <h1>SharpPluginLoader</h1>
 </div>

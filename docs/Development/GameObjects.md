@@ -93,9 +93,9 @@ public class EquipWork : MtObject
     public EquipWork() { }
 }
 ```
-!!! info
-    The parameterless constructor is only required if you want to use this object with `NativeWrapper.GetObject<T>()` (and similar), as those methods
-    require a parameterless constructor.
+> [!NOTE]
+> The parameterless constructor is only required if you want to use this object with `NativeWrapper.GetObject<T>()` (and similar), as those methods
+> require a parameterless constructor.
 
 Now we can add the fields we want to access. We can use the methods provided by `NativeWrapper` (which `MtObject` inherits from) to read and write data to the native object.
 ```csharp
@@ -147,8 +147,8 @@ By 'heap-allocated array' I mean an array where the containing object only holds
 ```csharp
 public Span<int> Array => new Span<int>(GetPtr(0x20), 10);
 ```
-!!! info
-    If you want to use a native array in an async or an iterator method, you can use `NativeArray<T>` instead.
+> [!NOTE]
+> If you want to use a native array in an async or an iterator method, you can use `NativeArray<T>` instead.
 
 #### Inline arrays
 Inline arrays are arrays that are stored directly inside the object. The approach here is similar to the one for heap-allocated arrays, except that you use `GetPtrInline` instead of `GetPtr`.
@@ -156,5 +156,5 @@ Inline arrays are arrays that are stored directly inside the object. The approac
 public Span<int> Array => new Span<int>(GetPtrInline(0x20), 10);
 ```
 
-!!! warning
-    Both `Span<T>` and `NativeArray<T>` must **not** be used with any reference types. This includes `MtObject`. Instead use `Span<nint>` or `NativeArray<nint>` and simply construct an object when you need it (e.g. `new MtObject(span[i])`).
+> [!WARNING]
+> Both `Span<T>` and `NativeArray<T>` must **not** be used with any reference types. This includes `MtObject`. Instead use `Span<nint>` or `NativeArray<nint>` and simply construct an object when you need it (e.g. `new MtObject(span[i])`).

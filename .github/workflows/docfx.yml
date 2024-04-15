@@ -1,7 +1,11 @@
+name: DocFX
+
 on:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["MSBuild"]
+    branches: ["master"]
+    types:
+      - completed
 
 permissions:
   actions: read
@@ -27,18 +31,18 @@ jobs:
           dotnet-version: 8.x
       
       - run: dotnet tool install -g docfx
-      - run: docfx docs/docfx.json
-
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
+      - run: docfx ./docfx.json
+        working-directory: docs
+        continue-on-error: false
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
+          name: github-pages
           path: docs/_site
       
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

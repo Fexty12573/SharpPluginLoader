@@ -19,10 +19,21 @@ jobs:
 
     env:
       BUILD_CONFIGURATION: ${{matrix.configuration}}
+      
       # Path to the solution file relative to the root of the project.
       SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
 
+      # Allow vcpkg to install packages from the GitHub Actions cache.
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      
       - uses: actions/checkout@v3
         with:
           submodules: recursive
@@ -33,16 +44,7 @@ jobs:
           vs-version: "[,17)"
           msbuild-architecture: x64
 
-      - name: Install vcpkg
-        uses: lukka/run-vcpkg@v10.2
-        with:
-          vcpkgDirectory: "${{runner.workspace}}/b/vcpkg"
-          vcpkgGitCommitId: "13bde2ff13192e1b2fdd37bd9b475c7665ae6ae5" # github.com/microsoft/vcpkg - Latest commit as of 2024-02-19
-          vcpkgJsonGlob: "**/vcpkg.json"
-          runVcpkgInstall: true
-
       - name: Integrate vcpkg
-        working-directory: ${{env.VCPKG_ROOT}}
         run: |
           vcpkg integrate install
 
@@ -56,23 +58,11 @@ jobs:
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
           dotnet restore ${{env.SOLUTION_FILE_PATH}}
-
-      - name: Build Utilities\ChunkBuilder (Release mode)
+      
+      - name: Build Solution
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        # We _ALWAYS_ build ChunkBuilder in Release mode, as certain build scripts expect a release build path on disk,
-        run: msbuild /p:Configuration="Release" /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:BuildProjectReferences=false /p:VcpkgEnableManifest=true /t:Utilities\ChunkBuilder
-
-      - name: Build Native\mhw-cs-plugin-loader
-        working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Native\cimgui,Native\mhw-cs-plugin-loader
-
-      - name: Build Managed\SharpPluginLoader.Bootstrapper
-        working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Managed\SharpPluginLoader_Bootstrapper
-
-      - name: Build Managed\SharpPluginLoader.Core
-        working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: msbuild /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform="x64" ${{env.SOLUTION_FILE_PATH}} /p:VcpkgEnableManifest=true /t:Managed\SharpPluginLoader_Core
+        run: |
+          msbuild -m -p:Configuration=${{env.BUILD_CONFIGURATION}} -p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
 
       # TODO(Andoryuuta): Can't currently build solution directly due to build order issues + "Release" mode binaries expected on-disk for some build scripts.
       # - name: Build Solution

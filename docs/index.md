@@ -1,6 +1,13 @@
+---
+_layout: landing
+---
+
 <div align="center">
     <h1>SharpPluginLoader</h1>
+    <img src="images/SPL-256x256.svg"></a>
 </div>
+
+
 
 ## Introduction
 SharpPluginLoader is, as the name might imply, a plugin loader for Monster Hunter World. It allows loading C# plugins into the game.

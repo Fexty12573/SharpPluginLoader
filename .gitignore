@@ -42,6 +42,7 @@ bld/
 Generated\ Files/
 Generated/
 venv/
+docs/_site/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

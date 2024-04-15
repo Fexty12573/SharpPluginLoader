@@ -2,6 +2,9 @@
 
 namespace SharpPluginLoader.Core
 {
+    /// <summary>
+    /// Provides basic logging functionality.
+    /// </summary>
     public static unsafe class Log
     {
         private static delegate* unmanaged<int, nint, void> _logFunc;
@@ -23,12 +26,28 @@ namespace SharpPluginLoader.Core
             Marshal.FreeHGlobal(str);
         }
 
+        /// <summary>
+        /// Logs a debug message.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public static void Debug(string message) => DoLog(LogLevel.Debug, message);
 
+        /// <summary>
+        /// Logs an info message.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public static void Info(string message) => DoLog(LogLevel.Info, message);
 
+        /// <summary>
+        /// Logs a warning message.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public static void Warn(string message) => DoLog(LogLevel.Warn, message);
 
+        /// <summary>
+        /// Logs an error message.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public static void Error(string message) => DoLog(LogLevel.Error, message);
     }
 }

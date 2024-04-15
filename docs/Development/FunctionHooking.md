@@ -36,9 +36,9 @@ Let's break this down. First, we declare a delegate type with the same signature
 ```csharp
 private delegate void ReleaseResourceDelegate(nint resourceManager, nint resourcePtr);
 ```
-!!! info
-    Type marshalling is very limited for function hooks. Generally the only type that is automatically marshalled is `string`. You can also
-    add the `UnmanagedFunctionPointer` attribute to the delegate to specify the character set, but this is not required.
+> [!NOTE]
+> Type marshalling is very limited for function hooks. Generally the only type that is automatically marshalled is `string`. You can also
+> add the `UnmanagedFunctionPointer` attribute to the delegate to specify the character set, but this is not required.
 
 Next we declare a hook object. This object needs to be kept alive by the plugin, otherwise the hook will be removed. It also allows dynamically enabling and disabling the hook.
 ```csharp
@@ -64,10 +64,10 @@ private void ReleaseResourceHook(nint resourceManager, nint resourcePtr)
     _releaseResourceHook.Original(resourceManager, resourcePtr);
 }
 ```
-!!! warning
-    Once you create a `Resource` object around a `cResource` pointer, it will automatically increment the resources reference count by 1. Once the `Resource` object is collected by the garbage collector, it will decrement the reference count by 1 again. If the reference count reaches 0, the resource will be unloaded. 
-    
-    This means that so long as you hold a reference to a `Resource` object, the resource will never be unloaded (unless the game force-unloads it for some reason, but that should generally not be the case).
+> [!WARNING]
+> Once you create a `Resource` object around a `cResource` pointer, it will automatically increment the resources reference count by 1. Once the `Resource` object collected by the garbage collector, it will decrement the reference count by 1 again. If the reference count reaches 0, the resource will be unloaded. 
+> 
+> This means that so long as you hold a reference to a `Resource` object, the resource will never be unloaded (unless the game force-unloads it for some reason, but that should generally not be the case).
 
 Of course, you can also use a lambda expression instead of a separate method for the detour. This makes the code a bit more compact for simple hooks.
 ```csharp

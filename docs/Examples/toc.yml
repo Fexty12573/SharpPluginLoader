@@ -1,0 +1,6 @@
+- name: Quest End Skip
+  href: Plugins/QuestEndSkip.md
+- name: Idle Monsters
+  href: Plugins/IdleMonsters.md
+- name: API Examples
+  href: API/toc.yml

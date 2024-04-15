@@ -5,15 +5,31 @@ using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core.Resources;
 
+/// <summary>
+/// Represents a texture resource (an instance of the rTexture class).
+/// </summary>
 public class Texture : Resource
 {
     public Texture(nint instance) : base(instance) { }
     public Texture() { }
 
+    /// <summary>
+    /// The width of the texture.
+    /// </summary>
     public uint Width => Get<uint>(0xB8);
 
+    /// <summary>
+    /// The height of the texture.
+    /// </summary>
     public uint Height => Get<uint>(0xBC);
 
+    /// <summary>
+    /// Obtains a handle to the texture, which can be passed to ImGui. This method actually uploads the texture to the GPU and creates the resource object.
+    /// </summary>
+    /// <returns>A handle to the texture, or <see cref="TextureHandle.Invalid"/> if the texture couldn't be created.</returns>
+    /// <remarks>
+    /// Textures are cached internally, so calling this method multiple times for the same texture will return the same handle.
+    /// </remarks>
     public TextureHandle GetTextureHandle()
     {
         return Renderer.IsDirectX12 

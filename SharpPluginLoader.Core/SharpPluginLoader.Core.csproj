@@ -101,9 +101,6 @@
 	  <NativeLibs Remove="Player.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="MissingEventException.cs" />
-	</ItemGroup>
-	<ItemGroup>
 	  <NativeLibs Remove="Input.cs" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

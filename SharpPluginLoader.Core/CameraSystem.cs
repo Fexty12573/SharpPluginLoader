@@ -8,6 +8,9 @@ using SharpPluginLoader.Core.View;
 
 namespace SharpPluginLoader.Core;
 
+/// <summary>
+/// Exposes functionality related to the sMhCamera singleton.
+/// </summary>
 public static class CameraSystem
 {
     public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhCamera")!;

@@ -65,7 +65,7 @@ namespace SharpPluginLoader.Core.Rendering
         /// <param name="oversampleV">The vertical oversampling factor.</param>
         /// <param name="oversampleH">The horizontal oversampling factor.</param>
         /// <remarks>
-        /// Fonts must be registered before the first call to <see cref="ImGuiRender"/>.
+        /// Fonts must be registered before the first call to <see cref="IPlugin.OnImGuiRender"/>.
         /// Ideally, fonts should be registered in the <see cref="IPlugin.OnLoad"/> method.
         /// </remarks>
         public static unsafe void RegisterFont(string name, string path, float size, nint glyphRanges = 0, 
@@ -124,7 +124,7 @@ namespace SharpPluginLoader.Core.Rendering
         /// <returns>The font with the specified name, or <c>null</c> if the font was not found.</returns>
         /// <remarks>
         /// You can register custom fonts using <see cref="RegisterFont"/>.
-        /// Registered fonts can only be retrieved after the first call to <see cref="ImGuiRender"/>.
+        /// Registered fonts can only be retrieved after the first call to <see cref="IPlugin.OnImGuiRender"/>.
         /// </remarks>
         public static ImFontPtr GetFont(string name)
         {

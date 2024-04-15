@@ -1,0 +1,49 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../SharpPluginLoader.Core",
+          "files": [
+            "SharpPluginLoader.Core.csproj"
+          ]
+        }
+      ],
+      "dest": "API/Generated"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "postProcessors": ["ExtractSearchIndex"],
+    "globalMetadata": {
+      "_appName": "SharpPluginLoader",
+      "_appTitle": "SharpPluginLoader",
+      "_appLogoPath": "images/SPL.svg",
+      "_appFaviconPath": "images/SPL.svg",
+      "_appFooter": "SharpPluginLoader is a C# Plugin Loader for Monster Hunter World.",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}

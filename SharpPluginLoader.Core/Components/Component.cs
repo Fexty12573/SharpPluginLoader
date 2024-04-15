@@ -7,6 +7,9 @@ using SharpPluginLoader.Core.Models;
 
 namespace SharpPluginLoader.Core.Components;
 
+/// <summary>
+/// Represents an instance of the cpComponent class
+/// </summary>
 public class Component : MtObject
 {
     public Component(nint instance) : base(instance) { }

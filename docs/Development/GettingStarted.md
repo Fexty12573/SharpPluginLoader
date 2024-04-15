@@ -15,8 +15,8 @@ Alternatively you can install the package from the command line using the `dotne
 dotnet add package SharpPluginLoader.Core
 ```
 
-!!! info
-    It is also recommended to enable unsafe code in the project properties, as it is required for some features such as native function wrappers.
+> [!TIP]
+> It is also recommended to enable unsafe code in the project properties, as it is required for some features such as native function wrappers.
 
 ## Entry point
 Each plugin has an entry point class, which must implement the `IPlugin` interface inside the `SharpPluginLoader.Core` namespace.
@@ -51,8 +51,8 @@ public void OnLoad()
 
 In the `Initialize` method you need to return a `PluginData` object, which contains some optional details about the plugin.
 
-!!! info
-    You should not do any game-related initialization in the `Initialize` method, as it is called before the game is fully loaded. Use the `OnLoad` method for that.
+> [!NOTE]
+> You should not do any game-related initialization in the `Initialize` method, as it is called before the game is fully loaded. Use the `OnLoad` method for that.
 
 The `OnLoad` method is where you will normally do any setup that you need to do when the plugin is loaded. This method is called every time the plugin is loaded, so it's a good place to initialize any resources that you need.
 

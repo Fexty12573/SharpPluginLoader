@@ -1,10 +1,14 @@
-# SharpPluginLoader
-
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/deploy-mkdocs.yml?label=docs)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.Core?logo=nuget&label=SharpPluginLoader.Core)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.ImGui?logo=nuget&label=SharpPluginLoader.ImGui)
-![NuGet Version](https://img.shields.io/nuget/v/SharpPluginLoader.InternalCallGenerator?logo=nuget&label=SharpPluginLoader.InternalCallGenerator)
+<div align="center">
+    <h1>SharpPluginLoader</h1>
+    <img src="docs/images/SPL-256x256.svg"/>
+    <br></br>
+    <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/docfx.yml?label=docs">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.Core?logo=nuget&label=SharpPluginLoader.Core">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.ImGui?logo=nuget&label=SharpPluginLoader.ImGui">
+    <img src="https://img.shields.io/nuget/v/SharpPluginLoader.InternalCallGenerator?logo=nuget&label=SharpPluginLoader.InternalCallGenerator">
+    <br></br>
+</div>
 
 
 A C# plugin loader for Monster Hunter World based on .NET 8.0.
@@ -13,7 +17,7 @@ For more detailed documentation and tutorials, visit the [wiki](https://fexty125
 
 ## How to use
 1. Install [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (Get the **.NET Desktop Runtime 8.0.x**)
-2. Download the latest release from the [releases page]() and extract it into your Monster Hunter World directory.
+2. Download the latest release from the [releases page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into your Monster Hunter World directory.
 
 ## Plugin Development
 For more detailed instructions visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/Development/).
@@ -60,3 +64,7 @@ If you would like to contribute, feel free to fork the repository and make a PR.
 - [zlib](https://www.zlib.net/) - Compression library
 - [DirectXMath](https://github.com/microsoft/DirectXMath) - DirectX Math library
 - [PicoSHA2](https://github.com/okdshin/PicoSHA2) - header-only SHA256 library
+- [DirectXTK\[12\]](https://github.com/microsoft/DirectXTK) - DirectX Toolkit, used for loading and managing textures
+
+## **Credits**
+- Thanks to Lyra for creating the logo

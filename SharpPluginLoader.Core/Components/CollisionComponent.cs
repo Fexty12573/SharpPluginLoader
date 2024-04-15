@@ -3,6 +3,9 @@ using SharpPluginLoader.Core.Resources;
 
 namespace SharpPluginLoader.Core.Components;
 
+/// <summary>
+/// Represents an instance of the cpObjCollision class
+/// </summary>
 public partial class CollisionComponent : Component
 {
     public CollisionComponent(nint instance) : base(instance) { }

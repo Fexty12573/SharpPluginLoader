@@ -143,6 +143,9 @@ namespace SharpPluginLoader.Core
         private delegate void ChatMessageSentDelegate(string message);
     }
 
+    /// <summary>
+    /// Represents the result of an in-game Yes/No dialog.
+    /// </summary>
     public enum DialogResult
     {
         Yes,

@@ -22,6 +22,9 @@ public readonly struct TextureHandle(nint handle) : IEquatable<TextureHandle>, I
     public static implicit operator TextureHandle(nint handle) => new(handle);
     public static implicit operator nint(TextureHandle handle) => handle._handle;
 
+    /// <summary>
+    /// An invalid texture handle.
+    /// </summary>
     public static TextureHandle Invalid => new(nint.Zero);
 
     #region Equality Operators

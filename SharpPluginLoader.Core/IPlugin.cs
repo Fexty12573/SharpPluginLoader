@@ -141,6 +141,9 @@ namespace SharpPluginLoader.Core
 
 #pragma warning restore CS0649
 
+    /// <summary>
+    /// The base interface for all plugins. This is where you define the events that your plugin listens to.
+    /// </summary>
     public interface IPlugin
     {
         /// <summary>

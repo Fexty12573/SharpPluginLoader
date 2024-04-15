@@ -64,3 +64,7 @@ If you would like to contribute, feel free to fork the repository and make a PR.
 - [zlib](https://www.zlib.net/) - Compression library
 - [DirectXMath](https://github.com/microsoft/DirectXMath) - DirectX Math library
 - [PicoSHA2](https://github.com/okdshin/PicoSHA2) - header-only SHA256 library
+- [DirectXTK\[12\]](https://github.com/microsoft/DirectXTK) - DirectX Toolkit, used for loading and managing textures
+
+## **Credits**
+- Thanks to Lyra for creating the logo

@@ -1,6 +1,6 @@
 <div align="center">
     <h1>SharpPluginLoader</h1>
-    <img src="docs/images/SPL-256x256.svg"/>
+    <img src="docs/images/SPL-256x256.png"/>
     <br></br>
     <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/msbuild.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/Fexty12573/SharpPluginLoader/docfx.yml?label=docs">

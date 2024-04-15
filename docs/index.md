@@ -4,7 +4,7 @@ _layout: landing
 
 <div align="center">
     <h1>SharpPluginLoader</h1>
-    <img src="images/SPL-256x256.svg"></a>
+    <img src="images/SPL-256x256.png"></a>
 </div>
 
 

@@ -25,7 +25,7 @@ def main(sln_dir, config, tag):
     boostrapper_src = os.path.join(sln_dir, "SharpPluginLoader.Bootstrapper/bin", config, "net8.0", "SharpPluginLoader.Bootstrapper.dll")
     boostrapper_dst = os.path.join(loader_dir, "SharpPluginLoader.Bootstrapper.dll")
 
-    core_name = "SharpPluginLoader.Core.dll" if config == "Release" else "SharpPluginLoader.Core.Debug.dll"
+    core_name = "SharpPluginLoader.Core.dll"
     core_src = os.path.join(sln_dir, "SharpPluginLoader.Core/bin", config, "net8.0", core_name)
     core_dst = os.path.join(loader_dir, core_name)
 

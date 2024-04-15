@@ -230,7 +230,7 @@ namespace SharpPluginLoader.Core
         /// <param name="path">The file path of the resource, without its extension</param>
         /// <param name="flags">The flags passed to the request</param>
         [PluginEvent]
-        public void OnResourceLoad(Resource? resource, MtDti dti, string path, uint flags) => throw new NotImplementedException();
+        public void OnResourceLoad(Resource? resource, MtDti dti, string path, LoadFlags flags) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).

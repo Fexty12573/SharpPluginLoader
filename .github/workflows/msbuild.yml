@@ -19,10 +19,21 @@ jobs:
 
     env:
       BUILD_CONFIGURATION: ${{matrix.configuration}}
+      
       # Path to the solution file relative to the root of the project.
       SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
 
+      # Allow vcpkg to install packages from the GitHub Actions cache.
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      
       - uses: actions/checkout@v3
         with:
           submodules: recursive

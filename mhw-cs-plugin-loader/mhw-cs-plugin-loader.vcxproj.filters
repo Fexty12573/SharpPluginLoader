@@ -111,6 +111,9 @@
     <ClCompile Include="AddressRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\dependencies\zydis\src\Zydis.c">
+      <Filter>Source Files\safetyhook</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreClr.h">

@@ -43,6 +43,8 @@
 	  <NativeLibs Remove="Hook.cs" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
 	  <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
 	  <PackageReference Include="SharpPluginLoader.ImGui" Version="1.90.2" />
 	</ItemGroup>

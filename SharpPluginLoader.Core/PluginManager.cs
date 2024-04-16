@@ -4,6 +4,7 @@ using System.Runtime.Loader;
 using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Memory.Windows;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core
 {
@@ -27,6 +28,7 @@ namespace SharpPluginLoader.Core
             public required PluginData Data { get; init; }
             public required string Path {get; init; }
             public required nint NativePlugin { get; init; }
+            public required bool IsScript { get; init; }
 
             public void Dispose()
             {
@@ -232,7 +234,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Loads a plugin assembly into _contexts, with plugin-defined callback data (via `IPlugin.Initialize`).
         /// </summary>
-        /// <param name="pluginPath"></param>
+        /// <param name="pluginPath">The file path to the plugin</param>
         public void LoadPlugin(string pluginPath)
         {
             if (!File.Exists(pluginPath))
@@ -242,6 +244,8 @@ namespace SharpPluginLoader.Core
             }
 
             Log.Debug($"Attempting to load {pluginPath}");
+
+            var isScript = Path.GetExtension(pluginPath) == ".cs";
 
             var pluginName = Path.GetFileNameWithoutExtension(pluginPath);
             var relPath = Path.GetRelativePath(".", pluginPath);
@@ -261,19 +265,33 @@ namespace SharpPluginLoader.Core
             var context = new PluginLoadContext(pluginPath);
             Assembly? assembly;
 
-            try
+            if (isScript)
             {
-                assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
+                var byteCode = ScriptCompiler.Compile(pluginPath);
+                if (byteCode is null)
+                {
+                    context.Unload();
+                    return;
+                }
+
+                assembly = context.LoadFromStream(new MemoryStream(byteCode));
             }
-            catch (Exception e)
+            else
             {
-                if (e is BadImageFormatException ex) // Most likely a native dll
-                    Log.Debug(ex.ToString());
-                else
-                    Log.Error(e.ToString());
-                
-                context.Unload();
-                return;
+                try
+                {
+                    assembly = context.LoadFromAssemblyName(new AssemblyName(pluginName));
+                }
+                catch (Exception e)
+                {
+                    if (e is BadImageFormatException ex) // Most likely a native dll
+                        Log.Debug(ex.ToString());
+                    else
+                        Log.Error(e.ToString());
+
+                    context.Unload();
+                    return;
+                }
             }
 
             var hasIPluginType = false;
@@ -373,7 +391,8 @@ namespace SharpPluginLoader.Core
                     Plugin = plugin,
                     Data = pluginData,
                     Path = absPath,
-                    NativePlugin = nativePlugin
+                    NativePlugin = nativePlugin,
+                    IsScript = isScript
                 });
             }
 

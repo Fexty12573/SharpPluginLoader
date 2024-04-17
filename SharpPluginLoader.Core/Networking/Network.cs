@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Networking
 {
@@ -45,6 +46,8 @@ namespace SharpPluginLoader.Core.Networking
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnSendPacket))
                 plugin.OnSendPacket(packetObj, isBroadcast, (SessionIndex)sessionIndex);
+
+            ScriptContext.InvokeOnSendPacket(packetObj, isBroadcast, (SessionIndex)sessionIndex);
             
             _sendPacketHook.Original(instance, packet, dst, option, sessionIndex);
         }
@@ -69,6 +72,8 @@ namespace SharpPluginLoader.Core.Networking
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnReceivePacket))
                 plugin.OnReceivePacket(id, (PacketType)type, (SessionIndex)session, new NetBuffer(offsettedData));
+
+            ScriptContext.InvokeOnReceivePacket(id, (PacketType)type, (SessionIndex)session, new NetBuffer(offsettedData));
 
             _receivePacketHook.Original(instance, src, data, dataSize);
         }

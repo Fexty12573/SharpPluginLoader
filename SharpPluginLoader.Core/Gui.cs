@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core
 {
@@ -122,6 +123,8 @@ namespace SharpPluginLoader.Core
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnChatMessageSent))
                 plugin.OnChatMessageSent(message);
+
+            ScriptContext.InvokeOnChatMessageSent(message);
 
             _chatMessageSentHook.Original(message);
         }

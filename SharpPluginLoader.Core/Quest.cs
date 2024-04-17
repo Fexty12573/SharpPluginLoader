@@ -1,5 +1,6 @@
 ﻿using SharpPluginLoader.Core.Memory;
 using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core
 {
@@ -97,6 +98,8 @@ namespace SharpPluginLoader.Core
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestAccept))
                 plugin.OnQuestAccept(questId);
 
+            ScriptContext.InvokeOnQuestAccept(questId);
+
             _acceptQuestHook.Original(questMgr, questId, unk);
         }
 
@@ -104,6 +107,8 @@ namespace SharpPluginLoader.Core
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestEnter))
                 plugin.OnQuestEnter(CurrentQuestId);
+
+            ScriptContext.InvokeOnQuestEnter(CurrentQuestId);
 
             _enterQuestHook.Original(questMgr);
         }
@@ -113,6 +118,8 @@ namespace SharpPluginLoader.Core
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestLeave))
                 plugin.OnQuestLeave(CurrentQuestId);
 
+            ScriptContext.InvokeOnQuestLeave(CurrentQuestId);
+
             _leaveQuestHook.Original(questMgr);
         }
 
@@ -120,6 +127,8 @@ namespace SharpPluginLoader.Core
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestAbandon))
                 plugin.OnQuestAbandon(CurrentQuestId);
+
+            ScriptContext.InvokeOnQuestAbandon(CurrentQuestId);
 
             _abandonQuestHook.Original(questMgr, unk);
         }
@@ -129,6 +138,8 @@ namespace SharpPluginLoader.Core
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestReturn))
                 plugin.OnQuestReturn(CurrentQuestId);
 
+            ScriptContext.InvokeOnQuestReturn(CurrentQuestId);
+
             _returnFromQuestHook.Original(questMgr);
         }
 
@@ -137,6 +148,8 @@ namespace SharpPluginLoader.Core
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestCancel))
                 plugin.OnQuestCancel(CurrentQuestId);
 
+            ScriptContext.InvokeOnQuestCancel(CurrentQuestId);
+
             _cancelQuestHook.Original(questMgr);
         }
 
@@ -144,6 +157,8 @@ namespace SharpPluginLoader.Core
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestDepart))
                 plugin.OnQuestDepart(CurrentQuestId);
+
+            ScriptContext.InvokeOnQuestDepart(CurrentQuestId);
 
             _departOnQuestHook.Original(questMgr, unk);
         }
@@ -156,12 +171,16 @@ namespace SharpPluginLoader.Core
                 {
                     foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestComplete))
                         plugin.OnQuestComplete(CurrentQuestId);
+
+                    ScriptContext.InvokeOnQuestComplete(CurrentQuestId);
                     break;
                 }
                 case QuestEndReason.Fail:
                 {
                     foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnQuestFail))
                         plugin.OnQuestFail(CurrentQuestId);
+
+                    ScriptContext.InvokeOnQuestFail(CurrentQuestId);
                     break;
                 }
                 default:

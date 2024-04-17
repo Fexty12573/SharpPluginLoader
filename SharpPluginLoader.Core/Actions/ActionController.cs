@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Actions
 {
@@ -72,6 +73,8 @@ namespace SharpPluginLoader.Core.Actions
             {
                 foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAction))
                     plugin.OnEntityAction(owner, ref actionInfo);
+
+                ScriptContext.InvokeOnEntityAction(owner, ref actionInfo);
             }
 
             var player = Player.MainPlayer;
@@ -80,6 +83,8 @@ namespace SharpPluginLoader.Core.Actions
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnPlayerAction))
                 plugin.OnPlayerAction(player!, ref actionInfo);
+            
+            ScriptContext.InvokeOnPlayerAction(player!, ref actionInfo);
 
             return _doActionHook.Original(instance, ref actionInfo);
         }
@@ -89,6 +94,8 @@ namespace SharpPluginLoader.Core.Actions
             var monster = new Monster(instance);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterAction))
                 plugin.OnMonsterAction(monster, ref actionId);
+
+            ScriptContext.InvokeOnMonsterAction(monster, ref actionId);
 
             return _launchActionHook.Original(instance, actionId);
         }

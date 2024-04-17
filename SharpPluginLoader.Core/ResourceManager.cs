@@ -1,5 +1,6 @@
 ﻿using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core;
 
@@ -58,6 +59,8 @@ public static class ResourceManager
 
         foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnResourceLoad))
             plugin.OnResourceLoad(resObj, dtiObj, path, flags);
+
+        ScriptContext.InvokeOnResourceLoad(resObj, dtiObj, path, flags);
 
         return resource;
     }

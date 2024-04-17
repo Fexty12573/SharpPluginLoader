@@ -2,6 +2,7 @@
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Scripting;
 using SharpPluginLoader.Core.Weapons;
 
 namespace SharpPluginLoader.Core.Entities
@@ -81,8 +82,11 @@ namespace SharpPluginLoader.Core.Entities
 
         private static void ChangeWeaponHook(nint player, WeaponType weaponType, int weaponId)
         {
+            var playerObj = new Player(player);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnWeaponChange))
-                plugin.OnWeaponChange(new Player(player), weaponType, weaponId);
+                plugin.OnWeaponChange(playerObj, weaponType, weaponId);
+
+            ScriptContext.InvokeOnWeaponChange(playerObj, weaponType, weaponId);
 
             _changeWeaponHook.Original(player, weaponType, weaponId);
         }

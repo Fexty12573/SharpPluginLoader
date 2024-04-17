@@ -7,6 +7,7 @@ using ImGuiNET;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Rendering
 {
@@ -265,6 +266,8 @@ namespace SharpPluginLoader.Core.Rendering
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
                 plugin.OnRender();
+
+            ScriptContext.InvokeOnRender();
         }
 
         [UnmanagedCallersOnly]
@@ -312,6 +315,13 @@ namespace SharpPluginLoader.Core.Rendering
                         }
                     }
 
+                    if (ScriptContext.AnyOnImGuiRender() && ImGui.TreeNodeEx(
+                            "Script UI", ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                    {
+                        ScriptContext.InvokeOnImGuiRender();
+                        ImGui.TreePop();
+                    }
+
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
                     {
                         if (plugin.PluginData.ImGuiWrappedInTreeNode)
@@ -335,6 +345,8 @@ namespace SharpPluginLoader.Core.Rendering
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnImGuiFreeRender))
                 plugin.OnImGuiFreeRender();
+
+            ScriptContext.InvokeOnImGuiFreeRender();
 
 #if DEBUG
             if (_showDemo)

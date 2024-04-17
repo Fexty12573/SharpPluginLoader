@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Entities
 {
@@ -170,6 +171,8 @@ namespace SharpPluginLoader.Core.Entities
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterAction))
                 plugin.OnMonsterAction(monster, ref actionId);
 
+            ScriptContext.InvokeOnMonsterAction(monster, ref actionId);
+
             return _launchActionHook.Original(instance, actionId);
         }
 
@@ -178,6 +181,8 @@ namespace SharpPluginLoader.Core.Entities
             var monster = new Monster(_monsterCtorHook.Original(instance, type, variant));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterCreate))
                 plugin.OnMonsterCreate(monster);
+
+            ScriptContext.InvokeOnMonsterCreate(monster);
 
             return monster.Instance;
         }
@@ -190,6 +195,8 @@ namespace SharpPluginLoader.Core.Entities
             {
                 foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterInitialized))
                     plugin.OnMonsterInitialized(monster);
+
+                ScriptContext.InvokeOnMonsterInitialized(monster);
             }
         }
 
@@ -200,6 +207,9 @@ namespace SharpPluginLoader.Core.Entities
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterFlinch))
             {
                 if (!plugin.OnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938)))
+                    shouldFlinch = false;
+
+                if (!ScriptContext.InvokeOnMonsterFlinch(monster, ref monster.GetRef<int>(0x18938)))
                     shouldFlinch = false;
             }
 
@@ -213,6 +223,8 @@ namespace SharpPluginLoader.Core.Entities
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterEnrage))
                 plugin.OnMonsterEnrage(monster);
 
+            ScriptContext.InvokeOnMonsterEnrage(monster);
+
             return _enrageHook.Original(instance);
         }
 
@@ -221,6 +233,8 @@ namespace SharpPluginLoader.Core.Entities
             var monster = new Monster(MemoryUtil.Read<nint>(instance + 0x128));
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterUnenrage))
                 plugin.OnMonsterUnenrage(monster);
+
+            ScriptContext.InvokeOnMonsterUnenrage(monster);
 
             _unenrageHook.Original(instance);
         }
@@ -231,6 +245,8 @@ namespace SharpPluginLoader.Core.Entities
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDeath))
                 plugin.OnMonsterDeath(monster);
 
+            ScriptContext.InvokeOnMonsterDeath(monster);
+
             _monsterDieHook.Original(instance, ai);
         }
 
@@ -239,6 +255,8 @@ namespace SharpPluginLoader.Core.Entities
             var monster = new Monster(instance);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDestroy))
                 plugin.OnMonsterDestroy(monster);
+
+            ScriptContext.InvokeOnMonsterDestroy(monster);
 
             _monsterDtorHook.Original(instance);
         }

@@ -1,4 +1,10 @@
 ﻿
+using SharpPluginLoader.Core.Actions;
+using SharpPluginLoader.Core.Components;
+using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Networking;
+using SharpPluginLoader.Core.Resources;
+
 namespace SharpPluginLoader.Core.Scripting;
 
 /// <summary>
@@ -104,4 +110,40 @@ public class ScriptContext
 
     /// <inheritdoc cref="OnImGuiFreeRenderCallback"/>
     public static event OnImGuiFreeRenderCallback? OnImGuiFreeRender;
+
+    internal static void InvokeOnUpdate(float deltaTime) => OnUpdate?.Invoke(deltaTime);
+    internal static void InvokeOnSave() => OnSave?.Invoke();
+    internal static void InvokeOnSelectSaveSlot(int slot) => OnSelectSaveSlot?.Invoke(slot);
+    internal static void InvokeOnResourceLoad(Resource? r, MtDti d, string p, LoadFlags l) => OnResourceLoad?.Invoke(r, d, p, l);
+    internal static void InvokeOnChatMessageSent(string message) => OnChatMessageSent?.Invoke(message);
+    internal static void InvokeOnQuestAccept(int id) => OnQuestAccept?.Invoke(id);
+    internal static void InvokeOnQuestCancel(int id) => OnQuestCancel?.Invoke(id);
+    internal static void InvokeOnQuestDepart(int id) => OnQuestDepart?.Invoke(id);
+    internal static void InvokeOnQuestEnter(int id) => OnQuestEnter?.Invoke(id);
+    internal static void InvokeOnQuestLeave(int id) => OnQuestLeave?.Invoke(id);
+    internal static void InvokeOnQuestComplete(int id) => OnQuestComplete?.Invoke(id);
+    internal static void InvokeOnQuestFail(int id) => OnQuestFail?.Invoke(id);
+    internal static void InvokeOnQuestReturn(int id) => OnQuestReturn?.Invoke(id);
+    internal static void InvokeOnQuestAbandon(int id) => OnQuestAbandon?.Invoke(id);
+    internal static void InvokeOnMonsterCreate(Monster m) => OnMonsterCreate?.Invoke(m);
+    internal static void InvokeOnMonsterInitialized(Monster m) => OnMonsterInitialized?.Invoke(m);
+    internal static void InvokeOnMonsterAction(Monster m, ref int actionId) => OnMonsterAction?.Invoke(m, ref actionId);
+    internal static bool InvokeOnMonsterFlinch(Monster m, ref int actionId) => OnMonsterFlinch?.Invoke(m, ref actionId) ?? true;
+    internal static void InvokeOnMonsterEnrage(Monster m) => OnMonsterEnrage?.Invoke(m);
+    internal static void InvokeOnMonsterUnenrage(Monster m) => OnMonsterUnenrage?.Invoke(m);
+    internal static void InvokeOnMonsterDeath(Monster m) => OnMonsterDeath?.Invoke(m);
+    internal static void InvokeOnMonsterDestroy(Monster m) => OnMonsterDestroy?.Invoke(m);
+    internal static void InvokeOnPlayerAction(Player p, ref ActionInfo actionInfo) => OnPlayerAction?.Invoke(p, ref actionInfo);
+    internal static void InvokeOnWeaponChange(Player p, WeaponType type, int id) => OnWeaponChange?.Invoke(p, type, id);
+    internal static void InvokeOnEntityAction(Entity e, ref ActionInfo actionInfo) => OnEntityAction?.Invoke(e, ref actionInfo);
+    internal static void InvokeOnEntityAnimation(Entity e, ref AnimationId id, ref float s, ref float i) => OnEntityAnimation?.Invoke(e, ref id, ref s, ref i);
+    internal static void InvokeOnEntityAnimationUpdate(Entity e, AnimationId id, float d) => OnEntityAnimationUpdate?.Invoke(e, id, d);
+    internal static void InvokeOnSendPacket(Packet p, bool b, SessionIndex s) => OnSendPacket?.Invoke(p, b, s);
+    internal static void InvokeOnReceivePacket(uint id, PacketType t, SessionIndex s, NetBuffer b) => OnReceivePacket?.Invoke(id, t, s, b);
+    internal static void InvokeOnLobbySearch(ref int maxResults) => OnLobbySearch?.Invoke(ref maxResults);
+    internal static void InvokeOnRender() => OnRender?.Invoke();
+    internal static void InvokeOnImGuiRender() => OnImGuiRender?.Invoke();
+    internal static void InvokeOnImGuiFreeRender() => OnImGuiFreeRender?.Invoke();
+
+    internal static bool AnyOnImGuiRender() => OnImGuiRender is not null;
 }

@@ -1,5 +1,6 @@
 ﻿using SharpPluginLoader.Core.Memory;
 using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Steam;
 
@@ -111,6 +112,8 @@ public static unsafe partial class Matchmaking
             ref var maxResults = ref MemoryUtil.GetRef<int>(netRequest + 0x60);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnLobbySearch))
                 plugin.OnLobbySearch(ref maxResults);
+
+            ScriptContext.InvokeOnLobbySearch(ref maxResults);
 
             return _searchLobbiesHook!.Original(netCore, netRequest);
         });

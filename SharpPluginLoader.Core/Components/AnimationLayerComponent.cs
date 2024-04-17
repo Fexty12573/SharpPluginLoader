@@ -2,6 +2,7 @@
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Scripting;
 
 namespace SharpPluginLoader.Core.Components
 {
@@ -149,8 +150,11 @@ namespace SharpPluginLoader.Core.Components
             var owner = animLayerComponent.Owner;
             if (owner != null)
             {
+                var dt = animLayerComponent.Get<float>(0xE27C);
                 foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimationUpdate))
-                    plugin.OnEntityAnimationUpdate(owner, owner.CurrentAnimation, animLayerComponent.Get<float>(0xE27C));
+                    plugin.OnEntityAnimationUpdate(owner, owner.CurrentAnimation, dt);
+
+                ScriptContext.InvokeOnEntityAnimationUpdate(owner, owner.CurrentAnimation, dt);
             }
 
             _updateHook.Original(animLayer, a, b, c, d, e, f, g);
@@ -163,6 +167,8 @@ namespace SharpPluginLoader.Core.Components
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnEntityAnimation))
                 plugin.OnEntityAnimation(entity, ref animIdObj, ref startFrame, ref interFrame);
+
+            ScriptContext.InvokeOnEntityAnimation(entity, ref animIdObj, ref startFrame, ref interFrame);
 
             _doLmtHook.Original(instance, animIdObj, startFrame, flags, overrideId, interFrame, e);
         }

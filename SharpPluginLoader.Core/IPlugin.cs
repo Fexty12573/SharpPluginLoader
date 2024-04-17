@@ -429,7 +429,6 @@ namespace SharpPluginLoader.Core
         /// Gets called when a packet is sent.
         /// </summary>
         /// <param name="packet">The packet being sent</param>
-        /// <param name="isBroadcast">Whether the packet is broadcasted to all players in the session or not</param>
         /// <param name="session">The session the packet is sent to</param>
         [PluginEvent]
         public void OnSendPacket(Packet packet, bool isBroadcast, SessionIndex session) => throw new NotImplementedException();

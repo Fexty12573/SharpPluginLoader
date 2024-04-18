@@ -403,5 +403,15 @@
         "Name": "GUITitle:Play",
         "Pattern": "48 89 83 D8 1C 00 00 48 8D BB 08 29 00 00",
         "Offset": -42
+    },
+    {
+        "Name": "WeaponFsm:LoadTransitionSet",
+        "Pattern": "41 55 41 56 48 83 ec 30 8b 6c 24 70 4d 8b f1 4c 8b e9 85 ed",
+        "Offset": -6
+    },
+    {
+        "Name": "MtDti:Init",
+        "Pattern": "48 89 5c 24 08 57 48 83 ec 20 81 61 30 00 00 80 1f",
+        "Offset": 0
     }
 ]

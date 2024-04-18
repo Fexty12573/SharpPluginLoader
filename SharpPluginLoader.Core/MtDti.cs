@@ -1,4 +1,6 @@
 ﻿using System.Runtime.InteropServices;
+using SharpPluginLoader.Core.Dti;
+using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core
 {
@@ -186,6 +188,53 @@ namespace SharpPluginLoader.Core
         public static MtDti? Find(string name)
         {
             return Find(MakeId(name));
+        }
+
+        /// <summary>
+        /// Registers a new DTI.
+        /// </summary>
+        /// <param name="name">The name of the class</param>
+        /// <param name="size">The size of the class</param>
+        /// <param name="dtor">The <i>DTI's</i> destructor</param>
+        /// <param name="new">The factory method for creating new instances of the class</param>
+        /// <param name="ctor">The constructor for initializing new instances of the class</param>
+        /// <param name="ctorArray">The constructor for initializing arrays of instances of the class</param>
+        /// <param name="parent">The parent class of the class, use MtObject if unsure</param>
+        /// <param name="attr">The attributes of the class, mostly unknown</param>
+        /// <param name="allocatorIndex">The index of the allocator used by the class, leave at 0 if unsure</param>
+        /// <returns>The newly registered DTI</returns>
+        public static MtDti Register(string name, long size,
+            DtiDtorDelegate dtor, DtiNewDelegate @new, DtiCtorDelegate ctor, DtiCtorArrayDelegate ctorArray,
+            MtDti? parent = null, uint attr = 0, int allocatorIndex = 0)
+        {
+            var nativeDtor = new NativeDtiDtorDelegate(dti => dtor(new MtDti(dti)));
+            var nativeNew = new NativeDtiNewDelegate(dti => @new(new MtDti(dti))?.Instance ?? 0);
+            var nativeCtor = new NativeDtiCtorDelegate(
+                (dti, obj) => ctor(new MtDti(dti), obj == 0 ? null : new MtObject(obj))?.Instance ?? 0
+            );
+            var nativeCtorArray = new NativeDtiCtorArrayDelegate(
+                (dti, objs, count) =>
+                {
+                    var objects = count == 0 ? [] : new MtObject?[count];
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var obj = MemoryUtil.Read<nint>(objs + i * 8);
+                        objects[i] = obj == 0 ? null : new MtObject(obj);
+                    }
+
+                    ctorArray(new MtDti(dti), objects);
+
+                    return objs;
+                }
+            );
+
+            return DtiExtensions.RegisterDti(
+                name, size,
+                nativeDtor, nativeNew,
+                nativeCtor, nativeCtorArray,
+                parent, attr, allocatorIndex
+            );
         }
     }
 }

@@ -410,6 +410,16 @@
         "Offset": -6
     },
     {
+        "Name": "WeaponFsm:GetConditionIdForName",
+        "Pattern": "48 89 6c 24 18 56 57 41 56 48 83 ec 20 48 8b 31",
+        "Offset": -5
+    },
+    {
+        "Name": "WeaponFsm:GetConditionIdForNameWp",
+        "Pattern": "48 89 5c 24 08 48 89 74 24 10 57 48 83 ec 20 83 f9 0d",
+        "Offset": 0
+    },
+    {
         "Name": "MtDti:Init",
         "Pattern": "48 89 5c 24 08 57 48 83 ec 20 81 61 30 00 00 80 1f",
         "Offset": 0

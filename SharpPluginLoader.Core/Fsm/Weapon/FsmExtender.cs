@@ -165,13 +165,13 @@ public static unsafe class FsmExtender
 [StructLayout(LayoutKind.Explicit)]
 file struct As3
 {
-    [FieldOffset(0xC0)] public TransitionSet TransitionSet0;
-    [FieldOffset(0xD0)] public TransitionSet TransitionSet1;
-    [FieldOffset(0xE0)] public TransitionSet TransitionSet2;
-    [FieldOffset(0xF0)] public TransitionSet TransitionSet3;
+    [FieldOffset(0xC0)] internal TransitionSet TransitionSet0;
+    [FieldOffset(0xD0)] internal TransitionSet TransitionSet1;
+    [FieldOffset(0xE0)] internal TransitionSet TransitionSet2;
+    [FieldOffset(0xF0)] internal TransitionSet TransitionSet3;
 
     [StructLayout(LayoutKind.Explicit)]
-    private struct TransitionSet
+    internal struct TransitionSet
     {
         [FieldOffset(0x00)] public nint Transitions;
         [FieldOffset(0x08)] public int TransitionCount;

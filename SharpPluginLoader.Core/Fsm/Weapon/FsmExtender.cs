@@ -63,12 +63,14 @@ public static unsafe class FsmExtender
         _loadTransitionSetHook.Original(as3Ptr, player, set, _customTransitionMap.Pointer, mapSize + totalCount);
 
         var as3 = (As3*)as3Ptr;
+
+        // Actual type of Transitions is 'cTransitionBase**'.
         var transitions = (nint**)as3->TransitionSet1.Transitions;
 
         for (var i = 0; i < totalCount; i++)
         {
             var condition = TransitionMap.Values.SelectMany(x => x.Values).First(x => x.Id == i);
-            transitions[i] = (nint*)condition.EvaluatorFptr;
+            *transitions[i] = condition.Vtable.Address;
         }
     }
 

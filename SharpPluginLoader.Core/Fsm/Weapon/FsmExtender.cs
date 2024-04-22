@@ -5,10 +5,34 @@ using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.Fsm.Weapon;
 
+/// <summary>
+/// Allows registering custom weapon FSM conditions.
+/// </summary>
 public static unsafe class FsmExtender
 {
+    /// <summary>
+    /// Registers a custom FSM condition for all weapon types.
+    /// </summary>
+    /// <param name="name">The name of the condition. This is the string that you will use in the .fsm files.</param>
+    /// <param name="evaluator">The delegate that will be called to evaluate the condition.</param>
     public static void RegisterCondition(string name, FsmConditionDelegate evaluator)
     {
+        RegisterCondition(WeaponType.None, name, evaluator);
+    }
+
+    /// <summary>
+    /// Registers a custom FSM condition for the specified weapon type.
+    /// </summary>
+    /// <param name="type">The weapon type to register the condition for.</param>
+    /// <param name="name">The name of the condition. This is the string that you will use in the .fsm files.</param>
+    /// <param name="evaluator">The delegate that will be called to evaluate the condition.</param>
+    public static void RegisterCondition(WeaponType type, string name, FsmConditionDelegate evaluator)
+    {
+        if (!TransitionMap.TryGetValue(type, out var transitions))
+        {
+            throw new ArgumentException($"Invalid weapon type: {type}", nameof(type));
+        }
+
         var vtable = NativeArray<nint>.Create(BaseTransitionVirtualFunctionCount);
 
         for (var i = 0; i < BaseTransitionVirtualFunctionCount; i++)
@@ -18,14 +42,13 @@ public static unsafe class FsmExtender
 
         var evaluatorPtr = Marshal.GetFunctionPointerForDelegate(evaluator);
         vtable[6] = evaluatorPtr;
-
-        TransitionMap[WeaponType.None][name] = new CustomTransition()
+        transitions[name] = new CustomTransition
         {
             Name = name,
             Evaluator = evaluator,
             EvaluatorFptr = evaluatorPtr,
             Id = -1,
-            Type = WeaponType.None,
+            Type = type,
             Vtable = vtable
         };
     }

@@ -10,16 +10,23 @@ public static unsafe class FsmExtender
     public static void RegisterCondition(string name, FsmConditionDelegate evaluator)
     {
         var vtable = NativeArray<nint>.Create(BaseTransitionVirtualFunctionCount);
-        
 
+        for (var i = 0; i < BaseTransitionVirtualFunctionCount; i++)
+        {
+            vtable[i] = _baseTransitionVtable[i];
+        }
+
+        var evaluatorPtr = Marshal.GetFunctionPointerForDelegate(evaluator);
+        vtable[6] = evaluatorPtr;
 
         TransitionMap[WeaponType.None][name] = new CustomTransition()
         {
             Name = name,
             Evaluator = evaluator,
-            EvaluatorFptr = Marshal.GetFunctionPointerForDelegate(evaluator),
+            EvaluatorFptr = evaluatorPtr,
             Id = -1,
             Type = WeaponType.None,
+            Vtable = vtable
         };
     }
 

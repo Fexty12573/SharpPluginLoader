@@ -254,6 +254,46 @@ namespace SharpPluginLoader.Core.Memory
 
         #endregion
 
+        #region Copying
+
+        /// <summary>
+        /// Copies a block of memory from one address to another.
+        /// </summary>
+        /// <param name="source">The source address</param>
+        /// <param name="destination">The destination address</param>
+        /// <param name="count">The number of bytes to copy</param>
+        public static void Copy(nint source, nint destination, long count)
+        {
+            NativeMemory.Copy((void*)source, (void*)destination, (nuint)count);
+        }
+
+        /// <inheritdoc cref="Copy(nint,nint,long)"/>
+        public static void Copy(long source, long destination, long count)
+        {
+            NativeMemory.Copy((void*)source, (void*)destination, (nuint)count);
+        }
+
+        /// <inheritdoc cref="Copy(nint,nint,long)"/>
+        public static void Copy(void* source, void* destination, long count)
+        {
+            NativeMemory.Copy(source, destination, (nuint)count);
+        }
+
+        /// <summary>
+        /// Copies <paramref name="count"/> elements of type <typeparamref name="T"/> from one address to another.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements</typeparam>
+        /// <param name="source">The source address</param>
+        /// <param name="destination">The destination address</param>
+        /// <param name="count">The number of elements to copy</param>
+        public static void Copy<T>(T* source, T* destination, int count) where T : unmanaged
+        {
+            var size = count * sizeof(T);
+            NativeMemory.Copy(source, destination, (nuint)size);
+        }
+
+        #endregion
+
         #region Strings
 
         /// <summary>

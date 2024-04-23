@@ -8,46 +8,80 @@ using static SharpPluginLoader.Core.SpanExtensions;
 namespace SharpPluginLoader.Core
 {
     /// <summary>
-    /// A wrapper around a native array.
+    /// A wrapper around a native array. This type acts similar to a <see cref="Span{T}"/>,
+    /// but can be stored in a field or property, and can take ownership of the memory it points to.
     /// </summary>
-    /// <typeparam name="T">The type of the underlying elements</typeparam>
-    /// <param name="address">The address of the first element</param>
-    /// <param name="length">The number of elements in the array</param>
-    /// <param name="ownsPointer">Whether or not the array owns the pointer</param>
-    /// <remarks>
-    /// <b>Note:</b> If you don't need to use the array in an iterator, use a <see cref="Span{T}"/> instead.
-    /// </remarks>
-    public unsafe struct NativeArray<T>(nint address, int length, bool ownsPointer = false) : IEnumerable<T>, IDisposable where T : unmanaged
+    public unsafe struct NativeArray<T> : IEnumerable<T>, IDisposable where T : unmanaged
     {
         /// <summary>
         /// Creates a new native array from a given address and count.
         /// </summary>
+        /// <typeparam name="T">The type of the underlying elements</typeparam>
+        /// <param name="address">The address of the first element</param>
+        /// <param name="length">The number of elements in the array</param>
+        public NativeArray(nint address, int length)
+        {
+            Address = address;
+            Length = length;
+            _ownsPointer = false;
+            _allocator = null!;
+        }
+
+        /// <summary>
+        /// Creates a new native array from a given address and count.
+        /// </summary>
+        /// <param name="address">The address of the first element</param>
+        /// <param name="length">The number of elements in the array</param>
+        /// <param name="allocator">The allocator to use</param>
+        /// <remarks>
+        /// Use this constructor if you want the native array to take ownership of the memory it points to.
+        /// </remarks>
+        public NativeArray(nint address, int length, IAllocator allocator)
+        {
+            Address = address;
+            Length = length;
+            _ownsPointer = true;
+            _allocator = allocator;
+        }
+
+        /// <summary>
+        /// Creates a new native array from a given address and count.
+        /// </summary>
         /// <param name="length">The number of elements</param>
+        /// <param name="allocator">The allocator to use. A <see langword="null"/> value uses the default allocator.</param>
         /// <returns>The newly allocated native array</returns>
         /// <remarks>
         /// <b>Warning:</b> The memory allocated by this method is not automatically freed. You must call <see cref="Dispose"/> when you are done with the array.
-        /// Alternatively, use a using statement to ensure that the array is disposed.
+        /// Alternatively, use a <see langword="using"/> statement to ensure that the array is disposed.
         /// </remarks>
-        public static NativeArray<T> Create(int length)
+        public static NativeArray<T> Create(int length, IAllocator? allocator = null)
         {
-            var ptr = MemoryUtil.Alloc<T>(length);
-            return new NativeArray<T>((nint)ptr, length, true);
+            allocator ??= NativeMemoryAllocator.Instance;
+            var ptr = allocator.Allocate<T>(length);
+            return new NativeArray<T>((nint)ptr, length, allocator);
         }
 
         /// <summary>
         /// The number of elements in the array.
         /// </summary>
-        public int Length { get; private set; } = length;
+        public int Length { get; private set; }
 
         /// <summary>
         /// The address of the first element in the array.
         /// </summary>
-        public nint Address { get; private set; } = address;
+        public nint Address { get; private set; }
+
+        private readonly bool _ownsPointer;
+        private readonly IAllocator _allocator;
 
         /// <summary>
         /// A pointer to the first element in the array.
         /// </summary>
-        public readonly T* Pointer => (T*)Address;
+        public T* Pointer
+        {
+            readonly get => (T*)Address;
+            private set => Address = (nint)value;
+        }
 
         /// <summary>
         /// Gets a reference to the element at the specified index.
@@ -76,13 +110,30 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         public void Resize(int newLength)
         {
-            Ensure.IsTrue(ownsPointer);
+            Ensure.IsTrue(_ownsPointer);
 
             if (newLength == Length)
                 return;
 
-            var newPtr = MemoryUtil.Realloc(Address, newLength * sizeof(T));
-            Address = newPtr;
+            // TODO: Should probably gradually shrink the array if the difference is large
+            if (newLength < Length)
+            {
+                Length = newLength;
+                return;
+            }
+
+            if (_allocator is IResizableAllocator resizableAllocator)
+            {
+                Pointer = resizableAllocator.Reallocate(Pointer, newLength);
+            }
+            else
+            {
+                var newPtr = _allocator.Allocate<T>(newLength);
+                MemoryUtil.Copy(Pointer, newPtr, Length);
+                _allocator.Free(Pointer);
+                Pointer = newPtr;
+            }
+
             Length = newLength;
         }
 
@@ -99,8 +150,8 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public readonly void Dispose()
         {
-            if (ownsPointer)
-                MemoryUtil.Free(Address);
+            if (_ownsPointer)
+                _allocator.Free(Pointer);
         }
     }
 

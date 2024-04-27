@@ -38,6 +38,16 @@ namespace SharpPluginLoader.Core.Entities
         /// </summary>
         public unsafe WeaponType CurrentWeaponType => GetWeaponTypeFunc.InvokeUnsafe(Instance);
 
+        /// <summary>
+        /// The current health of the player
+        /// </summary>
+        public ref float Health => ref MemoryUtil.GetRef<float>(Get<nint>(0x7630) + 0x64);
+
+        /// <summary>
+        /// The maximum health of the player
+        /// </summary>
+        public ref float MaxHealth => ref MemoryUtil.GetRef<float>(Get<nint>(0x7630) + 0x60);
+
         /// <inheritdoc/>
         public override void CreateShell(uint index, Vector3 target, Vector3? origin = null)
         {

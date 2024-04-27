@@ -61,6 +61,9 @@ public static unsafe class FsmExtender
             return;
         }
 
+        // Dispose the previous custom transition map if it exists.
+        _customTransitionMap.Dispose();
+
         var totalCount = TransitionMap.Sum(kv => kv.Value.Count);
         _customTransitionMap = NativeArray<TransitionMapping>.Create(mapSize + totalCount);
 

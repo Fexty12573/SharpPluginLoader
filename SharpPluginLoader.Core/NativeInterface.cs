@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Actions;
 using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Fsm.Weapon;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Networking;
 using SharpPluginLoader.Core.Steam;
@@ -83,6 +84,7 @@ namespace SharpPluginLoader.Core
                     Task.Run(ActionController.Initialize),
                     Task.Run(AnimationLayerComponent.Initialize),
                     Task.Run(Matchmaking.Initialize),
+                    Task.Run(FsmExtender.Initialize),
                 ]);
             }
             catch (Exception e)

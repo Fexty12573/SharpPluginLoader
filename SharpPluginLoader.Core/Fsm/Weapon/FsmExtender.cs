@@ -28,6 +28,20 @@ public static unsafe class FsmExtender
     /// <param name="evaluator">The delegate that will be called to evaluate the condition.</param>
     public static void RegisterCondition(WeaponType type, string name, FsmConditionDelegate evaluator)
     {
+        if (_baseTransitionDti is null)
+        {
+            _baseTransitionDti = MtDti.Find("cHumanTransitionBase")!;
+            Ensure.NotNull(_baseTransitionDti);
+
+            var dummyObj = _baseTransitionDti.CreateInstance<MtObject>();
+            _baseTransitionVtable = new NativeArray<nint>(
+                dummyObj.Get<nint>(0),
+                BaseTransitionVirtualFunctionCount
+            );
+
+            dummyObj.Destroy(true);
+        }
+
         if (!TransitionMap.TryGetValue(type, out var transitions))
         {
             throw new ArgumentException($"Invalid weapon type: {type}", nameof(type));
@@ -95,7 +109,8 @@ public static unsafe class FsmExtender
 
         for (var i = 0; i < totalCount; i++)
         {
-            var condition = TransitionMap.Values.SelectMany(x => x.Values).First(x => x.Id == i);
+            var id = mapSize + i;
+            var condition = TransitionMap.Values.SelectMany(x => x.Values).First(x => x.Id == id);
             *transitions[i] = condition.Vtable.Address;
         }
     }
@@ -141,17 +156,6 @@ public static unsafe class FsmExtender
             AddressRepository.Get("WeaponFsm:GetConditionIdForNameWp"),
             GetConditionIdWpHook
         );
-
-        _baseTransitionDti = MtDti.Find("cHumanTransitionBase")!;
-        Ensure.NotNull(_baseTransitionDti);
-
-        var dummyObj = _baseTransitionDti.CreateInstance<MtObject>();
-        _baseTransitionVtable = new NativeArray<nint>(
-            dummyObj.Get<nint>(0),
-            BaseTransitionVirtualFunctionCount
-        );
-
-        dummyObj.Destroy(true);
     }
 
     private static readonly Dictionary<WeaponType, Dictionary<string, CustomTransition>> TransitionMap = new()
@@ -180,7 +184,7 @@ public static unsafe class FsmExtender
     private static NativeArray<TransitionMapping> _customTransitionMap;
 
     private const int BaseTransitionVirtualFunctionCount = 9;
-    private static MtDti _baseTransitionDti = null!;
+    private static MtDti? _baseTransitionDti;
     private static NativeArray<nint> _baseTransitionVtable;
 
     private delegate int GetConditionIdDelegate(MtString** pstr);

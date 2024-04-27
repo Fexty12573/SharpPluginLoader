@@ -16,7 +16,6 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Creates a new native array from a given address and count.
         /// </summary>
-        /// <typeparam name="T">The type of the underlying elements</typeparam>
         /// <param name="address">The address of the first element</param>
         /// <param name="length">The number of elements in the array</param>
         public NativeArray(nint address, int length)

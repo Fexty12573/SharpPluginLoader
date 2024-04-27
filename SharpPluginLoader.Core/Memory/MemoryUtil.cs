@@ -210,7 +210,7 @@ namespace SharpPluginLoader.Core.Memory
         /// <param name="count">The size of the array</param>
         /// <returns>The address of the allocated array</returns>
         /// <remarks>
-        /// Generally, if you need to allocate an array of native memory, you should use <see cref="NativeArray{T}.Create(int)"/>.
+        /// Generally, if you need to allocate an array of native memory, you should use <see cref="NativeArray{T}.Create"/>.
         /// If you <i>do</i> use this method, you must free the memory using <see cref="Free(nint)"/> or <see cref="Free(void*)"/>.
         /// </remarks>
         public static T* Alloc<T>(long count = 1) where T : unmanaged

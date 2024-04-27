@@ -119,6 +119,7 @@ private:
     void(*m_core_render)() = nullptr;
     int(*m_core_get_custom_fonts)(CustomFont** out_fonts) = nullptr;
     void(*m_core_resolve_custom_fonts)() = nullptr;
+    void* (*m_get_singleton)(const char* name) = nullptr;
 
     friend class PrimitiveRenderingModule;
 

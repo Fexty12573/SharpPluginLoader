@@ -59,6 +59,11 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ResolveCustomFonts"
     );
+    m_get_singleton = coreclr->get_method<void* (const char*)>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.SingletonManager",
+        L"GetSingletonNative"
+    );
 
     const auto play = (void*)NativePluginFramework::get_repository_address("GUITitle:Play");
     m_title_menu_ready_hook = safetyhook::create_inline(play, title_menu_ready_hook);
@@ -667,6 +672,17 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     }
 
     if (!self->m_d3d12_command_queue) {
+        return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    }
+
+    const auto facility = (uintptr_t)self->m_get_singleton("sFacility");
+
+    // Check if Steamworks is active. This is a very hacky fix for the AutoSteamworks app,
+    // which sometimes sends invalid input events that trip up ImGui.
+    // So we just disable ImGui rendering when Steamworks is active. Ideally we should
+    // check if the app is even running, but whatever. This is (probably) a temporary fix.
+    // +0x348 is the offset to cSteamControl, +0x444 is the offset from that to the mState field.
+    if (facility && *(u32*)(facility + 0x348 + 0x444) > 5) {
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 

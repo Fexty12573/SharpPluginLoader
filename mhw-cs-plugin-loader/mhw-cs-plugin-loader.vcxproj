@@ -217,6 +217,7 @@
     <ClInclude Include="Timeline.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Assets\Common\AddressRecords.json" />
     <None Include="..\README.md" />
     <None Include="..\vcpkg.json" />
     <None Include=".clang-tidy" />

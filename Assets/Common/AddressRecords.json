@@ -423,5 +423,15 @@
         "Name": "MtDti:Init",
         "Pattern": "48 89 5c 24 08 57 48 83 ec 20 81 61 30 00 00 80 1f",
         "Offset": 0
+    },
+    {
+        "Name": "EffectEmitter:SetEpv",
+        "Pattern": "48 8b d9 ff 90 c8 00 00 00 48 8b 8b 60 02 00 00 48 3b cf",
+        "Offset": -16
+    },
+    {
+        "Name": "EffectEmitter:SetConstraintModel",
+        "Pattern": "48 8b 81 70 02 00 00 48 8b f2 48 8b d9 48 3b c2 74 1e",
+        "Offset": -15
     }
 ]

@@ -242,5 +242,8 @@
     <None Include="Shaders\LineRenderingGS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="..\Assets\Common\AddressRecords.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -139,4 +139,7 @@
 	<ItemGroup>
 	  <NativeLibs Remove="UnitManager.cs" />
 	</ItemGroup>
+	<ItemGroup>
+	  <NativeLibs Remove="EffectEmitter.cs" />
+	</ItemGroup>
 </Project>

@@ -143,9 +143,9 @@ void D3DModule::common_initialize() {
     }
 
     if (m_is_d3d12) {
-        initialize_for_d3d12();
+        initialize_for_d3d12_alt();
     } else {
-        initialize_for_d3d11();
+        initialize_for_d3d11_alt();
     }
 
     DestroyWindow(m_temp_window);
@@ -268,7 +268,7 @@ void D3DModule::initialize_for_d3d12() {
     const auto resize_buffers = swap_chain_vft[13];
     const auto execute_command_lists = command_queue_vft[10];
     const auto signal = command_queue_vft[14];
-
+    
     m_d3d_present_hook = safetyhook::create_inline(present, d3d12_present_hook);
     m_d3d_execute_command_lists_hook = safetyhook::create_inline(execute_command_lists, d3d12_execute_command_lists_hook);
     m_d3d_signal_hook = safetyhook::create_inline(signal, d3d12_signal_hook);
@@ -348,6 +348,120 @@ void D3DModule::initialize_for_d3d11() {
     const auto present = swap_chain_vft[8];
 
     m_d3d_present_hook = safetyhook::create_inline(present, d3d11_present_hook);
+}
+
+void D3DModule::initialize_for_d3d12_alt() {
+    const auto present_call = NativePluginFramework::get_repository_address("D3DRender12:SwapChainPresentCall");
+    if (!present_call) {
+        dlog::error("Failed to find SwapChainPresentCall");
+        return;
+    }
+
+    if ((m_d3d12_module = GetModuleHandleA("d3d12.dll")) == nullptr) {
+        dlog::error("Failed to find d3d12.dll");
+        return;
+    }
+
+    m_d3d_present_hook_alt = safetyhook::create_mid(present_call, [](safetyhook::Context& ctx) {
+        const auto self = NativePluginFramework::get_module<D3DModule>();
+        const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+        const auto& config = preloader::LoaderConfig::get();
+
+        const auto swap_chain = (IDXGISwapChain*)ctx.rcx;
+
+        if (self->m_is_inside_present) {
+            return;
+        }
+
+        self->m_is_inside_present = true;
+
+        if (!self->m_is_initialized) {
+            self->d3d12_initialize_imgui(swap_chain);
+
+            if (!self->m_texture_manager) {
+                self->m_texture_manager = std::make_unique<TextureManager>(
+                    self->m_d3d12_device,
+                    self->m_d3d12_command_queue,
+                    self->m_d3d12_srv_heap
+                );
+            }
+
+            if (config.get_primitive_rendering_enabled()) {
+                prm->late_init(self.get(), swap_chain);
+            }
+        }
+
+        if (!self->m_d3d12_command_queue) {
+            return;
+        }
+
+        const auto facility = (uintptr_t)self->m_get_singleton("sFacility");
+
+        // Check if Steamworks is active. This is a very hacky fix for the AutoSteamworks app,
+        // which sometimes sends invalid input events that trip up ImGui.
+        // So we just disable ImGui rendering when Steamworks is active. Ideally we should
+        // check if the app is even running, but whatever. This is (probably) a temporary fix.
+        // +0x348 is the offset to cSteamControl, +0x444 is the offset from that to the mState field.
+        if (facility && *(u32*)(facility + 0x348 + 0x444) > 5) {
+            return;
+        }
+
+        self->d3d12_present_hook_core(swap_chain, prm);
+        self->m_is_inside_present = false;
+    });
+
+    const auto render_singleton = (uintptr_t)m_get_singleton("sMhRender");
+    const auto renderer = *(uintptr_t*)(render_singleton + 0x78);
+
+    m_d3d12_command_queue = *(ID3D12CommandQueue**)(renderer + 0x20);
+    const auto swap_chain = *(IDXGISwapChain3**)(renderer + 0x1470);
+    const auto swap_chain_vft = *(void***)swap_chain;
+    const auto cmd_queue_vft = *(void***)m_d3d12_command_queue;
+
+    const auto resize_buffers = swap_chain_vft[13];
+    const auto signal = cmd_queue_vft[14];
+
+    dlog::debug("D3D12 Command Queue found at {:p}", (void*)m_d3d12_command_queue);
+
+    m_d3d_resize_buffers_hook = safetyhook::create_inline(resize_buffers, d3d_resize_buffers_hook);
+    m_d3d_signal_hook = safetyhook::create_inline(signal, d3d12_signal_hook);
+}
+
+void D3DModule::initialize_for_d3d11_alt() {
+    const auto present_call = NativePluginFramework::get_repository_address("D3DRender11:SwapChainPresentCall");
+    if (!present_call) {
+        dlog::error("Failed to find SwapChainPresentCall");
+        return;
+    }
+
+    m_d3d_present_hook_alt = safetyhook::create_mid(present_call, [](safetyhook::Context& ctx) {
+        const auto self = NativePluginFramework::get_module<D3DModule>();
+        const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+        const auto& config = preloader::LoaderConfig::get();
+
+        const auto swap_chain = (IDXGISwapChain*)ctx.rcx;
+
+        if (self->m_is_inside_present) {
+            return;
+        }
+
+        self->m_is_inside_present = true;
+
+        if (!self->m_is_initialized) {
+            self->d3d11_initialize_imgui(swap_chain);
+
+            if (!self->m_texture_manager) {
+                self->m_texture_manager = std::make_unique<TextureManager>(self->m_d3d11_device, self->m_d3d11_device_context);
+            }
+
+            if (config.get_primitive_rendering_enabled()) {
+                prm->late_init(self.get(), swap_chain);
+            }
+        }
+
+        self->d3d11_present_hook_core(swap_chain, prm);
+        self->m_is_inside_present = false;
+    });
 }
 
 void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
@@ -689,20 +803,30 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         return self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
     }
 
+    self->d3d12_present_hook_core(swap_chain, prm);
+
+    const HRESULT result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    self->m_is_inside_present = false;
+
+    return result;
+}
+
+void D3DModule::d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm) {
     const auto swap_chain3 = (IDXGISwapChain3*)swap_chain;
+    const auto& config = preloader::LoaderConfig::get();
 
     if (config.get_primitive_rendering_enabled()) {
-        self->m_core_render();
-        prm->render_primitives_for_d3d12(swap_chain3, self->m_d3d12_command_queue);
+        m_core_render();
+        prm->render_primitives_for_d3d12(swap_chain3, m_d3d12_command_queue);
     }
 
     // Start new frame
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
 
-    ImDrawData* draw_data = self->m_core_imgui_render();
+    ImDrawData* draw_data = m_core_imgui_render();
 
-    const FrameContext& frame_ctx = self->m_d3d12_frame_contexts[swap_chain3->GetCurrentBackBufferIndex()];
+    const FrameContext& frame_ctx = m_d3d12_frame_contexts[swap_chain3->GetCurrentBackBufferIndex()];
     frame_ctx.CommandAllocator->Reset();
 
     D3D12_RESOURCE_BARRIER barrier = {
@@ -716,31 +840,26 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         }
     };
 
-    self->m_d3d12_command_list->Reset(frame_ctx.CommandAllocator.Get(), nullptr);
-    self->m_d3d12_command_list->ResourceBarrier(1, &barrier);
-    self->m_d3d12_command_list->OMSetRenderTargets(1, &frame_ctx.RenderTargetDescriptor, FALSE, nullptr);
-    self->m_d3d12_command_list->SetDescriptorHeaps(1, self->m_d3d12_srv_heap.GetAddressOf());
+    m_d3d12_command_list->Reset(frame_ctx.CommandAllocator.Get(), nullptr);
+    m_d3d12_command_list->ResourceBarrier(1, &barrier);
+    m_d3d12_command_list->OMSetRenderTargets(1, &frame_ctx.RenderTargetDescriptor, FALSE, nullptr);
+    m_d3d12_command_list->SetDescriptorHeaps(1, m_d3d12_srv_heap.GetAddressOf());
 
-    ImGui_ImplDX12_RenderDrawData(draw_data, self->m_d3d12_command_list.Get());
+    ImGui_ImplDX12_RenderDrawData(draw_data, m_d3d12_command_list.Get());
 
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
-    self->m_d3d12_command_list->ResourceBarrier(1, &barrier);
-    self->m_d3d12_command_list->Close();
+    m_d3d12_command_list->ResourceBarrier(1, &barrier);
+    m_d3d12_command_list->Close();
 
-    self->m_d3d12_command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const*)self->m_d3d12_command_list.GetAddressOf());
+    m_d3d12_command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const*)m_d3d12_command_list.GetAddressOf());
 
     if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
         igUpdatePlatformWindows();
-        igRenderPlatformWindowsDefault(nullptr, self->m_d3d12_command_list.Get());
+        igRenderPlatformWindowsDefault(nullptr, m_d3d12_command_list.Get());
     }
-
-    const HRESULT result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
-    self->m_is_inside_present = false;
-
-    return result;
 }
 
 void D3DModule::d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_queue, UINT num_command_lists, ID3D12CommandList* const* command_lists) {
@@ -813,15 +932,26 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         }
     }
 
+    self->d3d11_present_hook_core(swap_chain, prm);
+
+    const auto result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
+    self->m_is_inside_present = false;
+
+    return result;
+}
+
+void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm) const {
+    const auto& config = preloader::LoaderConfig::get();
+
     if (config.get_primitive_rendering_enabled()) {
-        self->m_core_render();
-        prm->render_primitives_for_d3d11(self->m_d3d11_device_context);
+        m_core_render();
+        prm->render_primitives_for_d3d11(m_d3d11_device_context);
     }
 
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
 
-    const auto draw_data = self->m_core_imgui_render();
+    const auto draw_data = m_core_imgui_render();
 
     ImGui_ImplDX11_RenderDrawData(draw_data);
 
@@ -830,11 +960,6 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         igUpdatePlatformWindows();
         igRenderPlatformWindowsDefault(nullptr, nullptr);
     }
-
-    const auto result = self->m_d3d_present_hook.call<HRESULT>(swap_chain, sync_interval, flags);
-    self->m_is_inside_present = false;
-
-    return result;
 }
 
 

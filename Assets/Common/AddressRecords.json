@@ -433,5 +433,15 @@
         "Name": "EffectEmitter:SetConstraintModel",
         "Pattern": "48 8b 81 70 02 00 00 48 8b f2 48 8b d9 48 3b c2 74 1e",
         "Offset": -15
+    },
+    {
+        "Name": "D3DRender12:SwapChainPresentCall",
+        "Pattern": "FF 50 40 C6 83 D9 10 00 00 01 85 C0 75 1A 41 FF C4 44 8D 78 01",
+        "Offset": 0
+    },
+    {
+        "Name": "D3DRender11:SwapChainPresentCall",
+        "Pattern": "FF 50 40 8B F0 85 C0 75 5F FF C3 3B 9F A0 14 00 00",
+        "Offset": 0
     }
 ]

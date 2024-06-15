@@ -25,6 +25,8 @@ private:
     void common_initialize();
     void initialize_for_d3d12();
     void initialize_for_d3d11();
+    void initialize_for_d3d12_alt();
+    void initialize_for_d3d11_alt();
 
     void d3d12_initialize_imgui(IDXGISwapChain* swap_chain);
     void d3d11_initialize_imgui(IDXGISwapChain* swap_chain);
@@ -42,10 +44,12 @@ private:
     static void title_menu_ready_hook(void* gui);
 
     static HRESULT d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
+    void d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm);
     static void d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_queue, UINT num_command_lists, ID3D12CommandList* const* command_lists);
     static UINT64 d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fence* fence, UINT64 value);
 
     static HRESULT d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
+    void d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm) const;
 
     static HRESULT d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags);
     static LRESULT my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -77,6 +81,8 @@ private:
     safetyhook::InlineHook m_d3d_execute_command_lists_hook;
     safetyhook::InlineHook m_d3d_signal_hook;
     safetyhook::InlineHook m_d3d_resize_buffers_hook;
+
+    safetyhook::MidHook m_d3d_present_hook_alt;
 
     std::unique_ptr<TextureManager> m_texture_manager;
 

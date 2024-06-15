@@ -95,7 +95,10 @@ void D3DModule::common_initialize() {
 
     dlog::debug("Initializing D3D module for {}", m_is_d3d12 ? "D3D12" : "D3D11");
 
-    m_game_window = FindWindowA(nullptr, s_game_window_name);
+    const auto game_window_name = std::format("MONSTER HUNTER: WORLD({})", NativePluginFramework::get_game_revision());
+    dlog::debug("Looking for game window: {}", game_window_name);
+
+    m_game_window = FindWindowA(nullptr, game_window_name.c_str());
     if (!m_game_window) {
         dlog::error("Failed to find game window ({})", GetLastError());
         return;

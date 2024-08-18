@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using SharpPluginLoader.Core.Actions;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.MtTypes;
 
@@ -237,6 +238,7 @@ namespace SharpPluginLoader.Core.Entities
         private static void MonsterDtorHook(nint instance)
         {
             var monster = new Monster(instance);
+            ActionCloner.OnMonsterDestroy(monster);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDestroy))
                 plugin.OnMonsterDestroy(monster);
 

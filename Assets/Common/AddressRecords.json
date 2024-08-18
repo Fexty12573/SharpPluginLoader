@@ -443,5 +443,20 @@
         "Name": "D3DRender11:SwapChainPresentCall",
         "Pattern": "FF 50 40 8B F0 85 C0 75 5F FF C3 3B 9F A0 14 00 00",
         "Offset": 0
+    },
+    {
+        "Name": "Entity:SetActionSet",
+        "Pattern": "48 81 C1 C8 61 00 00 4C 69 F0 B0 06 00 00",
+        "Offset": -30
+    },
+    {
+        "Name": "Entity:SetActionSetFixup",
+        "Pattern": "48 8B 5C 24 50 48 8B 6C 24 58 48 83 C4 20 41 5F 41 5E 5F E9",
+        "Offset": 19
+    },
+    {
+        "Name": "Monster:GetActionTableCall",
+        "Pattern": "E8 ?? ?? ?? ?? 4C 8B C0 41 8B D6 48 85 FF 74 30",
+        "Offset": 0
     }
 ]

@@ -1,8 +1,10 @@
-﻿using System.Numerics;
+﻿using System.IO;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ImGuiNET;
+using Microsoft.Win32;
 using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Components;
 using SharpPluginLoader.Core.Configuration;
@@ -50,6 +52,8 @@ namespace PlayerAnimationViewer
         #region LMT Editor
         private LmtBitMapping _lmtBitMapping = null!;
         private MotionList? _selectedLmt;
+        private string _savePath = string.Empty;
+        private float _saveProgress = -1;
         private int _timelineFlags = (int)ImGuiTimelineFlags.EnableFramePointerSnapping
                                      | (int)ImGuiTimelineFlags.EnableKeyframeSnapping
                                      | (int)ImGuiTimelineFlags.ExtendFramePointer;
@@ -153,6 +157,24 @@ namespace PlayerAnimationViewer
 
             if (Input.IsPressed(Button.Down))
                 player.AnimationLayer!.CurrentFrame -= 10;
+
+            if (Input.IsPressed(Key.J))
+            {
+                var actionList = player.ActionController.GetActionList(0);
+                if (actionList.Actions != 0)
+                    for (var i = 0; i < actionList.Count; i++)
+                        Log.Info($"Id: {i}, Name: {actionList[i]?.Name ?? "N/A"}");
+                
+                actionList = player.ActionController.GetActionList(1);
+                if (actionList.Actions != 0)
+                    for (var i = 0; i < actionList.Count; i++)
+                        Log.Info($"Id: {i}, Name: {actionList[i]?.Name ?? "N/A"}");
+
+                actionList = player.ActionController.GetActionList(2);
+                if (actionList.Actions != 0)
+                    for (var i = 0; i < actionList.Count; i++)
+                        Log.Info($"Id: {i}, Name: {actionList[i]?.Name ?? "N/A"}");
+            }
 
             var actionController = player.ActionController;
             if (Input.IsPressed(Button.Circle))
@@ -420,7 +442,10 @@ namespace PlayerAnimationViewer
                     foreach (var lmt in _selectedModel.MotionLists)
                     {
                         if (ImGui.Selectable(lmt.FilePath, lmt == _selectedLmt))
+                        {
                             _selectedLmt = lmt;
+                            _savePath = $"nativePC\\{lmt.FilePath}.lmt";
+                        }
                     }
 
                     ImGui.EndCombo();
@@ -436,16 +461,42 @@ namespace PlayerAnimationViewer
                 }
                 
                 ImGui.Separator();
-                if (ImGui.Button("Save to File"))
+                if (ImGui.Button("Save"))
                 {
                     if (_sortKeyframes)
                         _selectedLmt.SortKeyframes();
-                    _selectedLmt.Serialize($"nativePC\\{_selectedLmt.FilePath}.modified.lmt");
+                    Task.Run(DoSave);
                 }
 
                 if (ImGui.BeginItemTooltip())
                 {
-                    ImGui.Text($"Saves the LMT to 'nativePC\\{_selectedLmt.FilePath}.modified.lmt'");
+                    ImGui.Text($"Saves the LMT to '{_savePath}'");
+                    ImGui.EndTooltip();
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Save As"))
+                {
+                    var dialog = new SaveFileDialog()
+                    {
+                        Title = "Save LMT",
+                        Filter = "LMT Files (*.lmt)|*.lmt",
+                        InitialDirectory = "nativePC",
+                        FileName = Path.GetFileName(_savePath),
+                    };
+
+                    if (dialog.ShowDialog() == true)
+                    {
+                        if (_sortKeyframes)
+                            _selectedLmt.SortKeyframes();
+                        Task.Run(DoSave);
+                        _savePath = dialog.FileName;
+                    }
+                }
+
+                if (ImGui.BeginItemTooltip())
+                {
+                    ImGui.Text("Saves the LMT to a specified location.");
                     ImGui.EndTooltip();
                 }
 
@@ -460,6 +511,11 @@ namespace PlayerAnimationViewer
                 if (ImGui.Button("Reload Flag Mappings"))
                 {
                     _lmtBitMapping = LmtBitMapping.LoadFrom(LmtBitMappingFile);
+                }
+
+                if (_saveProgress >= 0)
+                {
+                    ImGui.ProgressBar(_saveProgress, new Vector2(-1, 0), "Saving...");
                 }
 
                 ImGui.BeginChild("##timelines", new Vector2(), ImGuiChildFlags.Border | ImGuiChildFlags.ResizeY);
@@ -1272,7 +1328,7 @@ namespace PlayerAnimationViewer
                 return;
 
             var kfList = _addKeyframeParamMember->Keyframes;
-            var newKfList = NativeArray<MetadataKeyframe>.Create(_selectedParamMember->KeyframeNum + 1);
+            var newKfList = NativeArray<MetadataKeyframe>.Create(_addKeyframeParamMember->KeyframeNum + 1);
             var newLen = 0;
             for (var k = 0; k < _selectedParamMember->KeyframeNum; k++)
                 newKfList[newLen++] = kfList[k];
@@ -1453,8 +1509,15 @@ namespace PlayerAnimationViewer
 
         private static void GetMemberDefs(TimelineObject obj, LmtParamMemberDefPool* pool)
         {
-            var populateParams = new NativeAction<nint, nint>(0x14231df70);
+            var populateParams = new NativeAction<nint, nint>(0x14231dfd0);
             populateParams.Invoke(obj.Instance, (nint)pool);
+        }
+
+        private void DoSave()
+        {
+            Ensure.NotNull(_selectedLmt);
+            _selectedLmt.Serialize2(_savePath, ref _saveProgress);
+            _saveProgress = -1;
         }
     }
 }

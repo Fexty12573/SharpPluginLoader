@@ -1,4 +1,6 @@
 ﻿
+using SharpPluginLoader.Core.Entities;
+
 namespace SharpPluginLoader.Core.Actions;
 
 /// <summary>
@@ -28,4 +30,17 @@ public class Action : MtObject
     /// The name of the action.
     /// </summary>
     public unsafe string Name => new(GetPtr<sbyte>(0x20));
+
+    /// <summary>
+    /// The entity that the action is attached to.
+    /// </summary>
+    public Entity? Parent => GetObject<Entity>(0x30);
+
+    public unsafe void OnInitialize() => ((delegate*<nint, void>)GetVirtualFunction(5))(Instance);
+
+    public unsafe void OnExecute() => ((delegate*<nint, void>)GetVirtualFunction(6))(Instance);
+    
+    public unsafe bool OnUpdate() => ((delegate*<nint, byte>)GetVirtualFunction(7))(Instance) != 0;
+
+    public unsafe void OnEnd() => ((delegate*<nint, void>)GetVirtualFunction(8))(Instance);
 }

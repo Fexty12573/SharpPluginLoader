@@ -1,5 +1,6 @@
 #pragma once
 #include <string_view>
+#include <string>
 
 struct FileSystemItem {
     std::string Name;

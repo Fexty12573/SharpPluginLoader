@@ -16,22 +16,10 @@ namespace SharpPluginLoader.Core.Entities
         /// Gets a list of all monsters in the game
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<Monster> GetAllMonsters()
+        public static Monster[] GetAllMonsters()
         {
-            if (SingletonInstance == 0)
-                yield break;
-
-            var enemyList = new NativeArray<nint>(SingletonInstance.Instance + 0x38, 128);
-            foreach (var aiData in enemyList)
-            {
-                if (aiData == 0)
-                    continue;
-                var monster = MemoryUtil.Read<nint>(aiData + 0x138);
-                if (monster == 0)
-                    continue;
-
-                yield return new Monster(monster);
-            }
+            lock (_monsters)
+                return _monsters.ToArray();
         }
 
         /// <summary>
@@ -177,6 +165,8 @@ namespace SharpPluginLoader.Core.Entities
         private static nint MonsterCtorHook(nint instance, MonsterType type, uint variant)
         {
             var monster = new Monster(_monsterCtorHook.Original(instance, type, variant));
+            lock (_monsters) _monsters.Add(monster);
+
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterCreate))
                 plugin.OnMonsterCreate(monster);
 
@@ -238,6 +228,8 @@ namespace SharpPluginLoader.Core.Entities
         private static void MonsterDtorHook(nint instance)
         {
             var monster = new Monster(instance);
+            lock(_monsters) _monsters.Remove(monster);
+
             ActionCloner.OnMonsterDestroy(monster);
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMonsterDestroy))
                 plugin.OnMonsterDestroy(monster);
@@ -278,6 +270,7 @@ namespace SharpPluginLoader.Core.Entities
         private static Hook<UnenrageDelegate> _unenrageHook = null!;
         private static Hook<MonsterDieDelegate> _monsterDieHook = null!;
         private static Hook<MonsterDtorDelegate> _monsterDtorHook = null!;
+        private static readonly List<Monster> _monsters = [];
     }
 
     /// <summary>

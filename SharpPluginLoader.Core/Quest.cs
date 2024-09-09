@@ -148,7 +148,7 @@ namespace SharpPluginLoader.Core
             _departOnQuestHook.Original(questMgr, unk);
         }
 
-        private static void EndQuestHook(nint questMgr, bool unk1, QuestEndReason reason, byte unk3)
+        private static void EndQuestHook(nint questMgr, bool unk1, nint frames, QuestEndReason reason)
         {
             switch (reason)
             {
@@ -169,7 +169,7 @@ namespace SharpPluginLoader.Core
                     break;
             }
 
-            _endQuestHook.Original(questMgr, unk1, reason, unk3);
+            _endQuestHook.Original(questMgr, unk1, frames, reason);
         }
 
         private static Hook<AcceptQuest> _acceptQuestHook = null!;
@@ -189,7 +189,7 @@ namespace SharpPluginLoader.Core
         private delegate void ReturnFromQuest(nint questMgr);
         private delegate void CancelQuest(nint questMgr);
         private delegate void DepartOnQuest(nint questMgr, bool unk);
-        private delegate void EndQuest(nint questMgr, bool unk1, QuestEndReason reason, byte unk3);
+        private delegate void EndQuest(nint questMgr, bool unk1, nint frames, QuestEndReason reason);
 
         private enum QuestEndReason : uint
         {

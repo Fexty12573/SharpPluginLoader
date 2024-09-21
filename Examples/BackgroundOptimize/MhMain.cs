@@ -1,11 +1,13 @@
-﻿using SharpPluginLoader.Core.Memory;
+﻿using SharpPluginLoader.Core;
+using SharpPluginLoader.Core.Memory;
 
 namespace BackgroundOptimize
 {
-    internal class MhMain
+    internal class MhMain : MtObject
     {
-        public static nint SingletonInstance => MemoryUtil.Read<nint>(0x1451c1f08);
+        public MhMain(nint instance) : base(instance) { }
+        public MhMain() { }
 
-        public static ref float MaxFps => ref MemoryUtil.GetRef<float>(SingletonInstance + 0x5C);
+        public ref float MaxFps => ref GetRef<float>(0x5C);
     }
 }

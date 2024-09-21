@@ -85,6 +85,7 @@ namespace SharpPluginLoader.Core
                     Task.Run(AnimationLayerComponent.Initialize),
                     Task.Run(Matchmaking.Initialize),
                     Task.Run(FsmExtender.Initialize),
+                    Task.Run(ActionCloner.Initialize),
                 ]);
             }
             catch (Exception e)

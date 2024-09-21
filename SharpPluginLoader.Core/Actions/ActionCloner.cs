@@ -254,7 +254,12 @@ public class ActionCloner
         }
     }
 
-    private static readonly ActionCloner _instance = new();
+    internal static void Initialize()
+    {
+        _instance = new ActionCloner();
+    }
+
+    private static ActionCloner _instance = null!;
 
     private delegate void SetActionSetDelegate(nint instance, int set, nint actionTable, int actionCount, int controller);
     private readonly Dictionary<uint, int> _vtableSizes;

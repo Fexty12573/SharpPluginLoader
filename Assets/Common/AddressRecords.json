@@ -451,8 +451,8 @@
     },
     {
         "Name": "Entity:SetActionSetFixup",
-        "Pattern": "48 8B 5C 24 50 48 8B 6C 24 58 48 83 C4 20 41 5F 41 5E 5F E9",
-        "Offset": 19
+        "Pattern": "48 8B CD 48 8B 5C 24 50 48 8B 6C 24 58 48 83 C4 20 41 5F 41 5E 5F E9",
+        "Offset": 22
     },
     {
         "Name": "Monster:GetActionTableCall",

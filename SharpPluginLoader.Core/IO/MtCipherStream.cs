@@ -37,7 +37,7 @@ public class MtCipherStream : MtStream, IDisposable
 
         var ctor = new NativeAction<nint, CipherStreamMode, nint, nint, uint>(
             AddressRepository.Get("MtCipherStream:Ctor"));
-        ctor.Invoke(cstream.Instance, mode, stream.Instance, 0, 0x1000);
+        ctor.Invoke(cstream.Instance, mode, stream.Instance, cstream._keyPointer, 0x400);
 
         return cstream;
     }

@@ -46,17 +46,13 @@ public class ActionCloner
         _patch = new Patch(setActionSetFixup, [0xC3, 0xCC, 0xCC, 0xCC, 0xCC], true);
         _hook = Hook.Create<SetActionSetDelegate>(AddressRepository.Get("Entity:SetActionSet"), SetActionSetHook);
 
-        // Obtain base action functions
-        var baseAction = MtDti.Find("cEmAction")?.CreateInstance<Action>();
-        if (baseAction is null)
-        {
-            throw new InvalidOperationException("Failed to create base action instance");
-        }
+        var vtableAssignment = AddressRepository.Get("EmAction:VTableAssignment");
+        var baseActionVft = (nint*)(MemoryUtil.Read<int>(vtableAssignment) + vtableAssignment + 4);
 
-        _baseOnInitialize = Marshal.GetDelegateForFunctionPointer<OnActionInitialize>(baseAction.GetVirtualFunction(5));
-        _baseOnExecute = Marshal.GetDelegateForFunctionPointer<OnActionExecute>(baseAction.GetVirtualFunction(6));
-        _baseOnUpdate = Marshal.GetDelegateForFunctionPointer<OnActionUpdate>(baseAction.GetVirtualFunction(7));
-        _baseOnEnd = Marshal.GetDelegateForFunctionPointer<OnActionEnd>(baseAction.GetVirtualFunction(8));
+        _baseOnInitialize = Marshal.GetDelegateForFunctionPointer<OnActionInitialize>(baseActionVft[5]);
+        _baseOnExecute = Marshal.GetDelegateForFunctionPointer<OnActionExecute>(baseActionVft[6]);
+        _baseOnUpdate = Marshal.GetDelegateForFunctionPointer<OnActionUpdate>(baseActionVft[7]);
+        _baseOnEnd = Marshal.GetDelegateForFunctionPointer<OnActionEnd>(baseActionVft[8]);
 
         return;
 

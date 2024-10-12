@@ -458,5 +458,10 @@
         "Name": "Monster:GetActionTableCall",
         "Pattern": "E8 ?? ?? ?? ?? 4C 8B C0 41 8B D6 48 85 FF 74 30",
         "Offset": 0
+    },
+    {
+        "Name": "EmAction:VTableAssignment",
+        "Pattern": "C7 41 0C 89 88 88 3C 89 71 08 48 8D 05 ?? ?? ?? ?? 48 89 01",
+        "Offset": 13
     }
 ]

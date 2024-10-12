@@ -111,7 +111,7 @@
     },
     {
         "Name": "Entity:DoAnimation",
-        "Pattern": "48 8D 68 B9 48 81 EC B0 00 00 00 0F 28 05 3A D7 24 01",
+        "Pattern": "48 8D 68 B9 48 81 EC B0 00 00 00 0F 28 05",
         "Offset": -20
     },
     {

@@ -392,6 +392,7 @@ void D3DModule::initialize_for_d3d12_alt() {
         }
 
         if (!self->m_d3d12_command_queue) {
+            self->m_is_inside_present = false;
             return;
         }
 
@@ -403,6 +404,7 @@ void D3DModule::initialize_for_d3d12_alt() {
         // check if the app is even running, but whatever. This is (probably) a temporary fix.
         // +0x348 is the offset to cSteamControl, +0x444 is the offset from that to the mState field.
         if (facility && *(u32*)(facility + 0x348 + 0x444) > 5) {
+            self->m_is_inside_present = false;
             return;
         }
 
@@ -649,7 +651,6 @@ void D3DModule::d3d12_deinitialize_imgui() {
     m_d3d12_back_buffers = nullptr;
     m_d3d12_srv_heap = nullptr;
     m_d3d12_command_list = nullptr;
-    m_d3d12_command_queue = nullptr;
     m_d3d12_fence = nullptr;
     m_d3d12_fence_value = 0;
     m_d3d12_buffer_count = 0;

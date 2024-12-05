@@ -3,6 +3,9 @@ using SharpPluginLoader.Core.Memory.Windows;
 
 namespace SharpPluginLoader.Core.Memory
 {
+    /// <summary>
+    /// Provides methods for scanning memory for patterns.
+    /// </summary>
     public static class PatternScanner
     {
         /// <summary>
@@ -12,6 +15,7 @@ namespace SharpPluginLoader.Core.Memory
         /// <returns>A list of addresses where the pattern was found.</returns>
         /// <remarks>
         /// It is strongly recommended to cache the results of this method.
+        /// For automatic caching, use <see cref="FindFirst(Pattern)"/> instead.
         /// </remarks>
         public static unsafe List<nint> Scan(Pattern pattern)
         {
@@ -31,8 +35,8 @@ namespace SharpPluginLoader.Core.Memory
             while (addr < endAddr)
             {
                 var memInfo = new MemoryBasicInformation();
-                if (WinApi.VirtualQuery(addr, out memInfo, (ulong)Marshal.SizeOf(memInfo)) == 0 
-                    || memInfo.State != Constants.MemCommit 
+                if (WinApi.VirtualQuery(addr, out memInfo, (ulong)Marshal.SizeOf(memInfo)) == 0
+                    || memInfo.State != Constants.MemCommit
                     || (memInfo.Protect & Constants.PageGuard) != 0)
                     break;
 
@@ -53,8 +57,39 @@ namespace SharpPluginLoader.Core.Memory
             return results;
         }
 
-        public static unsafe nint FindFirst(Pattern pattern)
+        /// <summary>
+        /// Finds the first occurrence of the specified pattern in the process.
+        /// </summary>
+        /// <param name="pattern">The pattern to search for.</param>
+        /// <returns>The address of the first occurrence of the pattern, or 0 if not found.</returns>
+        /// <remarks>
+        /// This method will cache the result for future calls. To disable caching, use <see cref="FindFirst(Pattern, bool)"/>.
+        /// </remarks>
+        public static nint FindFirst(Pattern pattern)
         {
+            return FindFirst(pattern, true);
+        }
+
+        /// <summary>
+        /// Finds the first occurrence of the specified pattern in the process.
+        /// </summary>
+        /// <param name="pattern">The pattern to search for.</param>
+        /// <param name="cache">Whether to cache the result for future calls. (Works across restarts)</param>
+        /// <returns>The address of the first occurrence of the pattern, or 0 if not found.</returns>
+        public static unsafe nint FindFirst(Pattern pattern, bool cache)
+        {
+            var records = AddressRepository.GetPluginRecords();
+            if (cache)
+            {
+                if (records.TryGetValue(pattern.ToString(), out var address))
+                {
+                    Log.Debug($"Found cached address for {pattern}: 0x{address:X}");
+                    return address;
+                }
+
+                Log.Debug($"No cached address found for {pattern}");
+            }
+
             var module = WinApi.GetModuleHandle("MonsterHunterWorld.exe");
             if (module == 0)
                 return 0;
@@ -81,7 +116,12 @@ namespace SharpPluginLoader.Core.Memory
                 var found = Search(begin, end, pat);
 
                 if (found != null)
+                {
+                    if (cache)
+                        records[pattern.ToString()] = (nint)found;
+
                     return (nint)found;
+                }
 
                 addr = (nint)end;
             }

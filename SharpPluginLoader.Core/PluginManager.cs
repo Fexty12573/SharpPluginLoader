@@ -227,6 +227,12 @@ namespace SharpPluginLoader.Core
 
             // After all plugins are loaded, we can save the plugin records cache.
             AddressRepository.SavePluginRecords();
+
+            // Start a task to periodically save the plugin records cache.
+            SavePluginRecords(TimeSpan.FromSeconds(7)).ContinueWith(t =>
+            {
+                Log.Error($"Failed to save plugin records cache: {t.Exception}");
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         /// <summary>
@@ -573,6 +579,15 @@ namespace SharpPluginLoader.Core
                 _contexts[key].Plugin.OnUnload();
                 _contexts[key].Dispose();
                 _contexts.Remove(key);
+            }
+        }
+
+        private async Task SavePluginRecords(TimeSpan interval)
+        {
+            var timer = new PeriodicTimer(interval);
+            while (await timer.WaitForNextTickAsync())
+            {
+                AddressRepository.SavePluginRecords();
             }
         }
     }

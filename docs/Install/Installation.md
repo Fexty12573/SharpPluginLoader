@@ -1,11 +1,34 @@
 # Installation
-The mod is based on .NET 8. You will need to install the [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0/runtime) to use it.
+## Windows
+The mod is based on .NET 8. You will need to install the [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0/runtime) to use it.
 Grab the x64 Desktop Runtime and install it.
 
 Once you have the .NET runtime installed you can grab the latest release from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases).
 Extract the contents of the archive into the game's root directory (where `MonsterHunterWorld.exe` is located).
 
 If you installed everything correctly you should now find `winmm.dll` in the same folder as `MonsterHunterWorld.exe`, and a `CSharp` directory in `nativePC\plugins`.
+
+## Linux (Proton/Wine)
+As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below are the steps to install and run SPL on Linux.
+
+1. Download the latest **.NET Desktop Runtime** for x64 from [here](https://dotnet.microsoft.com/en-us/download/dotnet/8.0#runtime-desktop-8.0.10).
+2. Install the downloaded installer using [protontricks](https://github.com/Matoking/protontricks):
+```bash
+protontricks-launch --appid 582010 path/to/windowsdesktop-runtime-8.x.xx-win-x64.exe
+```
+3. Install the Direct 3D Shader Compiler using protontricks:
+```bash
+protontricks 582010 d3dcompiler_47
+```
+4. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `msvcrt.dll` file in the same folder as `MonsterHunterWorld.exe`.
+5. Set the steam launch options for MHW as follows:
+```bash
+# Use this for SPL only
+WINEDLLOVERRIDES="msvcrt=n,b" %command%
+
+# Or this for SPL together with Stracker's Loader
+WINEDLLOVERRIDES="msvcrt,dinput8=n,b" %command%
+```
 
 ## Usage
 Any C# plugins will be placed directly into the `CSharp` directory. The plugin loader will automatically load all DLLs in this directory.
@@ -21,7 +44,7 @@ Depending on the plugins you have installed you might also see an overlay/UI app
 ## Directory Structure Examples
 ```
 <Root game directory>
-└── winmm.dll
+└── winmm.dll/msvcrt.dll
 └── nativePC
     └── plugins
         └── CSharp
@@ -34,7 +57,7 @@ Depending on the plugins you have installed you might also see an overlay/UI app
 Conversely, the following is **not** valid, as `Plugin1.dll` is inside the `Loader` directory. The plugin loader will not load it.
 ```
 <Root game directory>
-└── winmm.dll
+└── winmm.dll/msvcrt.dll
 └── nativePC
     └── plugins
         └── CSharp

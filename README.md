@@ -67,4 +67,7 @@ If you would like to contribute, feel free to fork the repository and make a PR.
 - [DirectXTK\[12\]](https://github.com/microsoft/DirectXTK) - DirectX Toolkit, used for loading and managing textures
 
 ## **Credits**
-- Thanks to Lyra for creating the logo
+- Lyra: Creating the logo
+- ImDevinC: Lots of testing and feedback to get Linux support working
+- jn64: Writing the complete Linux installation instructions
+- Ando: Writing the preloader and generally improving the native side

@@ -11,7 +11,7 @@ If you installed everything correctly you should now find `winmm.dll` in the sam
 ## Linux (Proton/Wine)
 As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below are the steps to install and run SPL on Linux.
 
-1. Download the latest **.NET Desktop Runtime** for x64 from [here](https://dotnet.microsoft.com/en-us/download/dotnet/8.0#runtime-desktop-8.0.10).
+1. Download the latest [**.NET Desktop Runtime** for x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 2. Install the downloaded installer using [protontricks](https://github.com/Matoking/protontricks):
 ```bash
 protontricks-launch --appid 582010 path/to/windowsdesktop-runtime-8.x.xx-win-x64.exe

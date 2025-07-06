@@ -158,5 +158,5 @@ template<typename T> void write(std::ostream& stream, const T& value) {
         return;
     }
 
-    stream.write(reinterpret_cast<const char*>(&value), sizeof T);
+    stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -278,8 +279,11 @@ namespace PlayerAnimationViewer
             w.BaseStream.Position = endOffset; // Go back to end of motion to continue writing
         }
 
-        private static void SerializeMotionParam(ref MotionParam param, BinaryWriter w)
+        private static long SerializeMotionParam(ref MotionParam param, BinaryWriter w)
         {
+            w.AlignTo(4);
+            var startOffset = w.BaseStream.Position;
+
             w.Write(param.Type);
             w.Write(param.Usage);
             w.Write(param.JointType);
@@ -293,6 +297,8 @@ namespace PlayerAnimationViewer
             w.Write(param.ReferenceFrame[2]);
             w.Write(param.ReferenceFrame[3]);
             w.Write(0ul); // Placeholder for bounds offset
+
+            return startOffset;
         }
 
         private static void SerializeMetadata(ref Metadata metadata, BinaryWriter w)
@@ -337,6 +343,10 @@ namespace PlayerAnimationViewer
 
             progress = 0;
 
+            var motionParamOffsetMap = new Dictionary<nint, long>();
+            var motionBoundsOffsetMap = new Dictionary<nint, long>();
+            var motionBufferOffsetMap = new Dictionary<nint, long>();
+
             var ms = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
             var w = new BinaryWriter(ms);
 
@@ -350,6 +360,8 @@ namespace PlayerAnimationViewer
             var offsetsOffset = ms.Position;
             for (var i = 0; i < lmt.Header.MotionCount; ++i)
                 w.Write(0ul); // Placeholder for motion offsets
+
+            w.AlignTo(16);
 
             // Serialize Motion Headers
             for (var i = 0; i < lmt.Header.MotionCount; ++i)
@@ -386,16 +398,28 @@ namespace PlayerAnimationViewer
 
                 // 1. Write motion params
                 var motParams = new Span<MotionParam>((void*)motion.Params, (int)motion.ParamNum);
-                var motionParamOffset = w.BaseStream.Position;
-                Log.Debug($"Motion Param Offset: 0x{motionParamOffset:X}");
+                var motionParamStartOffset = 0L;
+                Log.Debug($"Motion Param Offset: 0x{motionParamStartOffset:X}");
                 var paramOffsets = new List<long>();
                 foreach (ref var param in motParams)
                 {
-                    paramOffsets.Add(w.BaseStream.Position);
-                    SerializeMotionParam(ref param, w);
+                    var addr = MemoryUtil.AddressOf(ref param);
+                    if (motionParamOffsetMap.TryGetValue(addr, out var value)) // Avoid duplicate serialization
+                    {
+                        paramOffsets.Add(value);
+                    }
+                    else
+                    {
+                        var offset = SerializeMotionParam(ref param, w);
+                        motionParamOffsetMap.Add(addr, offset);
+                        paramOffsets.Add(offset);
+                    }
                 }
 
-                w.AlignTo(16);
+                motionParamStartOffset = motParams.Length > 0 ? paramOffsets[0] : motionParamStartOffset;
+
+                if (MotionHasBounds(ref motion))
+                    w.AlignTo(16);
 
                 // 2. Write motion param bounds
                 var boundsOffsets = new List<long>();
@@ -408,6 +432,13 @@ namespace PlayerAnimationViewer
                         continue;
                     }
 
+                    if (motionBoundsOffsetMap.TryGetValue((nint)param.Bounds, out var value))
+                    {
+                        boundsOffsets.Add(value);
+                        continue;
+                    }
+
+                    motionBoundsOffsetMap.Add((nint)param.Bounds, w.BaseStream.Position);
                     boundsOffsets.Add(w.BaseStream.Position);
                     w.Write(param.Bounds->Addin[0]);
                     w.Write(param.Bounds->Addin[1]);
@@ -418,8 +449,6 @@ namespace PlayerAnimationViewer
                     w.Write(param.Bounds->Offset[2]);
                     w.Write(param.Bounds->Offset[3]);
                 }
-
-                w.AlignTo(16);
 
                 // 3. Write motion param buffers
                 var bufferOffsets = new List<long>();
@@ -433,17 +462,25 @@ namespace PlayerAnimationViewer
                         continue;
                     }
 
+                    if (motionBufferOffsetMap.TryGetValue((nint)param.Buffer, out var value))
+                    {
+                        bufferOffsets.Add(value);
+                        continue;
+                    }
+
                     w.AlignTo(4); // Motion param buffers are always 4-byte aligned
+                    motionBufferOffsetMap.Add((nint)param.Buffer, w.BaseStream.Position);
                     bufferOffsets.Add(w.BaseStream.Position);
                     w.Write(new ReadOnlySpan<byte>(param.Buffer, param.BufferSize));
                 }
 
-                w.AlignTo(16);
                 continuePos = w.BaseStream.Position;
 
                 // 4. Write metadata
-                if (!Unsafe.IsNullRef(ref motion.Metadata))
+                if (MotionHasMetadata(ref motion))
                 {
+                    w.AlignTo(16);
+
                     // Serialize Metadata
                     var metadataOffset = w.BaseStream.Position;
                     SerializeMetadata(ref motion.Metadata, w);
@@ -534,8 +571,8 @@ namespace PlayerAnimationViewer
 
                 // Write offsets
                 // First motion param offset
-                Log.Debug($"Writing Motion Param Offset at 0x{motionParamOffset:X}");
-                w.DoAt(startOffset + 0x00, _ => w.Write(motionParamOffset));
+                Log.Debug($"Writing Motion Param Offset at 0x{motionParamStartOffset:X}");
+                w.DoAt(startOffset + 0x00, _ => w.Write(motionParamStartOffset));
 
                 // Offsets for each motion param (buffers, bounds)
                 for (var j = 0; j < paramOffsets.Count; ++j)
@@ -569,11 +606,27 @@ namespace PlayerAnimationViewer
             w.Write(Zeros, 0, 20); // Padding
             w.Write(0ul); // Placeholder for metadata offset
 
-            w.AlignTo(16); // Shouldn't be necessary, but just in case
+            //w.AlignTo(16); // Shouldn't be necessary, but just in case
         }
 
         #endregion
 
+        private static bool MotionHasBounds(ref Motion motion)
+        {
+            var motParams = new Span<MotionParam>((void*)motion.Params, (int)motion.ParamNum);
+            foreach (ref var param in motParams)
+            {
+                if (param.Bounds != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool MotionHasMetadata(ref Motion motion)
+        {
+            return !Unsafe.IsNullRef(ref motion.Metadata);
+        }
 
         private static void AlignTo(this BinaryWriter w, int alignment)
         {

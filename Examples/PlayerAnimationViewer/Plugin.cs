@@ -102,8 +102,8 @@ namespace PlayerAnimationViewer
         private readonly NativeArray<LmtParamMemberDef> _paramMemberDefBuffer = NativeArray<LmtParamMemberDef>.Create(0x200);
         private LmtParamMemberDefPool* _paramMemberDefPool;
         private NativeArray<LmtParamType> LmtParamTypes => new(
-            MemoryUtil.Read<nint>(0x1451c39e0),
-            MemoryUtil.Read<int>(0x1451c39e8)
+            MemoryUtil.Read<nint>(0x1451c5c20),
+            MemoryUtil.Read<int>(0x1451c5c28)
         );
         #endregion
         #endregion
@@ -489,8 +489,8 @@ namespace PlayerAnimationViewer
                     {
                         if (_sortKeyframes)
                             _selectedLmt.SortKeyframes();
-                        Task.Run(DoSave);
                         _savePath = dialog.FileName;
+                        Task.Run(DoSave);
                     }
                 }
 
@@ -1509,7 +1509,7 @@ namespace PlayerAnimationViewer
 
         private static void GetMemberDefs(TimelineObject obj, LmtParamMemberDefPool* pool)
         {
-            var populateParams = new NativeAction<nint, nint>(0x14231dfd0);
+            var populateParams = new NativeAction<nint, nint>(0x14231f350);
             populateParams.Invoke(obj.Instance, (nint)pool);
         }
 

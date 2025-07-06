@@ -301,10 +301,10 @@ namespace SharpPluginLoader.Core.Entities
             static ShellCreationParams()
             {
                 var access = PatternScanner.FindFirst(Pattern.FromString(
-                    "F3 0F 10 05 BE 20 7B 03 F3 0F 10 0D BA 20 7B 03 F3 0F 11 44 24 30 F3 0F 10 05 B0 20 7B 03"
+                    "89 B7 F8 01 00 00 0F B6 05 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 0D ? ? ? ? F3 0F 11 44 24 30 F3 0F 10 05"
                 ));
-                var offset = MemoryUtil.Read<int>(access + 4);
-                _default = (ShellCreationParams*)(access + 8 + offset);
+                var offset = MemoryUtil.Read<int>(access + 17);
+                _default = (ShellCreationParams*)(access + 21 + offset);
             }
         }
     }

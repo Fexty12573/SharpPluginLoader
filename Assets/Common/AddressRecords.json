@@ -463,5 +463,10 @@
         "Name": "EmAction:VTableAssignment",
         "Pattern": "C7 41 0C 89 88 88 3C 89 71 08 48 8D 05 ?? ?? ?? ?? 48 89 01",
         "Offset": 13
+    },
+    {
+        "Name": "Keyboard:WriteInput",
+        "Pattern": "41 57 48 81 EC 20 01 00 00 48 8B E9 48 8B FA 48 8B 89 10 0A 00 00",
+        "Offset": -10
     }
 ]

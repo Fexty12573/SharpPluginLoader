@@ -6,7 +6,6 @@ using System.Runtime.InteropServices.Marshalling;
 using ImGuiNET;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
-using SharpPluginLoader.Core.MtTypes;
 
 namespace SharpPluginLoader.Core.Rendering
 {
@@ -68,7 +67,7 @@ namespace SharpPluginLoader.Core.Rendering
         /// Fonts must be registered before the first call to <see cref="IPlugin.OnImGuiRender"/>.
         /// Ideally, fonts should be registered in the <see cref="IPlugin.OnLoad"/> method.
         /// </remarks>
-        public static unsafe void RegisterFont(string name, string path, float size, nint glyphRanges = 0, 
+        public static unsafe void RegisterFont(string name, string path, float size, nint glyphRanges = 0,
             bool merge = false, int oversampleV = 0, int oversampleH = 0)
         {
             if (_fontsSubmitted)
@@ -232,10 +231,13 @@ namespace SharpPluginLoader.Core.Rendering
 
             if (ImGui.GetCurrentContext() != 0)
                 return ImGui.GetCurrentContext();
-            
+
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            // Set NavNoCaptureKeyboard because it doesn't include ctrl+tab and handle it by
+            // checking io.NavActive when deciding to block keyboard or not.
+            io.ConfigFlags |= ImGuiConfigFlags.NavNoCaptureKeyboard;
             // Currently causes a freeze when dragging a window outside of the main window.
             // Most likely the WndProc doesn't process events anymore which causes windows to think it's frozen.
             // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
@@ -248,13 +250,106 @@ namespace SharpPluginLoader.Core.Rendering
                 _mouseUpdateHook = Hook.Create<MouseUpdateDelegate>(sMhMouse.GetVirtualFunction(6), m =>
                 {
                     // Prevent the game from doing any mouse updates if an ImGui window is focused.
-                    if (ImGui.GetIO().MouseDrawCursor)
+                    var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
+                    if (anyFocused)
+                    {
+                        unsafe
+                        {
+                            // Zero mouse delta because it won't get updated.
+                            *(int*)(m + 0xFC) = 0;
+                            *(int*)(m + 0x100) = 0;
+                        }
+                        _lastUpdateHadFocus = true;
                         return;
+                    }
 
                     _mouseUpdateHook.Original(m);
+
+                    // Block mouse clicks if an ImGui window is hovered. Use _lastUpdateHadFocus
+                    // to more consistently block a click used to unfocus the ImGui window.
+                    var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+                    if (anyHovered || _lastUpdateHadFocus)
+                    {
+                        unsafe
+                        {
+                            *(byte*)(m + 0x188) = 0;
+                        }
+                        _lastUpdateHadFocus = false;
+                    }
                 });
             }
-            
+
+            var sMhKeyboard = SingletonManager.GetSingleton("sMhKeyboard");
+            if (sMhKeyboard is not null)
+            {
+                _keyboardUpdateHook = Hook.Create<KeyboardUpdateDelegate>(AddressRepository.Get("Keyboard:WriteInput"), (kb, kbState) =>
+                {
+                    _keyboardUpdateHook.Original(kb, kbState);
+
+                    if (_lastUpdateHadKeyboard)
+                    {
+                        // Block Escape/Enter if they were presumably used to exit an input field.
+                        // If for some reason the menu key is being held here, this will supersede it
+                        // and cause the menu to be re-toggled on the release of Escape or Enter.
+                        if (Input.IsDown(Key.Escape))
+                        {
+                            _waitForRelease = Key.Escape;
+                        }
+                        else if (Input.IsDown(Key.Enter))
+                        {
+                            _waitForRelease = Key.Enter;
+                        }
+                    }
+
+                    if (_waitForRelease == null)
+                    {
+                        // Block the key used to bring up the menu.
+                        if (Input.IsDown(_menuKey))
+                        {
+                            _showMenu = !_showMenu;
+                            _waitForRelease = _menuKey;
+                        }
+#if DEBUG
+                        else if (Input.IsDown(_demoKey))
+                        {
+                            _showDemo = !_showDemo;
+                            _waitForRelease = _demoKey;
+                        }
+#endif
+                    }
+
+                    unsafe
+                    {
+                        KeyboardState* state = (KeyboardState*)kbState;
+
+                        if (_waitForRelease != null)
+                        {
+                            byte* vkTable = (byte*)(kb + 0x38);
+                            byte vk = vkTable[(int)_waitForRelease];
+                            uint vkMask = 1u << (vk & 0x1F);
+                            // No longer down = Released.
+                            if ((state->On[vk >> 5] & vkMask) == 0)
+                            {
+                                _waitForRelease = null;
+                            }
+                            else
+                            {
+                                // On the update a key is first "Down", it seems to only be set in
+                                // KeyboardState::On. So negating that should effectively block it.
+                                state->On[vk >> 5] &= ~vkMask;
+                            }
+                        }
+
+                        var io = ImGui.GetIO();
+                        _lastUpdateHadKeyboard = io.WantCaptureKeyboard || io.NavActive;
+                        if (_lastUpdateHadKeyboard)
+                        {
+                            Unsafe.InitBlockUnaligned((byte*)state, 0, (uint)Marshal.SizeOf<KeyboardState>());
+                        }
+                    }
+                });
+            }
+
             Log.Debug("Renderer.Initialize");
 
             return ImGui.GetCurrentContext();
@@ -270,11 +365,6 @@ namespace SharpPluginLoader.Core.Rendering
         [UnmanagedCallersOnly]
         internal static unsafe nint ImGuiRender()
         {
-            if (Input.IsPressed(_menuKey))
-                _showMenu = !_showMenu;
-            if (Input.IsPressed(_demoKey))
-                _showDemo = !_showDemo;
-            
             var io = ImGui.GetIO();
             var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
             var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
@@ -293,6 +383,19 @@ namespace SharpPluginLoader.Core.Rendering
                     {
                         if (ImGui.BeginMenu("Options"))
                         {
+                            bool keyboardNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableKeyboard) != 0;
+                            if (ImGui.Checkbox("Keyboard Navigation", ref keyboardNav))
+                            {
+                                if (keyboardNav)
+                                {
+                                    io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+                                }
+                                else
+                                {
+                                    io.ConfigFlags &= ~ImGuiConfigFlags.NavEnableKeyboard;
+                                }
+                            }
+
                             ImGui.Checkbox("Draw Primitives as Wireframe",
                                 ref MemoryUtil.AsRef(_renderingOptionPointers.DrawPrimitivesAsWireframe));
 
@@ -341,7 +444,7 @@ namespace SharpPluginLoader.Core.Rendering
                 ImGui.ShowDemoWindow(ref _showDemo);
 #endif
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 5f);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 5.0f);
             InternalCalls.RenderNotifications();
             ImGui.PopStyleVar();
 
@@ -473,16 +576,23 @@ namespace SharpPluginLoader.Core.Rendering
         private delegate void MouseUpdateDelegate(nint sMhMouse);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static Hook<MouseUpdateDelegate> _mouseUpdateHook = null!;
+        private static bool _lastUpdateHadFocus = false;
+        private delegate void KeyboardUpdateDelegate(nint sMhKeyboard, nint kbState);
+        private static Hook<KeyboardUpdateDelegate> _keyboardUpdateHook = null!;
+        private static bool _lastUpdateHadKeyboard = false;
+        private static Key? _waitForRelease = null;
         private static bool _showMenu = false;
+        private static Key _menuKey = DefaultMenuKey;
+#if DEBUG
         private static bool _showDemo = false;
+        private static Key _demoKey = DefaultDemoKey;
+#endif
         private static RenderingOptionPointers _renderingOptionPointers;
         private static Vector2 _viewportSize;
         private static Vector2 _windowSize;
         private static Vector2 _mousePos;
         private static Vector2 _mousePosScalingFactor;
         private static float _fontScale = 1.0f;
-        private static Key _menuKey = DefaultMenuKey;
-        private static Key _demoKey = DefaultDemoKey;
         private static bool _fontsSubmitted = false;
 
         private static NativeArray<CustomFontNative> CustomFonts;

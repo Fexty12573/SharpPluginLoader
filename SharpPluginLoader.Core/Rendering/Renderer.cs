@@ -265,14 +265,15 @@ namespace SharpPluginLoader.Core.Rendering
 
                     _mouseUpdateHook.Original(m);
 
-                    // Block mouse clicks if an ImGui window is hovered. Use _lastUpdateHadFocus
+                    // Block mouse1 clicks if an ImGui window is hovered. Use _lastUpdateHadFocus
                     // to more consistently block a click used to unfocus the ImGui window.
                     var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
                     if (anyHovered || _lastUpdateHadFocus)
                     {
                         unsafe
                         {
-                            *(byte*)(m + 0x188) = 0;
+                            *(byte*)(m + 0x108) &= 0xFE; // Combat.
+                            *(byte*)(m + 0x188) &= 0xFE; // Menus.
                         }
                         _lastUpdateHadFocus = false;
                     }

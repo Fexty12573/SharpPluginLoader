@@ -249,33 +249,44 @@ namespace SharpPluginLoader.Core.Rendering
             {
                 _mouseUpdateHook = Hook.Create<MouseUpdateDelegate>(sMhMouse.GetVirtualFunction(6), m =>
                 {
-                    // Prevent the game from doing any mouse updates if an ImGui window is focused.
                     var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
-                    if (anyFocused)
+                    var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+
+                    if (anyFocused || anyHovered)
                     {
-                        unsafe
-                        {
-                            // Zero mouse delta because it won't get updated.
-                            *(int*)(m + 0xFC) = 0;
-                            *(int*)(m + 0x100) = 0;
-                        }
-                        _lastUpdateHadFocus = true;
-                        return;
+                        // Tell the game to not reset the cursor to the middle of the screen
+                        // when Camera Mouse Controls are on.
+                        // MonsterHunterWorld.exe+4898F0 - cmp [rax+000147A8],r15b(0)
+                        MemoryUtil.GetRef<byte>(Gui.SingletonInstance.Instance + 0x147A8) = 0x1;
                     }
 
                     _mouseUpdateHook.Original(m);
 
-                    // Block mouse1 clicks if an ImGui window is hovered. Use _lastUpdateHadFocus
-                    // to more consistently block a click used to unfocus the ImGui window.
-                    var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
-                    if (anyHovered || _lastUpdateHadFocus)
+                    if (anyFocused || anyHovered)
                     {
-                        unsafe
+                        MemoryUtil.GetRef<int>(m + 0x17C) = 0; // Scroll wheel.
+                    }
+
+                    if (anyFocused)
+                    {
+                        // Zero mouse delta used for camera movement.
+                        MemoryUtil.GetRef<ulong>(m + 0xFC) = 0L; // dX(int), dY(int).
+                        MemoryUtil.GetRef<byte>(m + 0x188) = 0x0; // Mouse down menu.
+                        MemoryUtil.GetRef<byte>(m + 0x108) = 0x0; // Mouse down combat.
+                        _lastUpdateHadFocus = true;
+                    }
+                    else if (anyHovered || _lastUpdateHadFocus)
+                    {
+                        // Block mouse1 clicks. Use _lastUpdateHadFocus to more consistently block
+                        // a click used to unfocus the ImGui window.
+                        ref byte downMenu = ref MemoryUtil.GetRef<byte>(m + 0x188);
+                        ref byte downCombat = ref MemoryUtil.GetRef<byte>(m + 0x108);
+                        if ((downMenu & 0x1) == 0 && (downCombat & 0x1) == 0) // Wait for release.
                         {
-                            *(byte*)(m + 0x108) &= 0xFE; // Combat.
-                            *(byte*)(m + 0x188) &= 0xFE; // Menus.
+                            _lastUpdateHadFocus = false;
                         }
-                        _lastUpdateHadFocus = false;
+                        downMenu &= 0xFE;
+                        downCombat &= 0xFE;
                     }
                 });
             }

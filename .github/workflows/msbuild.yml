@@ -7,7 +7,7 @@ on:
     branches: ["master"]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -60,9 +60,9 @@ jobs:
             -StorePasswordInClearText `
             -Name GitHubPackages `
             -UserName "${{ env.USERNAME }}" `
-            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+            -Password "${{ secrets.VCPKG_PAT_TOKEN }}"
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
-            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" `
+            setapikey "${{ secrets.VCPKG_PAT_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"
 
       - name: Generate cimgui project files

@@ -25,7 +25,6 @@
 
 #define NOTIFY_INLINE					inline
 #define NOTIFY_NULL_OR_EMPTY(str)		(!str ||! strlen(str))
-#define NOTIFY_FORMAT(fn, format, ...)	if (format) { va_list args; va_start(args, format); fn(format, args, __VA_ARGS__); va_end(args); }
 
 typedef int ImGuiToastType;
 typedef int ImGuiToastPhase;
@@ -80,9 +79,19 @@ private:
 
 public:
 
-	NOTIFY_INLINE auto set_title(const char* format, ...) -> void { NOTIFY_FORMAT(this->set_title, format); }
+	NOTIFY_INLINE auto set_title(const char* format, ...) -> void { if (format) {
+        va_list args;
+        va_start(args, format);
+        this->set_title(format, args);
+        va_end(args);
+    }; }
 
-	NOTIFY_INLINE auto set_content(const char* format, ...) -> void { NOTIFY_FORMAT(this->set_content, format); }
+	NOTIFY_INLINE auto set_content(const char* format, ...) -> void { if (format) {
+        va_list args;
+        va_start(args, format);
+        this->set_content(format, args);
+        va_end(args);
+    }; }
 
 	NOTIFY_INLINE auto set_type(const ImGuiToastType& type) -> void { IM_ASSERT(type < ImGuiToastType_COUNT); this->type = type; };
 
@@ -211,9 +220,20 @@ public:
 		memset(this->content, 0, sizeof(this->content));
 	}
 
-	ImGuiToast(ImGuiToastType type, const char* format, ...) : ImGuiToast(type) { NOTIFY_FORMAT(this->set_content, format); }
+	ImGuiToast(ImGuiToastType type, const char* format, ...) : ImGuiToast(type) { if (format) {
+        va_list args;
+        va_start(args, format);
+        this->set_content(format, args);
+        va_end(args);
+    }; }
 
-	ImGuiToast(ImGuiToastType type, int dismiss_time, const char* format, ...) : ImGuiToast(type, dismiss_time) { NOTIFY_FORMAT(this->set_content, format); }
+	ImGuiToast(ImGuiToastType type, int dismiss_time, const char* format, ...) : ImGuiToast(type, dismiss_time) { if (
+        format) {
+        va_list args;
+        va_start(args, format);
+        this->set_content(format, args);
+        va_end(args);
+    }; }
 };
 
 namespace ImGui

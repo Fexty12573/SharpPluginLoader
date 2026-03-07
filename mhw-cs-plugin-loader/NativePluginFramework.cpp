@@ -8,6 +8,9 @@
 #include "ImGuiModule.h"
 #include "PatternScan.h"
 
+#include <filesystem>
+
+
 NativePluginFramework::NativePluginFramework(CoreClr* coreclr, AddressRepository* address_repository)
     : m_managed_functions(coreclr->get_managed_function_pointers()),
       m_address_repository(address_repository) {
@@ -67,4 +70,19 @@ const char* NativePluginFramework::get_game_revision() {
     dlog::debug("Game revision: {}", s_instance->m_game_revision);
 
     return s_instance->m_game_revision;
+}
+
+void NativePluginFramework::run_compatibility_checks() {
+    // We intentionally force BetterInputs and DPSTickFix to be loaded early so they
+    // are guaranteed to actually find a viable code cave in the range they're looking for.
+    constexpr auto BETTER_INPUTS_PATH = "nativePC/plugins/BetterInputs.dll";
+    constexpr auto DPS_TICK_FIX_PATH = "nativePC/plugins/DPSTickFix.dll";
+
+    if (std::filesystem::exists(BETTER_INPUTS_PATH)) {
+        (void)LoadLibraryA(BETTER_INPUTS_PATH);
+    }
+
+    if (std::filesystem::exists(DPS_TICK_FIX_PATH)) {
+        (void)LoadLibraryA(DPS_TICK_FIX_PATH);
+    }
 }

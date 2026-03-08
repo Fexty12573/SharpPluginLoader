@@ -187,7 +187,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         buffers[0] = m_d3d11_sphere.VertexBuffer.Get();
 
-        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->IASetVertexBuffers(
+            0,
+            static_cast<UINT>(buffers.size()),
+            buffers.data(),
+            strides.data(),
+            offsets.data()
+        );
         context->DrawIndexedInstanced(
             m_d3d11_sphere.IndexCount,
             i, 0, 0, 0
@@ -222,7 +228,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         buffers[0] = m_d3d11_cube.VertexBuffer.Get();
 
-        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->IASetVertexBuffers(
+            0,
+            static_cast<UINT>(buffers.size()),
+            buffers.data(),
+            strides.data(),
+            offsets.data()
+        );
         context->DrawIndexedInstanced(
             m_d3d11_cube.IndexCount,
             i, 0, 0, 0
@@ -316,7 +328,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         buffers[0] = m_d3d11_hemisphere_top.VertexBuffer.Get();
         buffers[1] = m_d3d11_htop_transform_buffer.Get();
-        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->IASetVertexBuffers(
+            0,
+            static_cast<UINT>(buffers.size()),
+            buffers.data(),
+            strides.data(),
+            offsets.data()
+        );
         context->DrawIndexedInstanced(
             m_d3d11_hemisphere_top.IndexCount,
             i, 0, 0, 0
@@ -327,7 +345,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         buffers[0] = m_d3d11_hemisphere_bottom.VertexBuffer.Get();
         buffers[1] = m_d3d11_hbottom_transform_buffer.Get();
-        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->IASetVertexBuffers(
+            0,
+            static_cast<UINT>(buffers.size()),
+            buffers.data(),
+            strides.data(),
+            offsets.data()
+        );
         context->DrawIndexedInstanced(
             m_d3d11_hemisphere_bottom.IndexCount,
             i, 0, 0, 0
@@ -338,7 +362,13 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
 
         buffers[0] = m_d3d11_cylinder.VertexBuffer.Get();
         buffers[1] = m_d3d11_transform_buffer.Get();
-        context->IASetVertexBuffers(0, buffers.size(), buffers.data(), strides.data(), offsets.data());
+        context->IASetVertexBuffers(
+            0,
+            static_cast<UINT>(buffers.size()),
+            buffers.data(),
+            strides.data(),
+            offsets.data()
+        );
         context->DrawIndexedInstanced(
             m_d3d11_cylinder.IndexCount,
             i, 0, 0, 0

@@ -24,6 +24,7 @@ public class ComponentManager : MtObject
 
     /// <inheritdoc cref="Find(MtDti,bool)"/>
     /// <param name="name">The name of the component to find.</param>
+    /// <param name="allowSubclass">Whether to allow subclasses of the specified type.</param>
     public Component? Find(string name, bool allowSubclass = false)
     {
         var dti = MtDti.Find(name);

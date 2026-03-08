@@ -32,7 +32,7 @@ static constexpr auto concat = Join<Strs...>::value;
 }
 
 // The current version of the loader, not used for anything yet
-constexpr inline auto SPL_VERSION = L"0.0.2"sv;
+constexpr inline auto SPL_VERSION = L"0.0.8"sv;
 
 // The path to the loader directory
 constexpr inline auto SPL_LOADER_DIR = L"nativePC/plugins/CSharp/Loader/"sv;

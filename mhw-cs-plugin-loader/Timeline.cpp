@@ -626,8 +626,8 @@ bool ImGui::TimelineTrack(std::string_view label, float* keyframes, int keyframe
             ImVec2(keyframe_x_pos - keyframe_radius, keyframe_y_pos - keyframe_radius),
             ImVec2(keyframe_x_pos + keyframe_radius, keyframe_y_pos + keyframe_radius)
         };
-
-        const ImGuiID keyframe_id = igGetID_Ptr((void*)i);
+        
+        const ImGuiID keyframe_id = ImGuiWindow_GetID_Int(igGetCurrentWindow(), i);
         if (!igItemAdd(keyframe_rect, keyframe_id, nullptr, 0)) {
             // TODO: Could technically change this to a break, as this means that the rest of the keyframes are not visible
             continue;

@@ -18,7 +18,7 @@ extern "C" static void public_log_interface(i32 level, const char* msg) {
 struct ManagedFunctionPointersInternal {
     ManagedFunctionPointers PublicFunctions;
     void(*UploadInternalCalls)(void*, u32);
-    void*(*FindCoreMethod)(const char*, const char*);
+    void*(*FindCoreMethod)(const wchar_t*, const wchar_t*);
     void(*Initialize)();
 };
 
@@ -132,18 +132,24 @@ void CoreClr::initialize_core_assembly() const {
     m_core_initialize();
 }
 
-void* CoreClr::get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const {
+void* CoreClr::get_method_internal(std::wstring_view assembly, const std::wstring& type, const std::wstring& method) const {
     void* function_pointer = nullptr;
 
     if (assembly.starts_with(L"SharpPluginLoader.Core")) {
-        const std::string type_utf8{ type.begin(), type.end() };
-        const std::string method_utf8{ method.begin(), method.end() };
-        return m_find_core_method(type_utf8.c_str(), method_utf8.c_str());
+        return m_find_core_method(type.c_str(), method.c_str());
     }
 
     const auto qualified_name = std::format(L"{}, {}", type, assembly);
     dlog::debug(L"Getting function pointer for {} -> {}", qualified_name, method);
-    const auto hr = m_get_function_pointer(qualified_name.c_str(), method.data(), UNMANAGEDCALLERSONLY_METHOD, nullptr, nullptr, &function_pointer);
+    const auto hr = m_get_function_pointer(
+        qualified_name.c_str(),
+        method.c_str(),
+        UNMANAGEDCALLERSONLY_METHOD,
+        nullptr,
+        nullptr,
+        &function_pointer
+    );
+
     if (FAILED(hr)) {
         dlog::debug(L"Failed to get function pointer for {}.{}: {}", type, method, hr);
         return nullptr;

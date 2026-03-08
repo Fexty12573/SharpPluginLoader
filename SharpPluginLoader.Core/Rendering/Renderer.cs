@@ -604,7 +604,6 @@ namespace SharpPluginLoader.Core.Rendering
         private static Vector2 _windowSize;
         private static Vector2 _mousePos;
         private static Vector2 _mousePosScalingFactor;
-        private static float _fontScale = 1.0f;
         private static bool _fontsSubmitted = false;
 
         private static NativeArray<CustomFontNative> CustomFonts;

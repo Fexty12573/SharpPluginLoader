@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <Windows.h>
 #include "coreclr_delegates.h"
 #include "SharpPluginLoader.h"
@@ -34,7 +35,7 @@ public:
     CoreClr();
 
     template<typename TFunc>
-    TFunc* get_method(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const {
+    TFunc* get_method(std::wstring_view assembly, const std::wstring& type, const std::wstring& method) const {
         return static_cast<TFunc*>(get_method_internal(assembly, type, method));
     }
 
@@ -48,7 +49,7 @@ public:
     void initialize_core_assembly() const;
 
 private:
-    void* get_method_internal(std::wstring_view assembly, std::wstring_view type, std::wstring_view method) const;
+    void* get_method_internal(std::wstring_view assembly, const std::wstring& type, const std::wstring& method) const;
 
 
 private:
@@ -64,7 +65,7 @@ private:
     ManagedFunctionPointers m_managed_function_pointers{};
 
     void(*m_upload_internal_calls)(void*, u32) = nullptr;
-    void*(*m_find_core_method)(const char*, const char*) = nullptr;
+    void*(*m_find_core_method)(const wchar_t*, const wchar_t*) = nullptr;
 
     std::vector<InternalCall> m_internal_calls{};
 };

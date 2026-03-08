@@ -74,6 +74,25 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
     SetConsoleTextAttribute(s_console, 0);
 }
 
+std::string wstring_to_utf8(std::wstring_view str) {
+    const int size = WideCharToMultiByte(
+        CP_UTF8, 0,
+        str.data(), static_cast<int>(str.size()),
+        nullptr, 0,
+        nullptr, nullptr
+    );
+
+    std::string result(size, '\0');
+    WideCharToMultiByte(
+        CP_UTF8, 0,
+        str.data(), static_cast<int>(str.size()),
+        result.data(), size,
+        nullptr, nullptr
+    );
+
+    return result;
+}
+
 }
 
 void dlog::impl::log(dlog::impl::LogLevel level, const std::string& msg) {
@@ -98,7 +117,7 @@ void debug::log::impl::log(LogLevel level, const std::wstring& msg) {
     const auto time = std::format(L"[ {:%T} | SPL ] ", std::chrono::system_clock::now());
     log_raw(level, msg.c_str(), msg.size(), time.c_str(), time.size(), WriteConsoleW);
 
-    const std::string msg_utf8{ msg.begin(), msg.end() };
-    const std::string time_utf8{ time.begin(), time.end() };
+    const std::string time_utf8 = wstring_to_utf8(time);
+    const std::string msg_utf8 = wstring_to_utf8(msg);
     impl::s_file << time_utf8 << msg_utf8 << '\n' << std::flush;
 }

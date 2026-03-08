@@ -20,7 +20,10 @@ namespace SharpPluginLoader.Core
         private delegate void ReloadPluginsDelegate();
         private delegate void ReloadPluginDelegate(string pluginName);
         private delegate void UploadInternalCallsDelegate(InternalCall* internalCalls, uint internalCallsCount);
-        private delegate nint FindCoreMethodDelegate(string typeName, string methodName);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
+        private delegate nint FindCoreMethodDelegate(
+            [MarshalAs(UnmanagedType.LPWStr)] string typeName,
+            [MarshalAs(UnmanagedType.LPWStr)] string methodName);
         private delegate void InitializeDelegate();
 
         private readonly struct RetrievedMethod(string typeName, string methodName, nint functionPointer)
@@ -153,7 +156,7 @@ namespace SharpPluginLoader.Core
             PluginManager.Instance.ReloadPlugins(PluginManager.DefaultPluginDirectory);
         }
 
-        public static void ReloadPlugin([MarshalAs(UnmanagedType.LPStr)] string pluginName)
+        public static void ReloadPlugin(string pluginName)
         {
             PluginManager.Instance.ReloadPlugin(pluginName, true);
         }

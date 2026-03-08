@@ -27,6 +27,19 @@ namespace SharpPluginLoader.Core.Resources
         }
 
         /// <summary>
+        /// Turns this object into a strong reference (i.e. it will keep the wrapped resource alive).
+        /// Does nothing if this object is already a strong reference.
+        /// </summary>
+        public void MakeStrongRef()
+        {
+            if (!_isWeakRef)
+                return;
+
+            AddRef();
+            _isWeakRef = false;
+        }
+
+        /// <summary>
         /// Increments the reference count of this resource.
         /// </summary>
         /// <remarks>
@@ -84,7 +97,7 @@ namespace SharpPluginLoader.Core.Resources
             return new T { Instance = Instance };
         }
 
-        private readonly bool _isWeakRef;
+        private bool _isWeakRef;
 
         private static readonly NativeAction<nint, nint> AddRefFunc = new(AddressRepository.Get("ResourceManager:AddRef"));
         private static readonly NativeAction<nint, nint> ReleaseFunc = new(AddressRepository.Get("ResourceManager:Release"));

@@ -229,6 +229,11 @@ namespace SharpPluginLoader.Core
         /// <param name="dti">The DTI of the resource</param>
         /// <param name="path">The file path of the resource, without its extension</param>
         /// <param name="flags">The flags passed to the request</param>
+        /// <remarks>
+        /// Resources passed to this function are weak references.
+        /// If you want to keep the resource passed to this function alive you must call
+        /// <see cref="Resource.MakeStrongRef"/> on it.
+        /// </remarks>
         [PluginEvent]
         public void OnResourceLoad(Resource? resource, MtDti dti, string path, LoadFlags flags) => throw new NotImplementedException();
 
@@ -487,9 +492,6 @@ namespace SharpPluginLoader.Core
             {
                 if (field.GetValue(this) is IDisposable disposable)
                 {
-                    if (disposable is null)
-                        continue;
-
                     disposable.Dispose();
                 }
             }

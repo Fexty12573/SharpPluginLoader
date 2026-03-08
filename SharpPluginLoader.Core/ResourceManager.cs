@@ -53,7 +53,7 @@ public static class ResourceManager
     private static nint GetResourceHook(nint resourceMgr, nint dti, string path, LoadFlags flags)
     {
         var resource = _getResourceHook.Original(resourceMgr, dti, path, flags);
-        var resObj = resource != 0 ? new Resource(resource) : null;
+        var resObj = resource != 0 ? new Resource(resource, true) : null;
         var dtiObj = new MtDti(dti);
 
         foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnResourceLoad))

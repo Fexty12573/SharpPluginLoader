@@ -75,8 +75,33 @@ const char* NativePluginFramework::get_game_revision() {
 void NativePluginFramework::run_compatibility_checks() {
     // We intentionally force BetterInputs and DPSTickFix to be loaded early so they
     // are guaranteed to actually find a viable code cave in the range they're looking for.
+    constexpr auto DINPUT8_PATH = "dinput8.dll";
+    constexpr auto LOADER_PATH = "loader.dll";
     constexpr auto BETTER_INPUTS_PATH = "nativePC/plugins/BetterInputs.dll";
     constexpr auto DPS_TICK_FIX_PATH = "nativePC/plugins/DPSTickFix.dll";
+
+    if (std::filesystem::exists(LOADER_PATH)) {
+        dlog::info("Strackers Loader detected, forcing early load to prevent compatibility issues.");
+
+        if (std::filesystem::exists(DINPUT8_PATH)) {
+            std::filesystem::rename(DINPUT8_PATH, "dinput8_stracker.dll");
+        }
+
+        const auto module = LoadLibraryA(LOADER_PATH);
+        if (module == nullptr) {
+            dlog::error("Failed to load {}: error code {}", LOADER_PATH, GetLastError());
+            return;
+        }
+
+        const auto initialize = GetProcAddress(module, "Initialize");
+        if (initialize == nullptr) {
+            dlog::error("Failed to find Initialize function in {}: error code {}", LOADER_PATH, GetLastError());
+            return;
+        }
+
+        initialize();
+        return;
+    }
 
     if (std::filesystem::exists(BETTER_INPUTS_PATH)) {
         (void)LoadLibraryA(BETTER_INPUTS_PATH);

@@ -31,18 +31,18 @@ jobs:
 
     steps:
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
         with:
           vs-version: "[,17)"
           msbuild-architecture: x64
@@ -66,20 +66,45 @@ jobs:
             -Source "${{ env.FEED_URL }}"
 
       - name: Generate cimgui project files
-        working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          cd ./dependencies/cimgui/
-          cmake -B . -G 'Visual Studio 17 2022'
-
+          cmake -S ${{ env.CIMGUI_ROOT }} -B ${{ env.CIMGUI_ROOT }} -G "Visual Studio 17 2022"
+        env:
+          CIMGUI_ROOT: dependencies/cimgui
+      
       - name: Dotnet Restore
-        working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          dotnet restore ${{env.SOLUTION_FILE_PATH}}
+          dotnet restore ${{ env.SOLUTION_FILE_PATH }}
       
       - name: Build Solution
-        working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          msbuild -m -p:Configuration=${{env.BUILD_CONFIGURATION}} -p:Platform=x64 ${{env.SOLUTION_FILE_PATH}}
+          msbuild -m -p:Configuration=${{ env.BUILD_CONFIGURATION }} -p:Platform=x64 ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Compute Short Git Hash
+        id: compute_hash
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Make Package
+        if: matrix.configuration == 'Release'
+        id: make_package
+        run: |
+          python ./make-package.py -c Release . ${{ steps.compute_hash.outputs.sha_short }}
+          echo "package_win32=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-win32.zip" >> $GITHUB_OUTPUT
+          echo "package_linux=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-linux.zip" >> $GITHUB_OUTPUT
+      
+      # Upload release-files/tags/<short_sha>/SharpPluginLoader-<short_sha>-(win32|linux).zip
+      - name: Upload win32 Package Artifact
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.make_package.outputs.package_win32 }}
+          path: release-files/tags/${{ steps.compute_hash.outputs.sha_short }}/${{ steps.make_package.outputs.package_win32 }}
+
+      - name: Upload linux Package Artifact
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.make_package.outputs.package_linux }}
+          path: release-files/tags/${{ steps.compute_hash.outputs.sha_short }}/${{ steps.make_package.outputs.package_linux }}
 
       # TODO(Andoryuuta): Can't currently build solution directly due to build order issues + "Release" mode binaries expected on-disk for some build scripts.
       # - name: Build Solution

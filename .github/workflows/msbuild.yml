@@ -81,15 +81,15 @@ jobs:
 
       - name: Compute Short Git Hash
         id: compute_hash
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
 
       - name: Make Package
         if: matrix.configuration == 'Release'
         id: make_package
         run: |
           python ./make-package.py -c Release . ${{ steps.compute_hash.outputs.sha_short }}
-          echo "package_win32=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-win32.zip" >> $GITHUB_OUTPUT
-          echo "package_linux=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-linux.zip" >> $GITHUB_OUTPUT
+          echo "package_win32=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-win32.zip" >> $env:GITHUB_OUTPUT
+          echo "package_linux=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-linux.zip" >> $env:GITHUB_OUTPUT
       
       # Upload release-files/tags/<short_sha>/SharpPluginLoader-<short_sha>-(win32|linux).zip
       - name: Upload win32 Package Artifact

@@ -3,11 +3,14 @@ import subprocess
 import argparse
 import os
 
-def main(sln_dir, config, tag):
+def main(sln_dir, config, tag, msbuild_in_path):
     # build the solution
     print(f'Building solution in {sln_dir} with configuration {config}...')
     
-    msbuild = f"{os.environ['ProgramFiles']}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+    if msbuild_in_path:
+        msbuild = "msbuild"
+    else:
+        msbuild = f"{os.environ['ProgramFiles']}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
     sln = os.path.join(sln_dir, "mhw-cs-plugin-loader.sln")
     subprocess.run([msbuild, sln, f"/p:Configuration={config}"], check=True)
 
@@ -72,6 +75,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create a release of the plugin loader")
     parser.add_argument("sln_dir", help="The directory of the solution")
     parser.add_argument("-c", "--config", help="The configuration to build", default="Release", choices=["Release", "Debug"], type=str.capitalize)
+    parser.add_argument("-m", "--msbuild-in-path", help="Set if msbuild is in the PATH environment variable", action="store_true")
     parser.add_argument("tag", help="The tag to use for the release in the format x.x.x[.x]", default="latest")
     args = parser.parse_args()
 
@@ -79,4 +83,4 @@ if __name__ == "__main__":
         print(f"Error: {args.sln_dir} is not a directory")
         usage(parser)
     
-    main(args.sln_dir, args.config, args.tag)
+    main(args.sln_dir, args.config, args.tag, args.msbuild_in_path)

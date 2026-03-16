@@ -69,7 +69,6 @@ __declspec(noinline) int64_t hooked_scrt_common_main() {
     s_framework = new NativePluginFramework(s_coreclr, s_address_repository);
     dlog::info("[Preloader] Initialized");
 
-    s_framework->run_compatibility_checks();
     s_framework->trigger_on_pre_main();
 
     return g_scrt_common_main_hook.call<int64_t>();
@@ -163,6 +162,8 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
             return;
         }
         dlog::debug("[Preloader] Resolved address for sMhMain::ctor: 0x{:X}", mhmain_ctor_address);
+
+        NativePluginFramework::run_compatibility_checks();
 
         // Hook the functions.
         g_scrt_common_main_hook = safetyhook::create_inline(

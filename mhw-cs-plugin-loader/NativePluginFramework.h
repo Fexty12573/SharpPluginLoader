@@ -29,11 +29,11 @@ public:
 
     explicit NativePluginFramework(CoreClr* coreclr, AddressRepository* address_repository);
 
-    void run_compatibility_checks();
     void trigger_on_pre_main();
     void trigger_on_win_main();
     void trigger_on_mh_main_ctor();
-
+    
+    static void run_compatibility_checks();
     static uintptr_t get_repository_address(const char* name);
     static const char* get_game_revision();
 

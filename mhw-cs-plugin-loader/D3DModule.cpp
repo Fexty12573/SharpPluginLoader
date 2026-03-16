@@ -39,7 +39,7 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Render"
     );
-    m_core_imgui_render = coreclr->get_method<ImDrawData * ()>(
+    m_core_imgui_render = coreclr->get_method<ImDrawData* ()>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ImGuiRender"
@@ -268,7 +268,7 @@ void D3DModule::initialize_for_d3d12() {
     const auto resize_buffers = swap_chain_vft[13];
     const auto execute_command_lists = command_queue_vft[10];
     const auto signal = command_queue_vft[14];
-    
+
     m_d3d_present_hook = safetyhook::create_inline(present, d3d12_present_hook);
     m_d3d_execute_command_lists_hook = safetyhook::create_inline(execute_command_lists, d3d12_execute_command_lists_hook);
     m_d3d_signal_hook = safetyhook::create_inline(signal, d3d12_signal_hook);
@@ -332,12 +332,12 @@ void D3DModule::initialize_for_d3d11() {
     ID3D11DeviceContext* device_context;
 
     if (FAILED(d3d11_create_device_and_swap_chain(
-        nullptr, 
-        D3D_DRIVER_TYPE_HARDWARE, 
-        nullptr, 0, 
-        feature_levels, 
-        _countof(feature_levels), 
-        D3D11_SDK_VERSION, 
+        nullptr,
+        D3D_DRIVER_TYPE_HARDWARE,
+        nullptr, 0,
+        feature_levels,
+        _countof(feature_levels),
+        D3D11_SDK_VERSION,
         &sd, &swap_chain, &device, &feature_level, &device_context))) {
         dlog::error("Failed to create D3D11 device and swap chain");
         return;
@@ -487,11 +487,11 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     GetClientRect(desc.OutputWindow, &client_rect);
 
     const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
-    const MtSize window_size = { 
-        (u32)(client_rect.right - client_rect.left), 
-        (u32)(client_rect.bottom - client_rect.top) 
+    const MtSize window_size = {
+        (u32)(client_rect.right - client_rect.left),
+        (u32)(client_rect.bottom - client_rect.top)
     };
-    
+
     const auto& config = preloader::LoaderConfig::get();
     const auto context = m_core_initialize_imgui(viewport_size, window_size, true, config.get_menu_key().c_str());
 
@@ -530,7 +530,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         m_d3d12_frame_contexts[i].CommandAllocator = command_allocator;
     }
 
-    if (FAILED(m_d3d12_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+    if (FAILED(m_d3d12_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
         command_allocator.Get(), nullptr, IID_PPV_ARGS(m_d3d12_command_list.GetAddressOf())))) {
         dlog::error("Failed to create D3D12 command list");
         return;
@@ -565,7 +565,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 
         const auto buffer_desc = back_buffer->GetDesc();
         dlog::debug("Creating RTV for back buffer {}, with size {}x{}", i, buffer_desc.Width, buffer_desc.Height);
-        
+
         m_d3d12_device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_handle);
         m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
         m_d3d12_frame_contexts[i].RenderTarget = back_buffer;
@@ -620,9 +620,9 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
     GetClientRect(desc.OutputWindow, &client_rect);
 
     const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
-    const MtSize window_size = { 
-        (u32)(client_rect.right - client_rect.left), 
-        (u32)(client_rect.bottom - client_rect.top) 
+    const MtSize window_size = {
+        (u32)(client_rect.right - client_rect.left),
+        (u32)(client_rect.bottom - client_rect.top)
     };
 
     const auto& config = preloader::LoaderConfig::get();
@@ -777,14 +777,14 @@ HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
     }
 
     self->m_is_inside_present = true;
-    
+
     if (!self->m_is_initialized) {
         self->d3d12_initialize_imgui(swap_chain);
-        
+
         if (!self->m_texture_manager) {
             self->m_texture_manager = std::make_unique<TextureManager>(
-                self->m_d3d12_device, 
-                self->m_d3d12_command_queue, 
+                self->m_d3d12_device,
+                self->m_d3d12_command_queue,
                 self->m_d3d12_srv_heap
             );
         }
@@ -861,8 +861,7 @@ void D3DModule::d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::s
 
     m_d3d12_command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const*)m_d3d12_command_list.GetAddressOf());
 
-    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
+    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         igUpdatePlatformWindows();
         igRenderPlatformWindowsDefault(nullptr, m_d3d12_command_list.Get());
     }
@@ -908,8 +907,7 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
         self->m_is_initialized = false;
         if (self->m_is_d3d12) {
             self->d3d12_deinitialize_imgui();
-        }
-        else {
+        } else {
             self->d3d11_deinitialize_imgui();
         }
     }
@@ -936,7 +934,7 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
         if (!self->m_texture_manager) {
             self->m_texture_manager = std::make_unique<TextureManager>(self->m_d3d11_device, self->m_d3d11_device_context);
         }
-        
+
         if (config.get_primitive_rendering_enabled()) {
             prm->late_init(self.get(), swap_chain);
         }
@@ -965,8 +963,7 @@ void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::s
 
     ImGui_ImplDX11_RenderDrawData(draw_data);
 
-    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
+    if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         igUpdatePlatformWindows();
         igRenderPlatformWindowsDefault(nullptr, nullptr);
     }

@@ -52,7 +52,7 @@ namespace SharpPluginLoader.Core
         internal bool OnQuestDepart;
 
         /// <inheritdoc cref="IPlugin.OnQuestEnter"/>
-        internal bool OnQuestEnter; 
+        internal bool OnQuestEnter;
 
         /// <inheritdoc cref="IPlugin.OnQuestLeave"/>
         internal bool OnQuestLeave;
@@ -107,7 +107,7 @@ namespace SharpPluginLoader.Core
         #region Entity
         /// <inheritdoc cref="IPlugin.OnEntityAction"/>
         internal bool OnEntityAction;
-        
+
         /// <inheritdoc cref="IPlugin.OnEntityAnimation"/>
         internal bool OnEntityAnimation;
 
@@ -159,7 +159,7 @@ namespace SharpPluginLoader.Core
 
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you can optionally configure your plugin within the framework.
-        /// 
+        ///
         /// Default event, always called once per plugin [re]load.
         /// </summary>
         /// <returns>The filled out PluginData</returns>
@@ -168,7 +168,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Gets called after the game has initialized it's singletons. This is you initialize anything in your plugin
         /// that uses the game state (e.g. reading pointers, accessing singletons, etc).
-        /// 
+        ///
         /// Default event, always called once per plugin [re]load.
         /// </summary>
         public void OnLoad() { } // Not marked as a plugin event because it's always called

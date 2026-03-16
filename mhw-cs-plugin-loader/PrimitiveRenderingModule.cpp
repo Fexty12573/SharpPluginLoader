@@ -105,8 +105,8 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     m_capsules = std::span(capsules, m_capsule_count);
     m_lines = std::span(lines, m_line_count);
 
-    //if (m_spheres.empty() && 
-    //    m_cubes.empty() && 
+    //if (m_spheres.empty() &&
+    //    m_cubes.empty() &&
     //    m_capsules.empty() &&
     //    m_lines.empty()) {
     //    return;
@@ -292,15 +292,15 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
                                 -XMVectorGetY(v), -XMVectorGetX(v), 0, 0,
                                 0, 0, 0, 0 };
                 const XMMATRIX vx2 = XMMatrixMultiply(vx, vx);
-                
+
                 rotation = XMMatrixAdd(XMMatrixAdd(XMMatrixIdentity(), vx), vx2 * (1.0f / (1.0f + c)));
             }
 
             // Scale
             const XMMATRIX scale_hemisphere = XMMatrixScaling(capsule.capsule.r, capsule.capsule.r, capsule.capsule.r);
             const XMMATRIX scale_cylinder = XMMatrixScaling(
-                capsule.capsule.r, 
-                XMVectorGetX(XMVector3Length(p1 - p0)) * 0.5f, 
+                capsule.capsule.r,
+                XMVectorGetX(XMVector3Length(p1 - p0)) * 0.5f,
                 capsule.capsule.r
             );
 
@@ -388,7 +388,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
         const auto params = (LineParams*)msr.pData;
         params->Thickness = m_line_thickness;
         context->Unmap(m_d3d11_line_params_buffer.Get(), 0);
-        
+
         const std::array constant_buffers = {
             m_d3d11_viewproj_buffer.Get(),
             m_d3d11_line_params_buffer.Get()
@@ -451,7 +451,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     m_capsules = std::span(capsules, m_capsule_count);
     m_lines = std::span(lines, m_line_count);
 
-    //if (m_spheres.empty() && 
+    //if (m_spheres.empty() &&
     //    m_cubes.empty() &&
     //    m_capsules.empty() &&
     //    m_lines.empty()) {
@@ -465,7 +465,7 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     }
 
     // Set up common pipeline state
-    
+
     const FrameContext& frame_context = m_d3d12_frame_contexts[swap_chain->GetCurrentBackBufferIndex()];
 
     HandleResult(m_d3d12_command_allocator->Reset());
@@ -487,9 +487,9 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     m_d3d12_command_list->RSSetViewports(1, &m_d3d12_viewport);
     m_d3d12_command_list->RSSetScissorRects(1, &m_d3d12_scissor_rect);
     m_d3d12_command_list->OMSetRenderTargets(
-        1,     
-        &frame_context.RenderTargetDescriptor, 
-        false, 
+        1,
+        &frame_context.RenderTargetDescriptor,
+        false,
         &m_d3d12_depth_stencil_view
     );
 
@@ -524,8 +524,8 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     // Spheres ------------------------------
     if (m_sphere_count != 0) {
         // Build Instance Data
-        const D3D12_RANGE range{ 
-            0, 
+        const D3D12_RANGE range{
+            0,
             sizeof(Instance) * std::min<u32>((u32)m_sphere_count, MAX_INSTANCES)
         };
         Instance* data = nullptr;
@@ -823,7 +823,7 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_htop_transform_buffer.GetAddressOf()));
     HandleResult(d3dmodule->m_d3d11_device->CreateBuffer(&bd, nullptr, m_d3d11_hbottom_transform_buffer.GetAddressOf()));
-    
+
     // Create Line Vertex Buffer
     bd.ByteWidth = sizeof LineVertex * MAX_LINES * 2;
     bd.Usage = D3D11_USAGE_DYNAMIC;
@@ -1047,7 +1047,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
 
     ComPtr<ID3DBlob> signature_blob;
     ComPtr<ID3DBlob> error_blob;
-    
+
     const auto serialize_root_signature = (decltype(D3D12SerializeRootSignature)*)GetProcAddress(
         d3dmodule->m_d3d12_module, "D3D12SerializeRootSignature"
     );
@@ -1163,7 +1163,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     depth_stencil_desc.StencilEnable = false;
 
     // Blend State
-    
+
     D3D12_BLEND_DESC blend_desc{};
     blend_desc.IndependentBlendEnable = false;
     blend_desc.RenderTarget[0].BlendEnable = true;
@@ -1174,7 +1174,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     blend_desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
     blend_desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
     blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-    
+
     // Pipeline State
     const auto sc3 = (IDXGISwapChain3*)swap_chain;
     DXGI_SWAP_CHAIN_DESC swap_chain_desc{};
@@ -1380,7 +1380,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     depth_clear_value.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     depth_clear_value.DepthStencil.Depth = 1.0f;
     depth_clear_value.DepthStencil.Stencil = 0;
-    
+
     const auto default_heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     HandleResult(d3dmodule->m_d3d12_device->CreateCommittedResource(
         &default_heap_properties,

@@ -22,11 +22,9 @@ public:
     void shutdown() override;
 
 private:
-    void common_initialize();
-    void initialize_for_d3d12();
-    void initialize_for_d3d11();
-    void initialize_for_d3d12_alt();
-    void initialize_for_d3d11_alt();
+    void common_initialize(const uintptr_t render_singleton);
+    void initialize_for_d3d12(const uintptr_t renderer);
+    void initialize_for_d3d11(const uintptr_t renderer);
 
     void d3d12_initialize_imgui(IDXGISwapChain* swap_chain);
     void d3d11_initialize_imgui(IDXGISwapChain* swap_chain);
@@ -41,11 +39,8 @@ private:
 
     static bool is_d3d12();
 
-    static void title_menu_ready_hook(void* gui);
-
     static HRESULT d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
     void d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm);
-    static void d3d12_execute_command_lists_hook(ID3D12CommandQueue* command_queue, UINT num_command_lists, ID3D12CommandList* const* command_lists);
     static UINT64 d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fence* fence, UINT64 value);
 
     static HRESULT d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
@@ -75,14 +70,11 @@ private:
     bool m_is_inside_present = false;
     bool m_fonts_loaded = false;
 
-    safetyhook::InlineHook m_title_menu_ready_hook;
+    safetyhook::MidHook m_create_renderer_hook;
 
     safetyhook::InlineHook m_d3d_present_hook;
-    safetyhook::InlineHook m_d3d_execute_command_lists_hook;
     safetyhook::InlineHook m_d3d_signal_hook;
     safetyhook::InlineHook m_d3d_resize_buffers_hook;
-
-    safetyhook::MidHook m_d3d_present_hook_alt;
 
     std::unique_ptr<TextureManager> m_texture_manager;
 
@@ -106,15 +98,10 @@ private:
 
     ID3D11Device* m_d3d11_device = nullptr;
     ID3D11DeviceContext* m_d3d11_device_context = nullptr;
-    IDXGISwapChain* m_d3d11_swap_chain = nullptr;
 
     #pragma endregion
 
-    HMODULE m_d3d12_module = nullptr;
-    HMODULE m_d3d11_module = nullptr;
-
     HWND m_game_window = nullptr;
-    HMODULE m_game_module = nullptr;
     WNDPROC m_game_window_proc = nullptr;
 
     HWND m_temp_window = nullptr;

@@ -11,6 +11,22 @@ namespace SharpPluginLoader.Core
 
 #pragma warning disable CS0649
 
+    public enum ShaderSourceType : int {
+        HLSL = 0,
+        BINARY
+    };
+
+    unsafe public struct ShaderReplacement {
+        public ShaderSourceType Type;
+        public byte* Source;
+        public int Length;
+    };
+
+    unsafe public struct ShaderInfo {
+        public fixed sbyte DxbcHash[36];
+        public ShaderReplacement Replacement;
+    };
+
     /// <summary>
     /// Contains some configuration data for a plugin. This is returned by <see cref="IPlugin.Initialize"/>.
     /// </summary>
@@ -36,6 +52,9 @@ namespace SharpPluginLoader.Core
 
         /// <inheritdoc cref="IPlugin.OnResourceLoad"/>
         internal bool OnResourceLoad;
+
+        /// <inheritdoc cref="IPlugin.OnCreateShader"/>
+        internal bool OnCreateShader;
 
         /// <inheritdoc cref="IPlugin.OnChatMessageSent"/>
         internal bool OnChatMessageSent;
@@ -236,6 +255,13 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         [PluginEvent]
         public void OnResourceLoad(Resource? resource, MtDti dti, string path, LoadFlags flags) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Gets called when the game creates a new shader.
+        /// </summary>
+        /// <param name="info">Metadata and fields to optionally define a replacement shader</param>
+        [PluginEvent]
+        public unsafe void OnCreateShader(ShaderInfo* info) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).

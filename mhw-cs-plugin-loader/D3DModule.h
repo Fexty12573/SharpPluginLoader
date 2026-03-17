@@ -13,6 +13,7 @@
 #include <safetyhook/safetyhook.hpp>
 
 #include <vector>
+#include <format>
 
 class D3DModule final : public NativeModule {
     template<typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -42,9 +43,14 @@ private:
     static HRESULT d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
     void d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm);
     static UINT64 d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fence* fence, UINT64 value);
+    static HRESULT d3d12_create_graphics_pipeline_state_hook(ID3D12Device* device, const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** pipeline_state);
+    static HRESULT d3d12_create_compute_pipeline_state_hook(ID3D12Device* device, const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** pipeline_state);
 
     static HRESULT d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
     void d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::shared_ptr<PrimitiveRenderingModule>& prm) const;
+    static HRESULT d3d11_create_vertex_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11VertexShader** vertex_shader);
+    static HRESULT d3d11_create_pixel_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11PixelShader** pixel_shader);
+    static HRESULT d3d11_create_compute_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11ComputeShader** compute_shader);
 
     static HRESULT d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags);
     static LRESULT my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
@@ -64,6 +70,22 @@ private:
         ImFont* Font;
     };
 
+    enum ShaderSourceType {
+        HLSL = 0,
+        BINARY
+    };
+
+    struct ShaderReplacement {
+        int Type;
+        unsigned char* Source;
+        int Length;
+    };
+
+    struct ShaderInfo {
+        char DxbcHash[36];
+        ShaderReplacement Replacement;
+    };
+
 private:
     static inline bool m_is_d3d12 = false;
     bool m_is_initialized = false;
@@ -76,7 +98,24 @@ private:
     safetyhook::InlineHook m_d3d_signal_hook;
     safetyhook::InlineHook m_d3d_resize_buffers_hook;
 
+    safetyhook::InlineHook m_d3d_create_graphics_pipeline_hook;
+    safetyhook::InlineHook m_d3d_create_compute_pipeline_hook;
+    safetyhook::InlineHook m_d3d_create_vertex_shader_hook;
+    safetyhook::InlineHook m_d3d_create_pixel_shader_hook;
+    safetyhook::InlineHook m_d3d_create_compute_shader_hook;
+
     std::unique_ptr<TextureManager> m_texture_manager;
+
+    static ShaderInfo get_shader_info(uint32_t* dxbc) {
+        ShaderInfo info;
+        std::string hash = std::format("{:08x}-{:08x}-{:08x}-{:08x}", dxbc[1], dxbc[2], dxbc[3], dxbc[4]);
+        std::memcpy(info.DxbcHash, hash.c_str(), 35);
+        info.DxbcHash[35] = '\0';
+        info.Replacement.Source = nullptr;
+        return info;
+    }
+
+    static bool compile_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out);
 
     #pragma region D3D12
 
@@ -110,6 +149,7 @@ private:
     ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size, MtSize window_size, bool d3d12, const char* menu_key) = nullptr;
     ImDrawData*(*m_core_imgui_render)() = nullptr;
     void(*m_core_render)() = nullptr;
+    void(*m_core_create_shader)(ShaderInfo* info) = nullptr;
     int(*m_core_get_custom_fonts)(CustomFont** out_fonts) = nullptr;
     void(*m_core_resolve_custom_fonts)() = nullptr;
     void* (*m_get_singleton)(const char* name) = nullptr;

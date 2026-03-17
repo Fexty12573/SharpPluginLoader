@@ -1048,14 +1048,8 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     ComPtr<ID3DBlob> signature_blob;
     ComPtr<ID3DBlob> error_blob;
 
-    const auto serialize_root_signature = (decltype(D3D12SerializeRootSignature)*)GetProcAddress(
-        d3dmodule->m_d3d12_module, "D3D12SerializeRootSignature"
-    );
-    if (!serialize_root_signature) {
-        dlog::error("Failed to get D3D12SerializeRootSignature");
-    }
-
-    HandleResult(serialize_root_signature(
+    // d3d12.lib linked in D3DModule.cpp
+    HandleResult(D3D12SerializeRootSignature(
         &root_signature_desc,
         D3D_ROOT_SIGNATURE_VERSION_1,
         signature_blob.GetAddressOf(),
@@ -1089,7 +1083,7 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
     signature_blob.Reset();
     error_blob.Reset();
 
-    HandleResult(serialize_root_signature(
+    HandleResult(D3D12SerializeRootSignature(
         &root_signature_desc,
         D3D_ROOT_SIGNATURE_VERSION_1,
         signature_blob.GetAddressOf(),

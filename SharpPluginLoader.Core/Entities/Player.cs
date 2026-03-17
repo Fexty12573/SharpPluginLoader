@@ -119,8 +119,8 @@ namespace SharpPluginLoader.Core.Entities
         ChargeBlade = 9,
         InsectGlaive = 10,
         Bow = 11,
-        LightBowgun = 12,
-        HeavyBowgun = 13,
+        HeavyBowgun = 12,
+        LightBowgun = 13,
         None = 0xFF
     }
 }

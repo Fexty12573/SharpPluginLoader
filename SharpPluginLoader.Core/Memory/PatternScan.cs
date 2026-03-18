@@ -8,6 +8,12 @@ namespace SharpPluginLoader.Core.Memory
     /// </summary>
     public static class PatternScanner
     {
+        /// <inheritdoc cref="Scan(Pattern)"/>
+        public static unsafe List<nint> Scan(string pattern) => Scan(Pattern.FromString(pattern));
+
+        /// <inheritdoc cref="FindFirst(Pattern,bool)"/>
+        public static unsafe nint FindFirst(string pattern, bool cache = true) => FindFirst(Pattern.FromString(pattern), cache);
+
         /// <summary>
         /// Scans the entire process for the specified pattern.
         /// </summary>

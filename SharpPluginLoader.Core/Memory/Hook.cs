@@ -16,6 +16,23 @@ namespace SharpPluginLoader.Core.Memory
         {
             return new Hook<TFunction>(hook, address);
         }
+
+        /// <summary>
+        /// Creates a new native function hook.
+        /// </summary>
+        /// <typeparam name="TFunction">The type of the function to hook</typeparam>
+        /// <param name="pattern">A pattern to scan for to find the address of the function to hook</param>
+        /// <param name="offset">An offset from the scanned for address to the start of the function</param>
+        /// <param name="hook">The hook function</param>
+        /// <returns>The hook object, if the scan returned a result</returns>
+        public static Hook<TFunction>? Create<TFunction>(string pattern, int offset, TFunction hook)
+        {
+            var addr = PatternScanner.FindFirst(Pattern.FromString(pattern));
+            if (addr == 0)
+                return null;
+
+            return Create(addr - offset, hook);
+        }
     }
 
     /// <summary>

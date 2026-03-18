@@ -11,7 +11,7 @@ def main(sln_dir, config, tag, msbuild_in_path):
         msbuild = "msbuild"
     else:
         msbuild = f"{os.environ['ProgramFiles']}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
-    sln = os.path.join(sln_dir, "mhw-cs-plugin-loader.sln")
+    sln = os.path.join(sln_dir, "mhw-cs-plugin-loader.slnx")
     subprocess.run([msbuild, sln, f"/p:Configuration={config}"], check=True)
 
     # create the release directory

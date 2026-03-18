@@ -1,0 +1,79 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="MinSizeRel" />
+    <BuildType Name="Release" />
+    <BuildType Name="RelWithDebInfo" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Examples/">
+    <Project Path="Examples/BackgroundOptimize/BackgroundOptimize.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/CustomActions/CustomActions.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/CustomPackets/CustomPackets.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/DtiHierarchyVisualizer/DtiHierarchyVisualizer.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/ExperimentalTesting.Native/ExperimentalTesting.Native.vcxproj" Id="e3ba4f2c-e79f-486e-8051-0835d8057c7d">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/ExperimentalTesting/ExperimentalTesting.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/GlobalPendant/GlobalPendant.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/PlayerAnimationViewer/PlayerAnimationViewer.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="Examples/PreloadTesting/PreloadTesting.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/Managed/">
+    <Project Path="SharpPluginLoader.Bootstrapper/SharpPluginLoader.Bootstrapper.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="SharpPluginLoader.Core/SharpPluginLoader.Core.csproj">
+      <BuildDependency Project="ChunkBuilder/ChunkBuilder.csproj" />
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+    <Project Path="SharpPluginLoader.InternalCallGenerator/SharpPluginLoader.InternalCallGenerator.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Debug" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/Native/">
+    <Project Path="dependencies/cimgui/cimgui.vcxproj" Id="952d6cb2-8a17-3cc6-9daa-e2736b8654d2">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="mhw-cs-plugin-loader/mhw-cs-plugin-loader.vcxproj" Id="9267fd61-f5bf-4190-b327-8385f8576479">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/Utilities/">
+    <Project Path="ChunkBuilder/ChunkBuilder.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Release" />
+    </Project>
+  </Folder>
+</Solution>

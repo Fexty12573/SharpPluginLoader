@@ -11,6 +11,22 @@ namespace SharpPluginLoader.Core
 
 #pragma warning disable CS0649
 
+    public enum ShaderSourceType : int {
+        HLSL = 0,
+        BINARY
+    };
+
+    unsafe public struct ShaderReplacement {
+        public ShaderSourceType Type;
+        public byte* Source;
+        public int Length;
+    };
+
+    unsafe public struct ShaderInfo {
+        public fixed sbyte DxbcHash[36];
+        public ShaderReplacement Replacement;
+    };
+
     /// <summary>
     /// Contains some configuration data for a plugin. This is returned by <see cref="IPlugin.Initialize"/>.
     /// </summary>
@@ -37,6 +53,9 @@ namespace SharpPluginLoader.Core
         /// <inheritdoc cref="IPlugin.OnResourceLoad"/>
         internal bool OnResourceLoad;
 
+        /// <inheritdoc cref="IPlugin.OnCreateShader"/>
+        internal bool OnCreateShader;
+
         /// <inheritdoc cref="IPlugin.OnChatMessageSent"/>
         internal bool OnChatMessageSent;
         #endregion
@@ -52,7 +71,7 @@ namespace SharpPluginLoader.Core
         internal bool OnQuestDepart;
 
         /// <inheritdoc cref="IPlugin.OnQuestEnter"/>
-        internal bool OnQuestEnter; 
+        internal bool OnQuestEnter;
 
         /// <inheritdoc cref="IPlugin.OnQuestLeave"/>
         internal bool OnQuestLeave;
@@ -107,7 +126,7 @@ namespace SharpPluginLoader.Core
         #region Entity
         /// <inheritdoc cref="IPlugin.OnEntityAction"/>
         internal bool OnEntityAction;
-        
+
         /// <inheritdoc cref="IPlugin.OnEntityAnimation"/>
         internal bool OnEntityAnimation;
 
@@ -159,7 +178,7 @@ namespace SharpPluginLoader.Core
 
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you can optionally configure your plugin within the framework.
-        /// 
+        ///
         /// Default event, always called once per plugin [re]load.
         /// </summary>
         /// <returns>The filled out PluginData</returns>
@@ -168,7 +187,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Gets called after the game has initialized it's singletons. This is you initialize anything in your plugin
         /// that uses the game state (e.g. reading pointers, accessing singletons, etc).
-        /// 
+        ///
         /// Default event, always called once per plugin [re]load.
         /// </summary>
         public void OnLoad() { } // Not marked as a plugin event because it's always called
@@ -236,6 +255,13 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         [PluginEvent]
         public void OnResourceLoad(Resource? resource, MtDti dti, string path, LoadFlags flags) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Gets called when the game creates a new shader.
+        /// </summary>
+        /// <param name="info">Metadata and fields to optionally define a replacement shader</param>
+        [PluginEvent]
+        public unsafe void OnCreateShader(ShaderInfo* info) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).

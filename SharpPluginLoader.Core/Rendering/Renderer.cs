@@ -466,6 +466,13 @@ namespace SharpPluginLoader.Core.Rendering
             return (nint)ImGui.GetDrawData().NativePtr;
         }
 
+        [UnmanagedCallersOnly]
+        internal static unsafe void CreateShader(ShaderInfo* info)
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnCreateShader))
+                plugin.OnCreateShader(info);
+        }
+
         internal static void Shutdown()
         {
             ImGui.DestroyContext();

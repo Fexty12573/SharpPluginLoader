@@ -56,6 +56,10 @@
       <BuildType Solution="MinSizeRel|*" Project="Release" />
       <BuildType Solution="RelWithDebInfo|*" Project="Release" />
     </Project>
+    <Project Path="SharpPluginLoader.HookGenerator/SharpPluginLoader.HookGenerator.csproj">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Debug" />
+    </Project>
     <Project Path="SharpPluginLoader.InternalCallGenerator/SharpPluginLoader.InternalCallGenerator.csproj">
       <BuildType Solution="MinSizeRel|*" Project="Debug" />
       <BuildType Solution="RelWithDebInfo|*" Project="Release" />

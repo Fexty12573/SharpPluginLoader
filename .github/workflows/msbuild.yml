@@ -19,9 +19,9 @@ jobs:
 
     env:
       BUILD_CONFIGURATION: ${{matrix.configuration}}
-      
+
       # Path to the solution file relative to the root of the project.
-      SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.sln
+      SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.slnx
 
       # Allow vcpkg to install packages from the NuGet binary cache.
       USERNAME: Fexty12573
@@ -36,7 +36,7 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-      
+
       - uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -70,11 +70,11 @@ jobs:
           cmake -S ${{ env.CIMGUI_ROOT }} -B ${{ env.CIMGUI_ROOT }} -G "Visual Studio 17 2022"
         env:
           CIMGUI_ROOT: dependencies/cimgui
-      
+
       - name: Dotnet Restore
         run: |
           dotnet restore ${{ env.SOLUTION_FILE_PATH }}
-      
+
       - name: Build Solution
         run: |
           msbuild -m -p:Configuration=${{ env.BUILD_CONFIGURATION }} -p:Platform=x64 ${{ env.SOLUTION_FILE_PATH }}
@@ -90,7 +90,7 @@ jobs:
           python ./make-package.py -c Release --msbuild-in-path . ${{ steps.compute_hash.outputs.sha_short }}
           echo "package_win32=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-win32.zip" >> $env:GITHUB_OUTPUT
           echo "package_linux=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-linux.zip" >> $env:GITHUB_OUTPUT
-      
+
       # Upload release-files/tags/<short_sha>/SharpPluginLoader-<short_sha>-(win32|linux).zip
       - name: Upload win32 Package Artifact
         if: matrix.configuration == 'Release'
@@ -105,10 +105,3 @@ jobs:
         with:
           name: ${{ steps.make_package.outputs.package_linux }}
           path: release-files/tags/${{ steps.compute_hash.outputs.sha_short }}/${{ steps.make_package.outputs.package_linux }}
-
-      # TODO(Andoryuuta): Can't currently build solution directly due to build order issues + "Release" mode binaries expected on-disk for some build scripts.
-      # - name: Build Solution
-      #   working-directory: ${{env.GITHUB_WORKSPACE}}
-      #   # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      #   # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      #   run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 /p:VcpkgEnableManifest=true ${{env.SOLUTION_FILE_PATH}}

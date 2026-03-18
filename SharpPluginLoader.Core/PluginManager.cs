@@ -501,6 +501,25 @@ namespace SharpPluginLoader.Core
             }
         }
 
+        public T? GetPlugin<T>() where T : IPlugin
+        {
+            return (T?) GetPlugin(typeof(T));
+        }
+
+        public IPlugin? GetPlugin(Type type)
+        {
+            lock (_contexts)
+            {
+                foreach (var context in _contexts.Values)
+                {
+                    if (context.Plugin.GetType() == type)
+                        return context.Plugin;
+                }
+            }
+
+            return null;
+        }
+
         public void InvokeOnUpdate(float deltaTime)
         {
             lock (_contexts)

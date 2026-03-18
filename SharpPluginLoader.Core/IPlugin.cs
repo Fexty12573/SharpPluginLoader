@@ -156,6 +156,14 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public string Author { get; }
 
+        /// <summary>
+        /// Gets the currently loaded plugin instance of that type.
+        /// </summary>
+        /// <returns>The loaded instance of the desired plugin type, or null if its not loaded.</returns>
+        public static T? GetInstance<T>() where T : IPlugin
+        {
+            return PluginManager.Instance.GetPlugin<T>();
+        }
 
         /// <summary>
         /// Gets called when the plugin is loaded. This is where you can optionally configure your plugin within the framework.

@@ -212,7 +212,7 @@ void initialize_preloader() {
     }
 
     // Reset the processes' security cookie to the default value to make the
-    // MSVC startup code to attempt to initalize it to a new value, which will 
+    // MSVC startup code to attempt to initalize it to a new value, which will
     // cause our hooked GetSystemTimeAsFileTime to be called pre-CRT init.
     *security_cookie = MSVC_DEFAULT_SECURITY_COOKIE_VALUE;
 

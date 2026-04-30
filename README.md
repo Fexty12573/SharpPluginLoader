@@ -47,23 +47,22 @@ For more detailed instructions visit the [wiki](https://fexty12573.github.io/Sha
 To create release packages you can use the `make-package.py` script. It will build everything and package it into a ready to use zip.
 
 ```
-make-package.py [-h] [-c {Release,Debug}] [-m] sln_dir tag
+make-package.py [-h] [-s] [-c {Release,Debug}] [tag] [sln_dir]
 
 Create a release of the plugin loader
 
 positional arguments:
-  sln_dir               The directory of the solution
   tag                   The tag to use for the release in the format x.x.x[.x]
+  sln_dir               The directory of the solution
 
 options:
-  -h, --help            show this help message and exit
-  -c {Release,Debug}, --config {Release,Debug}
+  -h, --help            Show this message
+  -s, --skip-build      Skip building the solution
+  -c, --config {Release,Debug}
                         The configuration to build
-  -m, --msbuild-in-path
-                        Set if msbuild is in the PATH environment variable
 ```
 
-Example invocation: `python make-package.py -c Release -m ./ 0.1.0`
+Example invocation: `python make-package.py -c Release 0.1.0 ./`
 
 ## **Enabling C# Debugging**
 

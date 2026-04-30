@@ -8,6 +8,8 @@ Extract the contents of the archive into the game's root directory (where `Monst
 
 If you installed everything correctly you should now find `winmm.dll` in the same directory as `MonsterHunterWorld.exe`, and a `CSharp` directory in `nativePC\plugins`.
 
+If you're running the game _without_ Steam and it's immediately closing on startup, you should try adding `MonsterHunterWorld.exe` as a Non-Steam Game and launching it through Steam. Steam affects the order in which `winmm.dll` gets loaded by injecting `GameOverlayRenderer64.dll` into the process. This happens whether you have the Steam Overlay enabled or not.
+
 ## Linux (Proton/Wine)
 As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below are the steps to install and run SPL on Linux.
 
@@ -15,14 +17,20 @@ As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below 
 ```bash
 protontricks 582010 dotnetdesktop8 d3dcompiler_47
 ```
-2. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `msvcrt.dll` file in the same directory as `MonsterHunterWorld.exe`.
-3. Set the steam launch options for MHW as follows:
+2. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `ucrtbase.dll` file in the same directory as `MonsterHunterWorld.exe`.
+3. Set the Steam launch options for MHW as follows:
 ```bash
 # Use this for SPL only
-WINEDLLOVERRIDES="msvcrt=n,b" %command%
+WINEDLLOVERRIDES="ucrtbase=n,b" %command%
 
 # Or this for SPL together with Stracker's Loader
-WINEDLLOVERRIDES="msvcrt,dinput8=n,b" %command%
+WINEDLLOVERRIDES="ucrtbase,dinput8=n,b" %command%
+```
+
+If the game fails to start, even with the dependencies above correctly installed, check your environment for `DOTNET_ROOT`. It may be set by your package manager. For example, on Gentoo with `eselect dotnet`. You can unset it in your Steam launch options like so:
+```bash
+# Unset DOTNET_ROOT to avoid conflict with native dotnet and dotnet installed in the Wine prefix.
+DOTNET_ROOT= WINEDLLOVERRIDES="ucrtbase,dinput8=n,b" %command%
 ```
 
 ## Usage
@@ -46,7 +54,7 @@ Depending on the plugins you have installed you might also see an overlay/UI app
 ### Directory Structure Examples
 ```
 <Root game directory>
-└── winmm.dll/msvcrt.dll
+└── winmm.dll/ucrtbase.dll
 └── nativePC
     └── plugins
         └── CSharp
@@ -59,7 +67,7 @@ Depending on the plugins you have installed you might also see an overlay/UI app
 Conversely, the following is **not** valid, as `Plugin1.dll` is inside the `Loader` directory. The plugin loader will not load it.
 ```
 <Root game directory>
-└── winmm.dll/msvcrt.dll
+└── winmm.dll/ucrtbase.dll
 └── nativePC
     └── plugins
         └── CSharp

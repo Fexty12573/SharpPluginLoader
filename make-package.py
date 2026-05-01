@@ -15,12 +15,14 @@ def main(sln_dir, config, tag, skip_build):
             print(f"Error: {sln} not found")
             return False
         print(f"Building solution {sln} with configuration {config}...")
-        msbuild = None
-        if "ProgramFiles" in os.environ:
-            msbuild = f"{os.environ["ProgramFiles"]}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+        # check PATH for MSBuild
+        msbuild = shutil.which("MSBuild.exe")
+        if not msbuild and "ProgramFiles" in os.environ:
+            # search for MSBuild in the default VS 2026 then VS 2022 install directories
+            msbuild = f"{os.environ["ProgramFiles"]}\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            if not os.path.isfile(msbuild):
+                msbuild = f"{os.environ["ProgramFiles"]}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
         if not msbuild or not os.path.isfile(msbuild):
-            msbuild = shutil.which("MSBuild.exe")
-        if not msbuild:
             print("Error: MSBuild.exe not found")
             return False
         subprocess.run([msbuild, sln, f"/p:Configuration={config}"], check=True)

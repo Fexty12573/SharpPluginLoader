@@ -44,7 +44,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
         with:
-          vs-version: "[,17)"
+          vs-version: "[,18)"
           msbuild-architecture: x64
 
       - name: Integrate vcpkg
@@ -67,7 +67,7 @@ jobs:
 
       - name: Generate cimgui project files
         run: |
-          cmake -S ${{ env.CIMGUI_ROOT }} -B ${{ env.CIMGUI_ROOT }} -G "Visual Studio 17 2022"
+          cmake -S ${{ env.CIMGUI_ROOT }} -B ${{ env.CIMGUI_ROOT }} -G "Visual Studio 18 2026"
         env:
           CIMGUI_ROOT: dependencies/cimgui
 
@@ -87,7 +87,7 @@ jobs:
         if: matrix.configuration == 'Release'
         id: make_package
         run: |
-          python ./make-package.py -c Release --msbuild-in-path . ${{ steps.compute_hash.outputs.sha_short }}
+          python ./make-package.py -c Release --skip-build ${{ steps.compute_hash.outputs.sha_short }} .
           echo "package_win32=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-win32.zip" >> $env:GITHUB_OUTPUT
           echo "package_linux=SharpPluginLoader-${{ steps.compute_hash.outputs.sha_short }}-linux.zip" >> $env:GITHUB_OUTPUT
 

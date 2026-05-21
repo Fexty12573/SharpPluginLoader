@@ -271,22 +271,25 @@ namespace SharpPluginLoader.Core.Rendering
                     {
                         // Zero mouse delta used for camera movement.
                         MemoryUtil.GetRef<ulong>(m + 0xFC) = 0L; // dX(int), dY(int).
-                        MemoryUtil.GetRef<byte>(m + 0x188) = 0x0; // Mouse down menu.
-                        MemoryUtil.GetRef<byte>(m + 0x108) = 0x0; // Mouse down combat.
+                        MemoryUtil.GetRef<byte>(m + 0x108) = 0x0; // Combat.
+                        MemoryUtil.GetRef<byte>(m + 0x188) = 0x0; // Menu.
+                        MemoryUtil.GetRef<byte>(m + 0x194) = 0x0; // Dialogue.
                         _lastUpdateHadFocus = true;
                     }
                     else if (anyHovered || _lastUpdateHadFocus)
                     {
                         // Block mouse1 clicks. Use _lastUpdateHadFocus to more consistently block
                         // a click used to unfocus the ImGui window.
-                        ref byte downMenu = ref MemoryUtil.GetRef<byte>(m + 0x188);
-                        ref byte downCombat = ref MemoryUtil.GetRef<byte>(m + 0x108);
-                        if ((downMenu & 0x1) == 0 && (downCombat & 0x1) == 0) // Wait for release.
+                        ref byte m1Combat = ref MemoryUtil.GetRef<byte>(m + 0x108);
+                        ref byte m1Menu = ref MemoryUtil.GetRef<byte>(m + 0x188);
+                        ref byte m1Dialogue = ref MemoryUtil.GetRef<byte>(m + 0x194);
+                        if ((m1Combat & 0x1) == 0 && (m1Menu & 0x1) == 0 && (m1Dialogue & 0x1) == 0) // Wait for release.
                         {
                             _lastUpdateHadFocus = false;
                         }
-                        downMenu &= 0xFE;
-                        downCombat &= 0xFE;
+                        m1Combat &= 0xFE;
+                        m1Menu &= 0xFE;
+                        m1Dialogue &= 0xFE;
                     }
                 });
             }
@@ -356,7 +359,7 @@ namespace SharpPluginLoader.Core.Rendering
                         _lastUpdateHadKeyboard = io.WantCaptureKeyboard || io.NavActive;
                         if (_lastUpdateHadKeyboard)
                         {
-                            Unsafe.InitBlockUnaligned((byte*)state, 0, (uint)Marshal.SizeOf<KeyboardState>());
+                            NativeMemory.Clear((byte*)state, (nuint)Marshal.SizeOf<KeyboardState>());
                         }
                     }
                 });
@@ -588,9 +591,9 @@ namespace SharpPluginLoader.Core.Rendering
         private delegate void MouseUpdateDelegate(nint sMhMouse);
         private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
         private static Hook<MouseUpdateDelegate> _mouseUpdateHook = null!;
-        private static bool _lastUpdateHadFocus = false;
         private delegate void KeyboardUpdateDelegate(nint sMhKeyboard, nint kbState);
         private static Hook<KeyboardUpdateDelegate> _keyboardUpdateHook = null!;
+        private static bool _lastUpdateHadFocus = false;
         private static bool _lastUpdateHadKeyboard = false;
         private static Key? _waitForRelease = null;
         private static bool _showMenu = false;

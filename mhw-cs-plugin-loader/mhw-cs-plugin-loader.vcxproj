@@ -75,7 +75,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)dependencies\loader\loader.lib;$(SolutionDir)dependencies\cimgui\Debug\cimgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)dependencies\cimgui\Debug\cimgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>cimgui.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
@@ -97,7 +97,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(SolutionDir)dependencies\loader\loader.lib;$(SolutionDir)dependencies\cimgui\Release\cimgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)dependencies\cimgui\Release\cimgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>cimgui.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>

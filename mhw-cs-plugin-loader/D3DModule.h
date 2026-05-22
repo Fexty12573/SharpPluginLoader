@@ -106,9 +106,10 @@ private:
 
     ID3D11Device* m_d3d11_device = nullptr;
     ID3D11DeviceContext* m_d3d11_device_context = nullptr;
-    IDXGISwapChain* m_d3d11_swap_chain = nullptr;
 
     #pragma endregion
+
+    IDXGISwapChain* m_swap_chain = nullptr;
 
     HMODULE m_d3d12_module = nullptr;
     HMODULE m_d3d11_module = nullptr;

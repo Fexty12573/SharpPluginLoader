@@ -368,6 +368,9 @@ void D3DModule::initialize_for_d3d12_alt() {
         const auto& config = preloader::LoaderConfig::get();
 
         const auto swap_chain = (IDXGISwapChain*)ctx.rcx;
+        if (swap_chain != self->m_swap_chain) {
+            return;
+        }
 
         if (self->m_is_inside_present) {
             return;
@@ -422,6 +425,8 @@ void D3DModule::initialize_for_d3d12_alt() {
 
     const auto resize_buffers = swap_chain_vft[13];
     const auto signal = cmd_queue_vft[14];
+
+    m_swap_chain = swap_chain;
 
     dlog::debug("D3D12 Command Queue found at {:p}", (void*)m_d3d12_command_queue);
 
@@ -892,6 +897,10 @@ UINT64 D3DModule::d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fen
 HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+
+    if (swap_chain != self->m_swap_chain) {
+        return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
+    }
 
     dlog::debug("ResizeBuffers called, resetting...");
 

@@ -42,13 +42,13 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
         } else if (log_level == "ERROR") {
             s_console_log_level = loader::ERR;
         } else {
-            loader::LOG(loader::ERR) << "[SPL] Invalid log level: " << log_level;
+            MessageBoxA(nullptr, ("[SPL] Invalid log level: " + log_level).c_str(), "Error", MB_ICONERROR);
             return;
         }
 
         s_console = GetStdHandle(STD_OUTPUT_HANDLE);
         if (s_console == INVALID_HANDLE_VALUE) {
-            loader::LOG(loader::ERR) << "[SPL] Failed to get console handle";
+            MessageBoxA(nullptr, "[SPL] Failed to get console handle", "Error", MB_ICONERROR);
             return;
         }
     }
@@ -56,7 +56,7 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
     if (!s_file) {
         s_file.open(config::SPL_LOG_FILE, std::ios::out);
         if (!s_file) {
-            loader::LOG(loader::ERR) << "[SPL] Failed to open log file";
+            MessageBoxA(nullptr, "[SPL] Failed to open log file", "Error", MB_ICONERROR);
             return;
         }
     }

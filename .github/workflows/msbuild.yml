@@ -47,6 +47,10 @@ jobs:
           vs-version: "[,18)"
           msbuild-architecture: x64
 
+      - name: Install Custom Triplet
+        shell: pwsh
+        run: Copy-Item x64-windows-v143-static-md.cmake C:\vcpkg\triplets\community\
+
       - name: Integrate vcpkg
         run: |
           vcpkg integrate install

@@ -24,10 +24,14 @@ jobs:
       SOLUTION_FILE_PATH: ./mhw-cs-plugin-loader.slnx
 
       # Allow vcpkg to install packages from the NuGet binary cache.
+      # Skipped for PRs from forks, since secrets aren't available there
       USERNAME: Fexty12573
       VCPKG_EXE: vcpkg
       FEED_URL: https://nuget.pkg.github.com/Fexty12573/index.json
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/Fexty12573/index.json,readwrite"
+      VCPKG_BINARY_SOURCES: >-
+        ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+            && 'clear;nuget,https://nuget.pkg.github.com/Fexty12573/index.json,readwrite'
+            || 'clear;default,readwrite' }}
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -56,6 +60,7 @@ jobs:
           vcpkg integrate install
 
       - name: Add vcpkg nuget sources
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         shell: pwsh
         run: |
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
@@ -68,6 +73,7 @@ jobs:
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
             setapikey "${{ secrets.VCPKG_PAT_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"
+            -SkipDuplicate
 
       - name: Generate cimgui project files
         run: |

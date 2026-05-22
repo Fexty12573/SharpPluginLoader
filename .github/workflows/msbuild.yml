@@ -73,7 +73,6 @@ jobs:
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
             setapikey "${{ secrets.VCPKG_PAT_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"
-            -SkipDuplicate
 
       - name: Generate cimgui project files
         run: |

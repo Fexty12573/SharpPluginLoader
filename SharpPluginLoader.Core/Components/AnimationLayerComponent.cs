@@ -34,11 +34,24 @@ namespace SharpPluginLoader.Core.Components
         public ref float Speed => ref GetRef<float>(0x11C);
 
         /// <summary>
+        /// If locked, gets the locked speed of this animation layer.
+        /// </summary>
+        public float? LockedSpeed
+        {
+            get
+            {
+                if (SpeedLocks.TryGetValue(Instance, out float lockedSpeed))
+                    return lockedSpeed;
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets whether the animation is paused.
         /// </summary>
         public bool Paused
         {
-            get => SpeedLocks.ContainsKey(Instance) && SpeedLocks[Instance] == 0f;
+            get => LockedSpeed == (float?)0f;
             set
             {
                 if (value) Pause();

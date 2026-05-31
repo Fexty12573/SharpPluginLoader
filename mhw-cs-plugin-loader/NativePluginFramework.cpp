@@ -64,7 +64,7 @@ const char* NativePluginFramework::get_game_revision() {
     if (s_instance->m_game_revision != nullptr) {
         return s_instance->m_game_revision;
     }
-    
+
     const auto pattern = Pattern::from_string("48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00");
     const auto func = PatternScanner::find_first(pattern);
 

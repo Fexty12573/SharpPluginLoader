@@ -198,22 +198,33 @@ namespace SharpPluginLoader.Core.Rendering
             _fontsSubmitted = true;
         }
 
+        private static unsafe void SaveConfig()
+        {
+            LoaderGuiConfig* config = MemoryUtil.Alloc<LoaderGuiConfig>();
+            config->MenuKey = Utf8StringMarshaller.ConvertToUnmanaged(_menuKey.ToString());
+            var io = ImGui.GetIO();
+            config->KeyboardNavigation = (io.ConfigFlags & ImGuiConfigFlags.NavEnableKeyboard) != 0;
+            config->FontScale = io.FontGlobalScale;
+            config->WindowTransparency = _baseAlpha;
+            InternalCalls.SaveGuiConfig(config);
+            Utf8StringMarshaller.Free(config->MenuKey);
+            MemoryUtil.Free(config);
+        }
+
         [UnmanagedCallersOnly]
-        internal static nint Initialize(Size viewportSize, Size windowSize, byte d3d12, nint menuKey)
+        internal static unsafe nint Initialize(Size viewportSize, Size windowSize, byte d3d12, LoaderGuiConfig* config)
         {
             IsDirectX12 = d3d12 != 0;
 
-            if (menuKey != 0)
+            string? keyStr = Utf8StringMarshaller.ConvertToManaged(config->MenuKey);
+            if (keyStr != null && Enum.TryParse<Key>(keyStr, out var key))
             {
-                var keyStr = MemoryUtil.ReadString(menuKey);
-                if (Enum.TryParse<Key>(keyStr, out var key))
-                {
-                    _menuKey = key;
-                }
-                else
-                {
-                    Log.Warn($"Invalid menu key: {keyStr}, falling back to {DefaultMenuKey}");
-                }
+                _menuKey = key;
+                _menuKeyStr = keyStr;
+            }
+            else
+            {
+                Log.Warn($"Invalid menu key: {keyStr}, falling back to {DefaultMenuKey}");
             }
 
             _viewportSize = new Vector2(viewportSize.Width, viewportSize.Height);
@@ -241,6 +252,13 @@ namespace SharpPluginLoader.Core.Rendering
             // Currently causes a freeze when dragging a window outside of the main window.
             // Most likely the WndProc doesn't process events anymore which causes windows to think it's frozen.
             // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+            if (config->KeyboardNavigation)
+            {
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+            }
+
+            io.FontGlobalScale = config->FontScale;
+            _baseAlpha = config->WindowTransparency;
 
             SetupImGuiStyle();
 
@@ -322,6 +340,11 @@ namespace SharpPluginLoader.Core.Rendering
                         if (Input.IsDown(_menuKey))
                         {
                             _showMenu = !_showMenu;
+                            if (!_showMenu && _optionsChanged)
+                            {
+                                SaveConfig();
+                                _optionsChanged = false;
+                            }
                             _waitForRelease = _menuKey;
                         }
 #if DEBUG
@@ -387,7 +410,7 @@ namespace SharpPluginLoader.Core.Rendering
             io.DisplaySize = _viewportSize;
 
             if (_showMenu)
-                ImGui.GetStyle().Alpha = anyFocused ? 1.0f : 0.5f;
+                ImGui.GetStyle().Alpha = anyFocused ? _baseAlpha : Math.Max(_baseAlpha - 0.5f, 0.25f);
 
             ImGui.NewFrame();
             if (_showMenu)
@@ -398,6 +421,25 @@ namespace SharpPluginLoader.Core.Rendering
                     {
                         if (ImGui.BeginMenu("Options"))
                         {
+                            Key parsedKey;
+                            bool typedKeyValid = Enum.TryParse<Key>(_menuKeyStr, true, out parsedKey);
+                            if (!typedKeyValid)
+                            {
+                                ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
+                            }
+                            if (ImGui.InputText("Menu Key", ref _menuKeyStr, 12, ImGuiInputTextFlags.EnterReturnsTrue))
+                            {
+                                if (Enum.TryParse<Key>(_menuKeyStr, true, out parsedKey))
+                                {
+                                    _menuKey = parsedKey;
+                                    _optionsChanged = true;
+                                }
+                            }
+                            if (!typedKeyValid)
+                            {
+                                ImGui.PopStyleColor();
+                            }
+
                             bool keyboardNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableKeyboard) != 0;
                             if (ImGui.Checkbox("Keyboard Navigation", ref keyboardNav))
                             {
@@ -409,6 +451,22 @@ namespace SharpPluginLoader.Core.Rendering
                                 {
                                     io.ConfigFlags &= ~ImGuiConfigFlags.NavEnableKeyboard;
                                 }
+                                _optionsChanged = true;
+                            }
+
+                            if (ImGui.SliderFloat("Font Scale",
+                                ref io.FontGlobalScale,
+                                0.5f, 2.0f, null, ImGuiSliderFlags.NoRoundToFormat))
+                            {
+                                _optionsChanged = true;
+                            }
+
+                            if (ImGui.SliderFloat("Window Transparency",
+                                ref _baseAlpha,
+                                0.25f, 1.0f, null, ImGuiSliderFlags.NoRoundToFormat))
+                            {
+                                ImGui.GetStyle().DisabledAlpha = _baseAlpha;
+                                _optionsChanged = true;
                             }
 
                             ImGui.Checkbox("Draw Primitives as Wireframe",
@@ -418,16 +476,15 @@ namespace SharpPluginLoader.Core.Rendering
                                 ref MemoryUtil.AsRef(_renderingOptionPointers.LineThickness),
                                 1.0f, 10.0f);
 
-                            ImGui.SliderFloat("Font Scale", ref io.FontGlobalScale, 0.5f, 2.0f);
-
                             ImGui.EndMenu();
                         }
-                        ImGui.EndMenuBar();
-
-                        if (ImGui.IsItemDeactivated())
+                        else if (_optionsChanged)
                         {
-                            // TODO: Save settings
+                            SaveConfig();
+                            _optionsChanged = false;
                         }
+
+                        ImGui.EndMenuBar();
                     }
 
                     foreach (var plugin in PluginManager.Instance.GetPlugins(pluginData => pluginData.OnImGuiRender))
@@ -485,8 +542,8 @@ namespace SharpPluginLoader.Core.Rendering
         {
             var style = ImGui.GetStyle();
 
-            style.Alpha = 1.0f;
-            style.DisabledAlpha = 1.0f;
+            style.Alpha = _baseAlpha;
+            style.DisabledAlpha = _baseAlpha;
             style.WindowPadding = new Vector2(12.0f, 12.0f);
             style.WindowRounding = 2.0f;
             style.WindowBorderSize = 1.0f;
@@ -598,11 +655,14 @@ namespace SharpPluginLoader.Core.Rendering
         private static Key? _waitForRelease = null;
         private static bool _showMenu = false;
         private static Key _menuKey = DefaultMenuKey;
+        private static string _menuKeyStr = DefaultMenuKey.ToString();
 #if DEBUG
         private static bool _showDemo = false;
         private static Key _demoKey = DefaultDemoKey;
 #endif
+        private static float _baseAlpha = 1.0f;
         private static RenderingOptionPointers _renderingOptionPointers;
+        private static bool _optionsChanged = false;
         private static Vector2 _viewportSize;
         private static Vector2 _windowSize;
         private static Vector2 _mousePos;
@@ -645,5 +705,14 @@ namespace SharpPluginLoader.Core.Rendering
         public ImFontConfig* Config;
         public ushort* GlyphRanges;
         public ImFont* Font;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct LoaderGuiConfig
+    {
+        public byte* MenuKey;
+        public bool KeyboardNavigation;
+        public float FontScale;
+        public float WindowTransparency;
     }
 }

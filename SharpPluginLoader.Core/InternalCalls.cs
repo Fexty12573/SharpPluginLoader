@@ -1,6 +1,7 @@
 ﻿
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
+using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core
 {
@@ -40,6 +41,8 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<string, out uint, out uint, nint> LoadTexturePtr;
         public static delegate* unmanaged<nint, void> UnloadTexturePtr;
         public static delegate* unmanaged<nint, nint> RegisterTexturePtr;
+
+        public static delegate* unmanaged<LoaderGuiConfig*, void> SaveGuiConfigPtr;
 
         public static delegate* unmanaged<string, nint> GetRepositoryAddressPtr;
         public static delegate* unmanaged<sbyte*> GetGameRevisionPtr;
@@ -117,6 +120,8 @@ namespace SharpPluginLoader.Core
         public static void UnloadTexture(nint texture) => UnloadTexturePtr(texture);
 
         public static nint RegisterTexture(nint texture) => RegisterTexturePtr(texture);
+
+        public static void SaveGuiConfig(LoaderGuiConfig* config) => SaveGuiConfigPtr(config);
 
         public static nint GetRepositoryAddress(string name) => GetRepositoryAddressPtr(name);
 

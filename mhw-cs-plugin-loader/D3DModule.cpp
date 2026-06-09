@@ -44,7 +44,7 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ImGuiRender"
     );
-    m_core_initialize_imgui = coreclr->get_method<ImGuiContext*(MtSize, MtSize, bool, const char*)>(
+    m_core_initialize_imgui = coreclr->get_method<ImGuiContext*(MtSize, MtSize, bool, const preloader::LoaderGuiConfig*)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"Initialize"
@@ -71,6 +71,8 @@ void D3DModule::initialize(CoreClr* coreclr) {
     coreclr->add_internal_call("LoadTexture", (void*)load_texture);
     coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);
     coreclr->add_internal_call("RegisterTexture", (void*)register_texture);
+
+    coreclr->add_internal_call("SaveGuiConfig", preloader::LoaderConfig::save_gui_config);
 }
 
 void D3DModule::shutdown() {
@@ -493,7 +495,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     };
     
     const auto& config = preloader::LoaderConfig::get();
-    const auto context = m_core_initialize_imgui(viewport_size, window_size, true, config.get_menu_key().c_str());
+    const auto context = m_core_initialize_imgui(viewport_size, window_size, true, config.get_gui_config());
 
     igSetCurrentContext(context);
 
@@ -626,7 +628,7 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
     };
 
     const auto& config = preloader::LoaderConfig::get();
-    const auto context = m_core_initialize_imgui(viewport_size, window_size, false, config.get_menu_key().c_str());
+    const auto context = m_core_initialize_imgui(viewport_size, window_size, false, config.get_gui_config());
     igSetCurrentContext(context);
 
     imgui_load_fonts();

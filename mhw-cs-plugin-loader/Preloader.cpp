@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <string>
 #include <thread>
+#include <filesystem>
 
 #include <wil/resource.h>
 #include <wil/stl.h>
@@ -94,7 +95,7 @@ __declspec(noinline) void* hooked_mh_main_ctor(void* this_ptr) {
 // This is needed this cookie setup will happen within various DLLs that are either
 // loaded as imports, or injected (overlays, anti-malware, etc).
 //
-// 2. Iterate backwards from the return address and check for the default cookie value
+// 2. Iterate backwards from the return address and check for the default cookie value.
 // The default cookie value will be directly embedded in one of the instructions prior
 // to the GetSystemTimeAsFileTime call, (e.g. `mov rbx, 2B992DDFA232h`).
 //
@@ -163,7 +164,16 @@ void hooked_get_system_time_as_file_time(LPFILETIME lpSystemTimeAsFileTime) {
         }
         dlog::debug("[Preloader] Resolved address for sMhMain::ctor: 0x{:X}", mhmain_ctor_address);
 
-        NativePluginFramework::run_compatibility_checks();
+        // Use our position of loading before the game to preload other user-requested
+        // DLLs that may run into compatibility issues if left to their delay-load order.
+        auto& loader_config = preloader::LoaderConfig::get();
+        for (const auto& path : loader_config.get_preload_dlls()) {
+            if (std::filesystem::exists(path)) {
+                if (!LoadLibraryA(path.c_str())) {
+                    dlog::error("[Preloader] Failed to load {} from PreloadDLLs config", path);
+                }
+            }
+        }
 
         // Hook the functions.
         g_scrt_common_main_hook = safetyhook::create_inline(

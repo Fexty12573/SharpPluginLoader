@@ -4,7 +4,7 @@
 
 #include <chrono>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include <filesystem>
 
 namespace debug::log::impl {
 static HANDLE s_console = nullptr;
@@ -30,7 +30,7 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
     if (!s_console) {
         auto& loader_config = preloader::LoaderConfig::get();
 
-        const auto log_level = loader_config.get_log_level();
+        const auto& log_level = loader_config.get_log_level();
         s_log_to_cmd = loader_config.get_log_cmd();
 
         if (log_level == "DEBUG") {
@@ -109,7 +109,7 @@ void dlog::impl::log(dlog::impl::LogLevel level, const std::string& msg) {
 
     const auto time = std::format("[ {:%H:%M:%S} | SPL ] ", std::chrono::system_clock::now());
     log_raw(level, msg.c_str(), msg.size(), time.c_str(), time.size(), WriteConsoleA);
-    
+
     impl::s_file << time << msg << '\n' << std::flush;
 }
 

@@ -10,10 +10,9 @@
 #include "Config.h"
 #include "Log.h"
 #include "PatternScan.h"
+#include "Json.h"
 
-#include <nlohmann/json.hpp>
 #include "picosha2/picosha2.h"
-using json = nlohmann::json;
 
 std::unordered_map<std::string, uintptr_t> scan_for_address_records(json records_json);
 std::string get_game_revision();
@@ -25,8 +24,9 @@ void AddressRepository::initialize() {
 	auto& contents_raw = address_records->Contents;
 	std::string contents(contents_raw.begin(), contents_raw.end());
 
-	// Parse the json
-	json records_json = json::parse(contents);
+	// Parse the json.
+	json records_json = json::parse(contents, nullptr, false);
+	assert(!records_json.is_discarded());
 
 	// Get game version/revision and hash of the current address records json file.
 	std::string game_revision = get_game_revision();

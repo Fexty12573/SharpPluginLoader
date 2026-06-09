@@ -2,6 +2,7 @@
 #include "NativeModule.h"
 #include "TextureManager.h"
 #include "PrimitiveRenderingModule.h"
+#include "LoaderConfig.h"
 
 #include <d3d11.h>
 #include <d3d12.h>
@@ -121,7 +122,7 @@ private:
     HWND m_temp_window = nullptr;
     WNDCLASSEX* m_temp_window_class = nullptr;
 
-    ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size, MtSize window_size, bool d3d12, const char* menu_key) = nullptr;
+    ImGuiContext*(*m_core_initialize_imgui)(MtSize viewport_size, MtSize window_size, bool d3d12, const preloader::LoaderGuiConfig* config) = nullptr;
     ImDrawData*(*m_core_imgui_render)() = nullptr;
     void(*m_core_render)() = nullptr;
     int(*m_core_get_custom_fonts)(CustomFont** out_fonts) = nullptr;

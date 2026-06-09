@@ -8,9 +8,6 @@
 #include "ImGuiModule.h"
 #include "PatternScan.h"
 
-#include <filesystem>
-
-
 NativePluginFramework::NativePluginFramework(CoreClr* coreclr, AddressRepository* address_repository)
     : m_managed_functions(coreclr->get_managed_function_pointers()),
       m_address_repository(address_repository) {
@@ -46,16 +43,6 @@ void NativePluginFramework::trigger_on_mh_main_ctor() {
     m_managed_functions.TriggerOnMhMainCtor();
 }
 
-void NativePluginFramework::run_compatibility_checks() {
-    // We intentionally force Stracker's Loader to be loaded early so any (native) plugins that
-    // rely on injecting code via relative calls will be able to find available memory for their hooks.
-    constexpr auto DINPUT8_PATH = "dinput8.dll";
-
-    if (std::filesystem::exists(DINPUT8_PATH)) {
-        (void)LoadLibraryA(DINPUT8_PATH);
-    }
-}
-
 uintptr_t NativePluginFramework::get_repository_address(const char* name) {
     return s_instance->m_address_repository->get(name);
 }
@@ -64,7 +51,7 @@ const char* NativePluginFramework::get_game_revision() {
     if (s_instance->m_game_revision != nullptr) {
         return s_instance->m_game_revision;
     }
-    
+
     const auto pattern = Pattern::from_string("48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00");
     const auto func = PatternScanner::find_first(pattern);
 

@@ -31,13 +31,7 @@ namespace SharpPluginLoader.Core.Memory
                 ?? throw new Exception("Failed to deserialize plugin records cache");
 
             var gameVersion = InternalCalls.GetGameRevision();
-            if (gameVersion == InternalCalls.UnknownRevision)
-            {
-                Log.Error("Failed to get game revision");
-                return;
-            }
-
-            if (pluginCache.Version == gameVersion)
+            if (gameVersion != InternalCalls.UnknownRevision && pluginCache.Version == gameVersion)
             {
                 Log.Debug("[Core] Restoring from plugin record cache.");
 
@@ -56,12 +50,6 @@ namespace SharpPluginLoader.Core.Memory
         public static void SavePluginRecords()
         {
             var gameVersion = InternalCalls.GetGameRevision();
-            if (gameVersion == InternalCalls.UnknownRevision)
-            {
-                Log.Error("Failed to get game revision");
-                return;
-            }
-
             var cacheJson = JsonSerializer.Serialize(
                 new PluginRecordCacheJson
                 {

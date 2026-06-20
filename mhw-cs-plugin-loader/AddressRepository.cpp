@@ -17,141 +17,141 @@
 static std::unordered_map<std::string, uintptr_t> scan_for_address_records(json records_json);
 
 void AddressRepository::initialize() {
-	// Load address records json from the default chunk.
-	std::shared_ptr<Chunk> default_chunk = std::make_shared<Chunk>(config::SPL_DEFAULT_CHUNK_PATH);
-	auto address_records = default_chunk.get()->get_file("/Resources/AddressRecords.json");
-	auto& contents_raw = address_records->Contents;
-	std::string contents(contents_raw.begin(), contents_raw.end());
+    // Load address records json from the default chunk.
+    std::shared_ptr<Chunk> default_chunk = std::make_shared<Chunk>(config::SPL_DEFAULT_CHUNK_PATH);
+    auto address_records = default_chunk.get()->get_file("/Resources/AddressRecords.json");
+    auto& contents_raw = address_records->Contents;
+    std::string contents(contents_raw.begin(), contents_raw.end());
 
-	// Parse the json.
-	json records_json = json::parse(contents, nullptr, false);
-	assert(!records_json.is_discarded());
+    // Parse the json.
+    json records_json = json::parse(contents, nullptr, false);
+    assert(!records_json.is_discarded());
 
-	// Get game version/revision and hash of the current address records json file.
-	std::string game_revision = std::string(get_game_revision());
-	const bool unknown_revision = game_revision == std::string(UNKNOWN_REVISION);
-	if (unknown_revision) {
-		dlog::debug("[AddressRepo] Failed to get game revision to validate address repository cache. Cache will be disregarded.");
-	}
+    // Get game version/revision and hash of the current address records json file.
+    std::string game_revision = std::string(get_game_revision());
+    const bool unknown_revision = game_revision == std::string(UNKNOWN_REVISION);
+    if (unknown_revision) {
+        dlog::debug("[AddressRepo] Failed to get game revision to validate address repository cache. Cache will be disregarded.");
+    }
 
-	std::vector<unsigned char> hash(picosha2::k_digest_size);
-	picosha2::hash256(contents_raw.begin(), contents_raw.end(), hash.begin(), hash.end());
-	std::string address_records_file_hash = picosha2::bytes_to_hex_string(hash.begin(), hash.end());
+    std::vector<unsigned char> hash(picosha2::k_digest_size);
+    picosha2::hash256(contents_raw.begin(), contents_raw.end(), hash.begin(), hash.end());
+    std::string address_records_file_hash = picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 
-	dlog::debug("[AddressRepo] Attempting to initialize address repository for game revision: {}", game_revision);
+    dlog::debug("[AddressRepo] Attempting to initialize address repository for game revision: {}", game_revision);
 
-	// Attempt to load file from disk.
-	if (std::filesystem::exists(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH) && !unknown_revision) {
-		if (this->restore_cache(game_revision, address_records_file_hash)) {
-			dlog::debug("[AddressRepo] Restored from address record cache.");
-			return;
-		}
-	}
+    // Attempt to load file from disk.
+    if (std::filesystem::exists(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH) && !unknown_revision) {
+        if (this->restore_cache(game_revision, address_records_file_hash)) {
+            dlog::debug("[AddressRepo] Restored from address record cache.");
+            return;
+        }
+    }
 
-	// Either the cache file doesn't exist, or the version/file hash didn't match. So we AOB scan in cache.
-	dlog::debug("[AddressRepo] No valid address record cache found. Performing first-time scan.");
+    // Either the cache file doesn't exist, or the version/file hash didn't match. So we AOB scan in cache.
+    dlog::debug("[AddressRepo] No valid address record cache found. Performing first-time scan.");
 
-	// Scan for the address records.
-	auto pattern_scan_start_time = std::chrono::steady_clock::now();
-	m_address_records = scan_for_address_records(records_json);
-	auto pattern_scan_end_time = std::chrono::steady_clock::now();
+    // Scan for the address records.
+    auto pattern_scan_start_time = std::chrono::steady_clock::now();
+    m_address_records = scan_for_address_records(records_json);
+    auto pattern_scan_end_time = std::chrono::steady_clock::now();
 
-	dlog::debug(
-		"[AddressRepo] Scanning for addresses took: {}ms",
-		std::chrono::duration_cast<std::chrono::milliseconds>(pattern_scan_end_time - pattern_scan_start_time).count()
-	);
+    dlog::debug(
+        "[AddressRepo] Scanning for addresses took: {}ms",
+        std::chrono::duration_cast<std::chrono::milliseconds>(pattern_scan_end_time - pattern_scan_start_time).count()
+    );
 
-	// Write cache file. If revision is unknown, this will never be reused.
-	this->write_cache(game_revision, address_records_file_hash);
-	dlog::debug("[AddressRepo] Wrote cache file to disk.");
+    // Write cache file. If revision is unknown, this will never be reused.
+    this->write_cache(game_revision, address_records_file_hash);
+    dlog::debug("[AddressRepo] Wrote cache file to disk.");
 }
 
 void AddressRepository::write_cache(const std::string& game_version, const std::string& address_records_file_hash) {
-	std::ofstream file(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH);
-	if (file.is_open()) {
-		json data;
-		data["Version"] = game_version;
-		data["AddressRecordFileHash"] = address_records_file_hash;
-		data["Addresses"] = m_address_records;
-		file << std::setw(4) << data << "\n";
-		file.close();
-	}
+    std::ofstream file(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH);
+    if (file.is_open()) {
+        json data;
+        data["Version"] = game_version;
+        data["AddressRecordFileHash"] = address_records_file_hash;
+        data["Addresses"] = m_address_records;
+        file << std::setw(4) << data << "\n";
+        file.close();
+    }
 }
 
 
 bool AddressRepository::restore_cache(const std::string& game_version, const std::string& address_records_file_hash) {
-	std::ifstream file(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH);
-	json address_cache_json = json::parse(file, nullptr, false);
-	bool cache_json_valid = !address_cache_json.is_discarded() &&
-		address_cache_json.contains("Version") &&
-		address_cache_json.contains("AddressRecordFileHash") &&
-		address_cache_json.contains("Addresses");
-	if (cache_json_valid) {
-		std::string cache_version = address_cache_json["Version"];
-		std::string cache_address_record_file_hash = address_cache_json["AddressRecordFileHash"];
-		if (cache_version == game_version && cache_address_record_file_hash == address_records_file_hash) {
-			auto cached_addresses = address_cache_json["Addresses"];
-			m_address_records = cached_addresses;
-			return true;
-		}
-	}
+    std::ifstream file(config::SPL_ADDRESS_REPOSITORY_CACHE_PATH);
+    json address_cache_json = json::parse(file, nullptr, false);
+    bool cache_json_valid = !address_cache_json.is_discarded() &&
+        address_cache_json.contains("Version") &&
+        address_cache_json.contains("AddressRecordFileHash") &&
+        address_cache_json.contains("Addresses");
+    if (cache_json_valid) {
+        std::string cache_version = address_cache_json["Version"];
+        std::string cache_address_record_file_hash = address_cache_json["AddressRecordFileHash"];
+        if (cache_version == game_version && cache_address_record_file_hash == address_records_file_hash) {
+            auto cached_addresses = address_cache_json["Addresses"];
+            m_address_records = cached_addresses;
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 
 uintptr_t AddressRepository::get(const std::string& name) {
-	if (!m_address_records.contains(name))
-		return 0;
+    if (!m_address_records.contains(name))
+        return 0;
 
-	return m_address_records[name];
+    return m_address_records[name];
 }
 
 /// <summary>
 /// Scans for the patterns in the provided JSON object in parallel.
 /// </summary>
 std::unordered_map<std::string, uintptr_t> scan_for_address_records(json records_json) {
-	std::mutex map_lock;
-	std::unordered_map<std::string, uintptr_t> resolved_addresses;
-	std::for_each(std::execution::par, records_json.begin(), records_json.end(), [&map_lock, &resolved_addresses](const json& o) {
-		std::string name = o["Name"];
-		std::string pattern = o["Pattern"];
-		int64_t offset = o["Offset"];
+    std::mutex map_lock;
+    std::unordered_map<std::string, uintptr_t> resolved_addresses;
+    std::for_each(std::execution::par, records_json.begin(), records_json.end(), [&map_lock, &resolved_addresses](const json& o) {
+        std::string name = o["Name"];
+        std::string pattern = o["Pattern"];
+        int64_t offset = o["Offset"];
 
-		uintptr_t address = PatternScanner::find_first(Pattern::from_string(pattern));
-		if (address == 0) {
-			dlog::error("[AddressRepo] Failed to find address for: {}", name);
-			return;
-		}
-		address += offset;
+        uintptr_t address = PatternScanner::find_first(Pattern::from_string(pattern));
+        if (address == 0) {
+            dlog::error("[AddressRepo] Failed to find address for: {}", name);
+            return;
+        }
+        address += offset;
 
-		// lock map and insert the scan result.
-		{
-			std::lock_guard lock(map_lock);
-			resolved_addresses[name] = address;
-		}
-	});
-	return resolved_addresses;
+        // lock map and insert the scan result.
+        {
+            std::lock_guard lock(map_lock);
+            resolved_addresses[name] = address;
+        }
+    });
+    return resolved_addresses;
 }
 
 const char* AddressRepository::get_game_revision() {
-	if (m_game_revision == nullptr) {
-		const auto func = PatternScanner::find_first(
-			Pattern::from_string("48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00")
-		);
+    if (m_game_revision == nullptr) {
+        const auto func = PatternScanner::find_first(
+            Pattern::from_string("48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00")
+        );
 
-		if (func == 0) {
-			dlog::error("[AddressRepo] Failed to find game revision function");
-			m_game_revision = UNKNOWN_REVISION;
-		} else {
-			const auto constant_offset = *reinterpret_cast<i32*>(func + 7);
-			const uintptr_t offset_base = func + 11;
-			const char* version = *reinterpret_cast<const char**>(offset_base + constant_offset);
-			m_game_revision = version ? version : UNKNOWN_REVISION;
-		}
+        if (func == 0) {
+            dlog::error("[AddressRepo] Failed to find game revision function");
+            m_game_revision = UNKNOWN_REVISION;
+        } else {
+            const auto constant_offset = *reinterpret_cast<i32*>(func + 7);
+            const uintptr_t offset_base = func + 11;
+            const char* version = *reinterpret_cast<const char**>(offset_base + constant_offset);
+            m_game_revision = version ? version : UNKNOWN_REVISION;
+        }
 
-		dlog::debug("[AddressRepo] Game revision: {}", m_game_revision);
-	}
+        dlog::debug("[AddressRepo] Game revision: {}", m_game_revision);
+    }
 
-	return m_game_revision;
+    return m_game_revision;
 }

@@ -69,4 +69,3 @@ private:
 
     std::vector<InternalCall> m_internal_calls{};
 };
-

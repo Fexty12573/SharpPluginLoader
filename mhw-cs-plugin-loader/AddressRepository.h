@@ -15,8 +15,15 @@ public:
 	void initialize();
 
 	/// <summary>
+	/// Get the game revision and cache it for future calls.
+	///
+	/// Returns "unknown" on error, never null.
+	/// </summary>
+	const char* get_game_revision();
+
+	/// <summary>
 	/// Gets the address for the given pattern name.
-	/// 
+	///
 	/// Returns 0 if not found.
 	/// </summary>
 	uintptr_t get(const std::string& name);
@@ -29,12 +36,13 @@ private:
 
 	/// <summary>
 	/// Restores the resolved address cache from disk.
-	/// 
+	///
 	/// Returns true if successful.
 	/// </summary>
 	bool restore_cache(const std::string& game_version, const std::string& address_records_file_hash);
 
 private:
+	const char* m_game_revision = nullptr;
+	static constexpr const char* UNKNOWN_REVISION = "unknown";
 	std::unordered_map<std::string, uintptr_t> m_address_records;
 };
-

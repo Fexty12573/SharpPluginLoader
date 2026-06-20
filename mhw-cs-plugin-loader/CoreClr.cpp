@@ -154,6 +154,6 @@ void* CoreClr::get_method_internal(std::wstring_view assembly, const std::wstrin
         dlog::debug(L"Failed to get function pointer for {}.{}: {}", type, method, hr);
         return nullptr;
     }
-    
+
     return function_pointer;
 }

@@ -39,7 +39,6 @@ public:
 private:
     std::vector<std::shared_ptr<NativeModule>> m_modules;
     ManagedFunctionPointers m_managed_functions;
-    const char* m_game_revision = nullptr;
     AddressRepository* m_address_repository = nullptr;
 
     static inline NativePluginFramework* s_instance = nullptr;

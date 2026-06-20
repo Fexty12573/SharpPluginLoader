@@ -18,8 +18,7 @@ Pattern Pattern::from_string(const std::string& pattern) {
 
         if (byte == "?" || byte == "??") {
             bytes.push_back({ true });
-        }
-        else {
+        } else {
             bytes.push_back({ .Value = (u8)std::stoul(byte, nullptr, 16) });
         }
     }
@@ -50,7 +49,7 @@ std::vector<uintptr_t> PatternScanner::scan(const Pattern& pattern) {
 
     while (addr < end_addr) {
         MEMORY_BASIC_INFORMATION mbi;
-        if (!VirtualQuery(addr, &mbi, sizeof(mbi)) || 
+        if (!VirtualQuery(addr, &mbi, sizeof(mbi)) ||
             mbi.State != MEM_COMMIT ||
             mbi.Protect & PAGE_GUARD) {
             break;

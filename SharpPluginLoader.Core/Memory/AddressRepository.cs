@@ -31,7 +31,7 @@ namespace SharpPluginLoader.Core.Memory
                 ?? throw new Exception("Failed to deserialize plugin records cache");
 
             var gameVersion = InternalCalls.GetGameRevision();
-            if (string.IsNullOrEmpty(gameVersion))
+            if (gameVersion == InternalCalls.UnknownRevision)
             {
                 Log.Error("Failed to get game revision");
                 return;
@@ -48,7 +48,7 @@ namespace SharpPluginLoader.Core.Memory
 
                 return;
             }
-            
+
             // Actual scanning will be performed by the plugins themselves.
             Log.Debug("[Core] No valid plugin record cache found. Performing first-time scan.");
         }
@@ -56,7 +56,7 @@ namespace SharpPluginLoader.Core.Memory
         public static void SavePluginRecords()
         {
             var gameVersion = InternalCalls.GetGameRevision();
-            if (string.IsNullOrEmpty(gameVersion))
+            if (gameVersion == InternalCalls.UnknownRevision)
             {
                 Log.Error("Failed to get game revision");
                 return;

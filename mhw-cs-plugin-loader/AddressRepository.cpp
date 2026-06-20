@@ -147,7 +147,12 @@ const char* AddressRepository::get_game_revision() {
             const auto constant_offset = *reinterpret_cast<i32*>(func + 7);
             const uintptr_t offset_base = func + 11;
             const char* version = *reinterpret_cast<const char**>(offset_base + constant_offset);
-            m_game_revision = version ? version : UNKNOWN_REVISION;
+            if (!version) {
+                dlog::error("[AddressRepo] Failed to get game revision");
+                m_game_revision = UNKNOWN_REVISION;
+            } else {
+                m_game_revision = version;
+            }
         }
 
         dlog::debug("[AddressRepo] Game revision: {}", m_game_revision);

@@ -19,4 +19,3 @@ private:
 
     safetyhook::InlineHook m_main_update_hook;
 };
-

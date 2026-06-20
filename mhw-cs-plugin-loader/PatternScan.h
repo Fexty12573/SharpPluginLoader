@@ -31,5 +31,3 @@ public:
     static std::vector<uintptr_t> scan(const Pattern& pattern);
     static uintptr_t find_first(const Pattern& pattern);
 };
-
-

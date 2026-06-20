@@ -48,23 +48,5 @@ uintptr_t NativePluginFramework::get_repository_address(const char* name) {
 }
 
 const char* NativePluginFramework::get_game_revision() {
-    if (s_instance->m_game_revision != nullptr) {
-        return s_instance->m_game_revision;
-    }
-
-    const auto pattern = Pattern::from_string("48 83 EC 48 48 8B 05 ? ? ? ? 4C 8D 0D ? ? ? ? BA 0A 00 00 00");
-    const auto func = PatternScanner::find_first(pattern);
-
-    if (func == 0) {
-        dlog::error("Failed to find game revision function");
-        return nullptr;
-    }
-
-    const auto constant_offset = *reinterpret_cast<i32*>(func + 7);
-    const uintptr_t offset_base = func + 11;
-    s_instance->m_game_revision = *reinterpret_cast<const char**>(offset_base + constant_offset);
-
-    dlog::debug("Game revision: {}", s_instance->m_game_revision);
-
-    return s_instance->m_game_revision;
+    return s_instance->m_address_repository->get_game_revision();
 }

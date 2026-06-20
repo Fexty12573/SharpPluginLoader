@@ -125,10 +125,7 @@ namespace SharpPluginLoader.Core
 
         public static nint GetRepositoryAddress(string name) => GetRepositoryAddressPtr(name);
 
-        public static string GetGameRevision()
-        {
-            var revision = GetGameRevisionPtr();
-            return revision == null ? string.Empty : new string(revision);
-        }
+        public static string GetGameRevision() => new string(GetGameRevisionPtr());
+        public const string UnknownRevision = "unknown";
     }
 }

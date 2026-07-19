@@ -558,6 +558,8 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     const auto rtv_descriptor_size = m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_back_buffers->GetCPUDescriptorHandleForHeapStart();
 
+    DXGI_FORMAT back_buffer_format = DXGI_FORMAT_UNKNOWN;
+
     for (auto i = 0u; i < desc.BufferCount; ++i) {
         ComPtr<ID3D12Resource> back_buffer;
         if (FAILED(swap_chain->GetBuffer(i, IID_PPV_ARGS(back_buffer.GetAddressOf())))) {
@@ -566,7 +568,17 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         }
 
         const auto buffer_desc = back_buffer->GetDesc();
-        dlog::debug("Creating RTV for back buffer {}, with size {}x{}", i, buffer_desc.Width, buffer_desc.Height);
+        if (i == 0) {
+            back_buffer_format = buffer_desc.Format;
+        }
+
+        dlog::debug(
+            "Creating RTV for back buffer {}, with size {}x{} and format {}",
+            i,
+            buffer_desc.Width,
+            buffer_desc.Height,
+            static_cast<u32>(buffer_desc.Format)
+        );
         
         m_d3d12_device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_handle);
         m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
@@ -583,7 +595,7 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     ImGui_ImplWin32_EnableDpiAwareness();
 
     if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
-        DXGI_FORMAT_R8G8B8A8_UNORM, m_d3d12_srv_heap.Get(),
+        back_buffer_format, m_d3d12_srv_heap.Get(),
         m_d3d12_srv_heap->GetCPUDescriptorHandleForHeapStart(),
         m_d3d12_srv_heap->GetGPUDescriptorHandleForHeapStart())) {
         dlog::error("Failed to initialize ImGui D3D12");

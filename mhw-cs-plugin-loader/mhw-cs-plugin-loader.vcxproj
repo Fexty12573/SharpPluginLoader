@@ -135,6 +135,7 @@
     <ClInclude Include="..\dependencies\imgui\imgui_impl.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_dx12.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui_impl_dxgi_hdr.h" />
     <ClInclude Include="..\dependencies\imgui\imgui_impl_win32.h" />
     <ClInclude Include="AddressRepository.h" />
     <ClInclude Include="Bitfield.h" />

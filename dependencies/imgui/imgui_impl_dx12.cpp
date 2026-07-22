@@ -67,6 +67,7 @@ struct ImGui_ImplDX12_Data
     D3D12_GPU_DESCRIPTOR_HANDLE hFontSrvGpuDescHandle;
     ID3D12DescriptorHeap*       pd3dSrvDescHeap;
     UINT                        numFramesInFlight;
+    ImGui_ImplDXGI_ColorSpace   ColorSpace;
 
     ImGui_ImplDX12_Data()       { memset((void*)this, 0, sizeof(*this)); }
 };
@@ -676,23 +677,13 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
 
     // Create the pixel shader
     {
-        static const char* pixelShader =
-            "struct PS_INPUT\
-            {\
-              float4 pos : SV_POSITION;\
-              float4 col : COLOR0;\
-              float2 uv  : TEXCOORD0;\
-            };\
-            SamplerState sampler0 : register(s0);\
-            Texture2D texture0 : register(t0);\
-            \
-            float4 main(PS_INPUT input) : SV_Target\
-            {\
-              float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
-              return out_col; \
-            }";
+        const D3D_SHADER_MACRO shaderDefines[] =
+        {
+            { "IMGUI_COLOR_SPACE", ImGui_ImplDXGI_GetColorSpaceShaderDefine(bd->ColorSpace) },
+            { nullptr, nullptr },
+        };
 
-        if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &pixelShaderBlob, nullptr)))
+        if (FAILED(D3DCompile(ImGui_ImplDXGI_PixelShader, strlen(ImGui_ImplDXGI_PixelShader), nullptr, shaderDefines, nullptr, "main", "ps_5_0", 0, 0, &pixelShaderBlob, nullptr)))
         {
             vertexShaderBlob->Release();
             return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
@@ -774,7 +765,8 @@ void    ImGui_ImplDX12_InvalidateDeviceObjects()
 }
 
 bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, DXGI_FORMAT rtv_format, ID3D12DescriptorHeap* cbv_srv_heap,
-                         D3D12_CPU_DESCRIPTOR_HANDLE font_srv_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle)
+                         D3D12_CPU_DESCRIPTOR_HANDLE font_srv_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle,
+                         ImGui_ImplDXGI_ColorSpace color_space)
 {
     ImGuiIO& io = *igGetIO();
     IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
@@ -790,6 +782,7 @@ bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, DXGI_FO
 
     bd->pd3dDevice = device;
     bd->RTVFormat = rtv_format;
+    bd->ColorSpace = color_space;
     bd->hFontSrvCpuDescHandle = font_srv_cpu_desc_handle;
     bd->hFontSrvGpuDescHandle = font_srv_gpu_desc_handle;
     bd->numFramesInFlight = num_frames_in_flight;

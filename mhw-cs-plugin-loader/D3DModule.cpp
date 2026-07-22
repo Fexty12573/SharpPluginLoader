@@ -25,6 +25,28 @@
 // DirectXTK12 References SerializeRootSignature so we need to link this
 #pragma comment(lib, "d3d12.lib")
 
+namespace {
+
+// DXGI exposes methods to set a swap-chain color space, but not to query the
+// active one. MHW uses these back-buffer formats for its two HDR output paths.
+ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer_format) {
+    switch (back_buffer_format) {
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        dlog::debug("Using scRGB color management for ImGui");
+        return ImGui_ImplDXGI_ColorSpace_scRGB;
+
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+        dlog::debug("Using HDR10 color management for ImGui");
+        return ImGui_ImplDXGI_ColorSpace_HDR10;
+
+    default:
+        dlog::debug("Using SDR color management for ImGui");
+        return ImGui_ImplDXGI_ColorSpace_SDR;
+    }
+}
+
+}
+
 void D3DModule::initialize(CoreClr* coreclr) {
     if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
         dlog::debug("Skipping D3D module initialization because imgui rendering is disabled");
@@ -558,6 +580,8 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     const auto rtv_descriptor_size = m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_back_buffers->GetCPUDescriptorHandleForHeapStart();
 
+    DXGI_FORMAT back_buffer_format = DXGI_FORMAT_UNKNOWN;
+
     for (auto i = 0u; i < desc.BufferCount; ++i) {
         ComPtr<ID3D12Resource> back_buffer;
         if (FAILED(swap_chain->GetBuffer(i, IID_PPV_ARGS(back_buffer.GetAddressOf())))) {
@@ -566,7 +590,17 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         }
 
         const auto buffer_desc = back_buffer->GetDesc();
-        dlog::debug("Creating RTV for back buffer {}, with size {}x{}", i, buffer_desc.Width, buffer_desc.Height);
+        if (i == 0) {
+            back_buffer_format = buffer_desc.Format;
+        }
+
+        dlog::debug(
+            "Creating RTV for back buffer {}, with size {}x{} and format {}",
+            i,
+            buffer_desc.Width,
+            buffer_desc.Height,
+            static_cast<u32>(buffer_desc.Format)
+        );
         
         m_d3d12_device->CreateRenderTargetView(back_buffer.Get(), nullptr, rtv_handle);
         m_d3d12_frame_contexts[i].RenderTargetDescriptor = rtv_handle;
@@ -574,6 +608,8 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 
         rtv_handle.ptr += rtv_descriptor_size;
     }
+
+    const auto imgui_color_space = infer_imgui_color_space(back_buffer_format);
 
     if (!ImGui_ImplWin32_Init(m_game_window)) {
         dlog::error("Failed to initialize ImGui Win32");
@@ -583,9 +619,10 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     ImGui_ImplWin32_EnableDpiAwareness();
 
     if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
-        DXGI_FORMAT_R8G8B8A8_UNORM, m_d3d12_srv_heap.Get(),
+        back_buffer_format, m_d3d12_srv_heap.Get(),
         m_d3d12_srv_heap->GetCPUDescriptorHandleForHeapStart(),
-        m_d3d12_srv_heap->GetGPUDescriptorHandleForHeapStart())) {
+        m_d3d12_srv_heap->GetGPUDescriptorHandleForHeapStart(),
+        imgui_color_space)) {
         dlog::error("Failed to initialize ImGui D3D12");
         return;
     }
@@ -618,6 +655,16 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
+    DXGI_FORMAT back_buffer_format = desc.BufferDesc.Format;
+    ComPtr<ID3D11Texture2D> back_buffer;
+    if (SUCCEEDED(swap_chain->GetBuffer(0, IID_PPV_ARGS(back_buffer.GetAddressOf())))) {
+        D3D11_TEXTURE2D_DESC back_buffer_desc;
+        back_buffer->GetDesc(&back_buffer_desc);
+        back_buffer_format = back_buffer_desc.Format;
+    }
+
+    const auto imgui_color_space = infer_imgui_color_space(back_buffer_format);
+
     RECT client_rect;
     GetClientRect(desc.OutputWindow, &client_rect);
 
@@ -638,7 +685,7 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    if (!ImGui_ImplDX11_Init(m_d3d11_device, m_d3d11_device_context)) {
+    if (!ImGui_ImplDX11_Init(m_d3d11_device, m_d3d11_device_context, imgui_color_space)) {
         dlog::error("Failed to initialize ImGui D3D11");
         return;
     }

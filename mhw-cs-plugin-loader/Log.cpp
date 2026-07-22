@@ -27,12 +27,10 @@ static loader::LogLevel to_loader_level(LogLevel level) {
 }
 
 static void log_raw(LogLevel level, const void* msg, size_t msg_length, const void* time_msg, size_t time_msg_length, OutputFunc write) {
-    if (!s_console) {
+    if (s_log_to_cmd && !s_console) {
         auto& loader_config = preloader::LoaderConfig::get();
 
         const auto& log_level = loader_config.get_log_level();
-        s_log_to_cmd = loader_config.get_log_cmd();
-
         if (log_level == "DEBUG") {
             s_console_log_level = loader::DEBUG;
         } else if (log_level == "INFO") {
@@ -42,39 +40,40 @@ static void log_raw(LogLevel level, const void* msg, size_t msg_length, const vo
         } else if (log_level == "ERROR") {
             s_console_log_level = loader::ERR;
         } else {
-            MessageBoxA(nullptr, ("[SPL] Invalid log level: " + log_level).c_str(), "Error", MB_ICONERROR);
-            return;
+            MessageBoxA(nullptr,
+                std::format("[SPL] Invalid log level: \"{}\"\nIf installed, Stracker's Loader may crash", log_level).c_str(),
+                "Error", MB_ICONERROR);
         }
 
-        s_console = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (s_console == INVALID_HANDLE_VALUE) {
-            MessageBoxA(nullptr, "[SPL] Failed to get console handle", "Error", MB_ICONERROR);
-            return;
+        s_log_to_cmd = loader_config.get_log_cmd();
+        if (s_log_to_cmd) {
+            s_console = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (s_console == INVALID_HANDLE_VALUE) {
+                MessageBoxA(nullptr, "[SPL] Failed to get console handle", "Error", MB_ICONERROR);
+            }
         }
     }
 
-    if (!s_file) {
+    if (s_file && !s_file.is_open()) {
         s_file.open(config::SPL_LOG_FILE, std::ios::out);
         if (!s_file) {
             MessageBoxA(nullptr, "[SPL] Failed to open log file", "Error", MB_ICONERROR);
-            return;
         }
     }
 
-    if (!s_log_to_cmd || to_loader_level(level) < s_console_log_level) {
-        return;
+    if (s_log_to_cmd && s_console != INVALID_HANDLE_VALUE && to_loader_level(level) >= s_console_log_level) {
+        SetConsoleTextAttribute(s_console, FOREGROUND_GREEN);
+        write(s_console, time_msg, (UINT)time_msg_length, nullptr, nullptr);
+
+        SetConsoleTextAttribute(s_console, level); // See LogLevel enum
+        write(s_console, msg, (UINT)msg_length, nullptr, nullptr);
+        write(s_console, "\n", 1, nullptr, nullptr);
+
+        SetConsoleTextAttribute(s_console, 0);
     }
-
-    SetConsoleTextAttribute(s_console, FOREGROUND_GREEN);
-    write(s_console, time_msg, (UINT)time_msg_length, nullptr, nullptr);
-
-    SetConsoleTextAttribute(s_console, level); // See LogLevel enum
-    write(s_console, msg, (UINT)msg_length, nullptr, nullptr);
-    write(s_console, "\n", 1, nullptr, nullptr);
-    SetConsoleTextAttribute(s_console, 0);
 }
 
-std::string wstring_to_utf8(std::wstring_view str) {
+static std::string wstring_to_utf8(std::wstring_view str) {
     const int size = WideCharToMultiByte(
         CP_UTF8, 0,
         str.data(), static_cast<int>(str.size()),
@@ -93,31 +92,20 @@ std::string wstring_to_utf8(std::wstring_view str) {
     return result;
 }
 
-}
-
-void dlog::impl::log(dlog::impl::LogLevel level, const std::string& msg) {
-    const auto now = []  {
-        const auto time = std::chrono::system_clock::to_time_t(
-            std::chrono::system_clock::now()
-        );
-
-        // Converting to std::tm to avoid the millisecond precision
-        std::tm tm{};
-        localtime_s(&tm, &time);
-        return tm;
-    };
-
+void log(LogLevel level, const std::string& msg) {
     const auto time = std::format("[ {:%H:%M:%S} | SPL ] ", std::chrono::system_clock::now());
     log_raw(level, msg.c_str(), msg.size(), time.c_str(), time.size(), WriteConsoleA);
-
-    impl::s_file << time << msg << '\n' << std::flush;
+    if (s_file) {
+        s_file << time << msg << '\n' << std::flush;
+    }
 }
 
-void debug::log::impl::log(LogLevel level, const std::wstring& msg) {
+void log(LogLevel level, const std::wstring& msg) {
     const auto time = std::format(L"[ {:%T} | SPL ] ", std::chrono::system_clock::now());
     log_raw(level, msg.c_str(), msg.size(), time.c_str(), time.size(), WriteConsoleW);
+    if (s_file) {
+        s_file << wstring_to_utf8(time) << wstring_to_utf8(msg) << '\n' << std::flush;
+    }
+}
 
-    const std::string time_utf8 = wstring_to_utf8(time);
-    const std::string msg_utf8 = wstring_to_utf8(msg);
-    impl::s_file << time_utf8 << msg_utf8 << '\n' << std::flush;
 }

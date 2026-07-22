@@ -28,6 +28,7 @@ jobs:
       USERNAME: Fexty12573
       VCPKG_EXE: vcpkg
       FEED_URL: https://nuget.pkg.github.com/Fexty12573/index.json
+      VCPKG_PAT_TOKEN: ${{ secrets.VCPKG_PAT_TOKEN }}
       VCPKG_BINARY_SOURCES: >-
         ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
             && 'clear;nuget,https://nuget.pkg.github.com/Fexty12573/index.json,readwrite'
@@ -63,13 +64,6 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         shell: pwsh
         run: |
-          .$(${{ env.VCPKG_EXE }} fetch nuget) `
-            sources add `
-            -Source "${{ env.FEED_URL }}" `
-            -StorePasswordInClearText `
-            -Name GitHubPackages `
-            -UserName "${{ env.USERNAME }}" `
-            -Password "${{ secrets.VCPKG_PAT_TOKEN }}"
           .$(${{ env.VCPKG_EXE }} fetch nuget) `
             setapikey "${{ secrets.VCPKG_PAT_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"

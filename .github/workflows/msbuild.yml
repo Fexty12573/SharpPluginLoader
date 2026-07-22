@@ -31,7 +31,7 @@ jobs:
       VCPKG_PAT_TOKEN: ${{ secrets.VCPKG_PAT_TOKEN }}
       VCPKG_BINARY_SOURCES: >-
         ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-            && 'clear;nuget,https://nuget.pkg.github.com/Fexty12573/index.json,readwrite'
+            && 'clear;nuget,https://nuget.pkg.github.com/Fexty12573/index.json,read'
             || 'clear;default,readwrite' }}
 
     steps:

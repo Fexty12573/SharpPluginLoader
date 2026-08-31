@@ -21,7 +21,7 @@ public unsafe class MtFile : MtObject, IDisposable
     public static MtFile? Open(string path, OpenMode mode, bool createPath = true)
     {
         var dti = MtDti.Find("MtFile");
-        if (dti is null) 
+        if (dti is null)
             return null;
 
         var file = new MtFile(MemoryUtil.Alloc(dti.Size))
@@ -38,7 +38,7 @@ public unsafe class MtFile : MtObject, IDisposable
     /// <summary>
     /// Gets the path of the file.
     /// </summary>
-    public string Path => new(GetPtr<sbyte>(0x10));
+    public string Path => new(GetPtrInline<sbyte>(0x10));
 
     /// <summary>
     /// Gets the file pointer.

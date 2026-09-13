@@ -1,8 +1,8 @@
-﻿using System;
+﻿using SharpPluginLoader.Core.Entities;
+using SharpPluginLoader.Core.Memory;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using SharpPluginLoader.Core.Entities;
-using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.Actions;
 
@@ -15,13 +15,71 @@ public class ActionCloner
     /// <summary>
     /// Registers a custom action for a monster.
     /// </summary>
+    /// <typeparam name="T">
+    /// The <see cref="CustomAction"/> type to register. It must carry a <see cref="CustomActionAttribute"/>
+    /// and have a public parameterless constructor.
+    /// </typeparam>
     /// <param name="monster">The monster type to register the action for.</param>
     /// <param name="variant">The variant of the monster to register the action for.</param>
-    /// <param name="action">The custom action to register.</param>
-    public static void RegisterAction(MonsterType monster, uint variant, CustomAction action)
+    /// <param name="virtualFunctions">
+    /// Additional virtual functions to override, keyed by their index in the vtable. Only needed for
+    /// functions that <see cref="CustomAction"/> does not already expose. The delegates must be kept
+    /// alive by the caller for as long as the action is registered.
+    /// </param>
+    /// <remarks>
+    /// One instance of <typeparamref name="T"/> is created per monster that receives the action, so
+    /// instance state is never shared between monsters.
+    /// </remarks>
+    public static void RegisterAction<T>(MonsterType monster, uint variant,
+        IReadOnlyDictionary<int, Delegate>? virtualFunctions = null) where T : CustomAction, new()
     {
-        _instance.GetCustomActionList(monster, variant).Add(action);
-        _instance.BuildVTable(monster, action);
+        var attribute = typeof(T).GetCustomAttribute<CustomActionAttribute>()
+            ?? throw new InvalidOperationException($"{typeof(T).Name} is missing a [CustomAction] attribute");
+
+        MtDti? baseDti = null;
+        if (attribute.BaseDti is not null)
+        {
+            baseDti = MtDti.Find(attribute.BaseDti)
+                ?? throw new InvalidOperationException(
+                    $"No DTI named {attribute.BaseDti} found (required by {typeof(T).Name})");
+        }
+        else if (attribute.BaseActionId < 0)
+        {
+            throw new InvalidOperationException(
+                $"{typeof(T).Name} must specify either BaseActionId or BaseDti on its [CustomAction] attribute");
+        }
+
+        var registration = new ActionRegistration
+        {
+            Name = attribute.Name,
+            Flags = attribute.Flags,
+            BaseActionId = attribute.BaseActionId,
+            BaseDti = baseDti,
+            Factory = instance => new T { Instance = instance },
+            HasOnInitialize = IsOverridden(typeof(T), nameof(CustomAction.OnInitialize)),
+            HasOnExecute = IsOverridden(typeof(T), nameof(CustomAction.OnExecute)),
+            HasOnUpdate = IsOverridden(typeof(T), nameof(CustomAction.OnUpdate)),
+            HasOnEnd = IsOverridden(typeof(T), nameof(CustomAction.OnEnd))
+        };
+
+        if (virtualFunctions is not null)
+        {
+            foreach (var (index, func) in virtualFunctions)
+                registration.VirtualFunctions[index] = func;
+        }
+
+        _instance.GetCustomActionList(monster, variant).Add(registration);
+        _instance.BuildVTable(monster, registration);
+    }
+
+    /// <summary>
+    /// Checks whether <paramref name="type"/> provides its own implementation of one of the
+    /// <see cref="CustomAction"/> hooks, rather than inheriting the default that forwards to the parent action.
+    /// </summary>
+    private static bool IsOverridden(Type type, string name)
+    {
+        var method = type.GetMethod(name, BindingFlags.Public | BindingFlags.Instance);
+        return method is not null && method.DeclaringType != typeof(CustomAction);
     }
 
     private unsafe ActionCloner()
@@ -36,6 +94,13 @@ public class ActionCloner
         for (var i = 0; i < count; i++)
         {
             _vtableSizes[entries[i].DtiId] = entries[i].Size;
+
+            var dti = MtDti.Find(entries[i].DtiId);
+            if ((dti?.InheritsFrom("cEmAction") ?? false) &&
+                entries[i].Size < 9)
+            {
+                Log.Error($"VTable for {dti.Name} has less than 9 entries");
+            }
         }
 
         // Create hooks and patches
@@ -49,10 +114,10 @@ public class ActionCloner
         var vtableAssignment = AddressRepository.Get("EmAction:VTableAssignment");
         var baseActionVft = (nint*)(MemoryUtil.Read<int>(vtableAssignment) + vtableAssignment + 4);
 
-        _baseOnInitialize = Marshal.GetDelegateForFunctionPointer<OnActionInitialize>(baseActionVft[5]);
-        _baseOnExecute = Marshal.GetDelegateForFunctionPointer<OnActionExecute>(baseActionVft[6]);
-        _baseOnUpdate = Marshal.GetDelegateForFunctionPointer<OnActionUpdate>(baseActionVft[7]);
-        _baseOnEnd = Marshal.GetDelegateForFunctionPointer<OnActionEnd>(baseActionVft[8]);
+        BaseOnInitialize = new NativeAction<nint>(baseActionVft[5]);
+        BaseOnExecute = new NativeAction<nint>(baseActionVft[6]);
+        BaseOnUpdate = new NativeFunction<nint, byte>(baseActionVft[7]);
+        BaseOnEnd = new NativeAction<nint>(baseActionVft[8]);
 
         return;
 
@@ -84,30 +149,49 @@ public class ActionCloner
             return;
         }
 
-        _stringsToFree[monster] = [];
-        Dictionary<int, CustomAction> actionMap = [];
+        // The action set can be built more than once for the same monster. The managed actions from a
+        // previous pass refer to native objects that are about to be replaced, so drop them.
+        ReleaseActions(monster);
+
+        // The name strings are not freed here: the action objects from the previous pass hold pointers
+        // to them and are only torn down by the call to the original function further below. They stay
+        // alive until the monster is destroyed.
+        if (!_stringsToFree.TryGetValue(monster, out var strings))
+            _stringsToFree[monster] = strings = [];
+
+        List<nint> actionInstances = [];
+        _actionsByMonster[monster] = actionInstances;
+
+        Dictionary<int, ActionRegistration> actionMap = [];
         using var newTable = NativeArray<ActionTableEntry>.Create(actionCount + list.Actions.Count);
         MemoryUtil.Copy(actionTable, newTable.Address, actionCount * sizeof(ActionTableEntry));
 
         var index = actionCount;
-        foreach (var action in list.Actions)
+        foreach (var registration in list.Actions)
         {
-            if (action.BaseDti is not null)
+            if (registration.BaseDti is not null)
             {
-                newTable[index].Dti = action.BaseDti;
-                newTable[index].Flags = action.Flags;
+                newTable[index].Dti = registration.BaseDti;
+                newTable[index].Flags = registration.Flags >= 0 ? registration.Flags : 0;
             }
             else
             {
-                newTable[index].Dti = newTable[action.BaseActionId].Dti;
-                newTable[index].Flags = newTable[action.BaseActionId].Flags;
+                newTable[index].Dti = newTable[registration.BaseActionId].Dti;
+                newTable[index].Flags = registration.Flags >= 0
+                    ? registration.Flags
+                    : newTable[registration.BaseActionId].Flags;
             }
 
-            newTable[index].Name = action.Name ?? $"ACTION_{monster.Type}_{index}";
+            newTable[index].Name = string.IsNullOrEmpty(registration.Name)
+                ? $"ACTION_{monster.Type}_{index}"
+                : registration.Name;
             newTable[index].Id = index;
 
-            actionMap[index] = action;
-            _stringsToFree[monster].Add(newTable[index].NamePtr);
+            actionMap[index] = registration;
+            strings.Add(newTable[index].NamePtr);
+
+            Log.Debug($"[{monster.Name}] Action {newTable[index].Name} registered with ID {index}");
+
             index++;
         }
 
@@ -116,35 +200,42 @@ public class ActionCloner
         var actionController = monster.ActionController;
         var actionList = actionController.GetActionList(set);
 
-        // Update the action list with the custom vtables
-        foreach (var (idx, customAction) in actionMap)
+        // Update the action list with the custom vtables, and give every native action object
+        // its own managed instance to dispatch to
+        foreach (var (idx, registration) in actionMap)
         {
             var action = actionList[idx];
             if (action is null)
             {
-                Log.Warn($"Failed to overwrite VTable for action {customAction.Name}, action was not created properly.");
+                Log.Warn($"Failed to overwrite VTable for action {registration.Name}, action was not created properly.");
                 continue;
             }
 
-            action.GetRef<nint>(0x0) = customAction.VTable.Address;
+            var customAction = registration.Factory(action.Instance);
+            customAction.Registration = registration;
+
+            _actions[action.Instance] = customAction;
+            actionInstances.Add(action.Instance);
+
+            action.GetRef<nint>(0x0) = registration.VTable.Address;
         }
 
         _applyActionParam.Invoke(instance);
     }
 
-    private unsafe void BuildVTable(MonsterType monster, CustomAction action)
+    private unsafe void BuildVTable(MonsterType monster, ActionRegistration registration)
     {
-        var dti = action.BaseDti;
+        var dti = registration.BaseDti;
         if (dti is null)
         {
             // Fixed length because we won't be going out of bounds anyway unless the user made a mistake, in which case
             // crashing is the desired behavior
             var actionTable = new NativeArray<ActionTableEntry>(_getActionTable.Invoke(monster), 400);
-            dti = actionTable[action.BaseActionId].Dti;
+            dti = actionTable[registration.BaseActionId].Dti;
 
             if (dti is null)
             {
-                throw new InvalidOperationException($"No base dti found for action {action.BaseActionId}");
+                throw new InvalidOperationException($"No base dti found for action {registration.BaseActionId}");
             }
         }
 
@@ -163,56 +254,142 @@ public class ActionCloner
             vtable[i] = dummyBaseAction.GetVirtualFunction(i);
         }
 
-        action.ParentOnInitialize = Marshal.GetDelegateForFunctionPointer<OnActionInitialize>(dummyBaseAction.GetVirtualFunction(5));
-        action.ParentOnExecute = Marshal.GetDelegateForFunctionPointer<OnActionExecute>(dummyBaseAction.GetVirtualFunction(6));
-        action.ParentOnUpdate = Marshal.GetDelegateForFunctionPointer<OnActionUpdate>(dummyBaseAction.GetVirtualFunction(7));
-        action.ParentOnEnd = Marshal.GetDelegateForFunctionPointer<OnActionEnd>(dummyBaseAction.GetVirtualFunction(8));
+        registration.ParentOnInitialize = new NativeAction<nint>(vtable[5]);
+        registration.ParentOnExecute = new NativeAction<nint>(vtable[6]);
+        registration.ParentOnUpdate = new NativeFunction<nint, byte>(vtable[7]);
+        registration.ParentOnEnd = new NativeAction<nint>(vtable[8]);
 
-        action.OnInitializeWrapper = action.OnInitialize is null ? null : instance =>
+        // Only redirect the slots the action actually implements. The rest keep pointing at the base.
+        if (registration.HasOnInitialize)
         {
-            action.OnInitialize(new Action(instance), action.ParentOnInitialize, _baseOnInitialize);
-        };
+            registration.OnInitializeWrapper = nativeAction =>
+            {
+                var action = Resolve(nativeAction, registration);
+                if (action is null)
+                {
+                    registration.ParentOnInitialize.Invoke(nativeAction);
+                    return;
+                }
 
-        action.OnExecuteWrapper = action.OnExecute is null ? null : instance =>
+                try
+                {
+                    action.OnInitialize();
+                }
+                catch (Exception e)
+                {
+                    LogCallbackException(registration, nameof(CustomAction.OnInitialize), e);
+                }
+            };
+
+            vtable[5] = Marshal.GetFunctionPointerForDelegate(registration.OnInitializeWrapper);
+        }
+
+        if (registration.HasOnExecute)
         {
-            action.OnExecute(new Action(instance), action.ParentOnExecute, _baseOnExecute);
-        };
+            registration.OnExecuteWrapper = nativeAction =>
+            {
+                var action = Resolve(nativeAction, registration);
+                if (action is null)
+                {
+                    registration.ParentOnExecute.Invoke(nativeAction);
+                    return;
+                }
 
-        action.OnUpdateWrapper = action.OnUpdate is null ? null : instance =>
+                try
+                {
+                    action.OnExecute();
+                }
+                catch (Exception e)
+                {
+                    LogCallbackException(registration, nameof(CustomAction.OnExecute), e);
+                }
+            };
+
+            vtable[6] = Marshal.GetFunctionPointerForDelegate(registration.OnExecuteWrapper);
+        }
+
+        if (registration.HasOnUpdate)
         {
-            return action.OnUpdate(new Action(instance), action.ParentOnUpdate, _baseOnUpdate);
-        };
+            registration.OnUpdateWrapper = nativeAction =>
+            {
+                var action = Resolve(nativeAction, registration);
+                if (action is null)
+                    return registration.ParentOnUpdate.Invoke(nativeAction) != 0;
 
-        action.OnEndWrapper = action.OnEnd is null ? null : instance =>
+                try
+                {
+                    return action.OnUpdate();
+                }
+                catch (Exception e)
+                {
+                    LogCallbackException(registration, nameof(CustomAction.OnUpdate), e);
+                    return true; // Keep the action alive
+                }
+            };
+
+            vtable[7] = Marshal.GetFunctionPointerForDelegate(registration.OnUpdateWrapper);
+        }
+
+        if (registration.HasOnEnd)
         {
-            action.OnEnd(new Action(instance), action.ParentOnEnd, _baseOnEnd);
-        };
+            registration.OnEndWrapper = nativeAction =>
+            {
+                var action = Resolve(nativeAction, registration);
+                if (action is null)
+                {
+                    registration.ParentOnEnd.Invoke(nativeAction);
+                    return;
+                }
 
-        // Override action functions
-        vtable[5] = action.OnInitialize != null 
-            ? Marshal.GetFunctionPointerForDelegate(action.OnInitializeWrapper!)
-            : dummyBaseAction.GetVirtualFunction(5);
+                try
+                {
+                    action.OnEnd();
+                }
+                catch (Exception e)
+                {
+                    LogCallbackException(registration, nameof(CustomAction.OnEnd), e);
+                }
+            };
 
-        vtable[6] = action.OnExecute != null
-            ? Marshal.GetFunctionPointerForDelegate(action.OnExecuteWrapper!)
-            : dummyBaseAction.GetVirtualFunction(6);
-
-        vtable[7] = action.OnUpdate != null
-            ? Marshal.GetFunctionPointerForDelegate(action.OnUpdateWrapper!)
-            : dummyBaseAction.GetVirtualFunction(7);
-
-        vtable[8] = action.OnEnd != null
-            ? Marshal.GetFunctionPointerForDelegate(action.OnEndWrapper!)
-            : dummyBaseAction.GetVirtualFunction(8);
+            vtable[8] = Marshal.GetFunctionPointerForDelegate(registration.OnEndWrapper);
+        }
 
         // Explicit user overrides
-        foreach (var (index, func) in action.VirtualFunctions)
+        foreach (var (index, func) in registration.VirtualFunctions)
         {
             vtable[index] = Marshal.GetFunctionPointerForDelegate(func);
         }
 
-        action.VTable = vtable;
+        registration.VTable = vtable;
         dummyBaseAction.Destroy(true);
+    }
+
+    /// <summary>
+    /// Maps a native action object back to the managed <see cref="CustomAction"/> driving it.
+    /// </summary>
+    /// <remarks>
+    /// Every action that uses one of our vtables gets its managed counterpart created in
+    /// <see cref="SetActionSetHook"/>, so a miss means something went wrong. Callers fall back to
+    /// the behavior of the base action in that case.
+    /// </remarks>
+    private CustomAction? Resolve(nint nativeAction, ActionRegistration registration)
+    {
+        if (_actions.TryGetValue(nativeAction, out var action))
+            return action;
+
+        if (!registration.WarnedAboutUntrackedInstance)
+        {
+            registration.WarnedAboutUntrackedInstance = true;
+            Log.Error($"No managed instance for action {registration.Name} at 0x{nativeAction:X}, falling back " +
+                      $"to the base action. This is only logged once per registered action.");
+        }
+
+        return null;
+    }
+
+    private static void LogCallbackException(ActionRegistration registration, string callback, Exception e)
+    {
+        Log.Error($"Unhandled exception in {callback} of action {registration.Name}: {e}");
     }
 
     private CustomActionList GetCustomActionList(MonsterType monster, uint variant)
@@ -237,17 +414,32 @@ public class ActionCloner
         return size;
     }
 
+    /// <summary>
+    /// Drops the managed actions of a monster. Called both when the monster is destroyed and when its
+    /// action set is rebuilt, since either one invalidates the native action objects behind them.
+    /// </summary>
+    private void ReleaseActions(Monster monster)
+    {
+        if (!_actionsByMonster.Remove(monster, out var actions))
+            return;
+
+        foreach (var ptr in actions)
+        {
+            _actions.Remove(ptr);
+        }
+    }
+
     internal static unsafe void OnMonsterDestroy(Monster monster)
     {
-        if (_instance._stringsToFree.TryGetValue(monster, out var strings))
+        if (_instance._stringsToFree.Remove(monster, out var strings))
         {
             foreach (var ptr in strings)
             {
                 Utf8StringMarshaller.Free((byte*)ptr);
             }
-
-            _instance._stringsToFree.Remove(monster);
         }
+
+        _instance.ReleaseActions(monster);
     }
 
     internal static void Initialize()
@@ -255,30 +447,89 @@ public class ActionCloner
         _instance = new ActionCloner();
     }
 
+    /// <summary>
+    /// The cActionBase implementations, shared by every custom action regardless of what it is based on.
+    /// </summary>
+    internal static NativeAction<nint> BaseOnInitialize { get; private set; }
+    internal static NativeAction<nint> BaseOnExecute { get; private set; }
+    internal static NativeFunction<nint, byte> BaseOnUpdate { get; private set; }
+    internal static NativeAction<nint> BaseOnEnd { get; private set; }
+
     private static ActionCloner _instance = null!;
 
     private delegate void SetActionSetDelegate(nint instance, int set, nint actionTable, int actionCount, int controller);
     private readonly Dictionary<uint, int> _vtableSizes;
     private readonly List<CustomActionList> _customActions = [];
     private readonly Dictionary<Monster, List<nint>> _stringsToFree = [];
+
+    // Native action object -> the managed instance driving it, plus the reverse index used to clean it up
+    private readonly Dictionary<nint, CustomAction> _actions = [];
+    private readonly Dictionary<Monster, List<nint>> _actionsByMonster = [];
+
     private readonly NativeFunction<MonsterType, nint> _getActionTable;
     private readonly NativeAction<nint> _applyActionParam;
     private readonly Patch _patch;
     private readonly Hook<SetActionSetDelegate> _hook;
+}
 
-    private readonly OnActionInitialize _baseOnInitialize;
-    private readonly OnActionExecute _baseOnExecute;
-    private readonly OnActionUpdate _baseOnUpdate;
-    private readonly OnActionEnd _baseOnEnd;
+/// <summary>
+/// The per-registration state of a custom action. Everything in here is shared by every instance of a
+/// single <see cref="CustomAction"/> type registered for one monster.
+/// </summary>
+internal sealed class ActionRegistration
+{
+    public required string Name { get; init; }
+    public required int Flags { get; init; }
+    public required int BaseActionId { get; init; }
+    public required MtDti? BaseDti { get; init; }
+
+    /// <summary>
+    /// Creates a managed action bound to the given native action object.
+    /// </summary>
+    public required Func<nint, CustomAction> Factory { get; init; }
+
+    public required bool HasOnInitialize { get; init; }
+    public required bool HasOnExecute { get; init; }
+    public required bool HasOnUpdate { get; init; }
+    public required bool HasOnEnd { get; init; }
+
+    /// <summary>
+    /// Extra virtual functions to override, keyed by their index in the vtable.
+    /// </summary>
+    public Dictionary<int, Delegate> VirtualFunctions { get; } = [];
+
+    public NativeArray<nint> VTable;
+
+    // The implementations of the action this one is based on
+    public NativeAction<nint> ParentOnInitialize;
+    public NativeAction<nint> ParentOnExecute;
+    public NativeFunction<nint, byte> ParentOnUpdate;
+    public NativeAction<nint> ParentOnEnd;
+
+    // Rooted here so the reverse P/Invoke stubs the vtable points at stay alive
+    public OnActionInitialize? OnInitializeWrapper;
+    public OnActionExecute? OnExecuteWrapper;
+    public OnActionUpdate? OnUpdateWrapper;
+    public OnActionEnd? OnEndWrapper;
+
+    public bool WarnedAboutUntrackedInstance;
+
+    ~ActionRegistration()
+    {
+        if (VTable.Address != 0)
+        {
+            VTable.Dispose();
+        }
+    }
 }
 
 internal class CustomActionList(MonsterType type, uint variant)
 {
     public MonsterType Monster { get; set; } = type;
     public uint Variant { get; set; } = variant;
-    public List<CustomAction> Actions { get; } = [];
+    public List<ActionRegistration> Actions { get; } = [];
 
-    public void Add(CustomAction action)
+    public void Add(ActionRegistration action)
     {
         Actions.Add(action);
     }

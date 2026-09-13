@@ -10,33 +10,33 @@ public class Plugin : IPlugin
     public string Name => "Custom Actions";
     public string Author => "Fexty";
 
-    private bool _didSpikes = false;
-
     public void OnLoad()
     {
-        var action = new CustomAction
+        ActionCloner.RegisterAction<SpikeDiveAction>(MonsterType.RuinerNergigante, 5);
+    }
+}
+
+[CustomAction("My Custom Action", BaseActionId = 180, Flags = 0x1)]
+public class SpikeDiveAction : CustomAction
+{
+    private bool _didSpikes;
+
+    public override void OnExecute()
+    {
+        GetRef<AnimationId>(0x1B0) = new AnimationId(1, 23);
+        _didSpikes = false;
+
+        ParentOnExecute();
+    }
+
+    public override bool OnUpdate()
+    {
+        if (!_didSpikes && Parent?.AnimationFrame > 20f)
         {
-            Name = "My Custom Action",
-            Flags = 0x1,
-            BaseActionId = 180,
-            OnExecute = (action, parentFunc, baseFunc) =>
-            {
-                action.GetRef<AnimationId>(0x1B0) = new AnimationId(1, 23);
-                _didSpikes = false;
-                parentFunc(action.Instance);
-            },
-            OnUpdate = (action, parentFunc, baseFunc) =>
-            {
-                if (!_didSpikes && action.Parent?.AnimationFrame > 20f)
-                {
-                    action.Parent?.CreateEffect(2007, 0);
-                    _didSpikes = true;
-                }
+            Parent?.CreateEffect(2007, 0);
+            _didSpikes = true;
+        }
 
-                return parentFunc(action.Instance);
-            }
-        };
-
-        ActionCloner.RegisterAction(MonsterType.RuinerNergigante, 5, action);
+        return ParentOnUpdate();
     }
 }

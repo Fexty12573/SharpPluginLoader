@@ -4,3 +4,5 @@
   href: Logging.md
 - name: User Input
   href: UserInput.md
+- name: Custom Actions
+  href: CustomActions.md

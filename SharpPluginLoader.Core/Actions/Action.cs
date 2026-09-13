@@ -36,11 +36,28 @@ public class Action : MtObject
     /// </summary>
     public Entity? Parent => GetObject<Entity>(0x30);
 
-    public unsafe void OnInitialize() => ((delegate*<nint, void>)GetVirtualFunction(5))(Instance);
+    /// <summary>
+    /// Called after the action object is created. Dispatches through the objects vtable.
+    /// </summary>
+    /// <remarks><see cref="CustomAction"/> overrides this to run managed code instead.</remarks>
+    public virtual unsafe void OnInitialize() => ((delegate* unmanaged<nint, void>)GetVirtualFunction(5))(Instance);
 
-    public unsafe void OnExecute() => ((delegate*<nint, void>)GetVirtualFunction(6))(Instance);
-    
-    public unsafe bool OnUpdate() => ((delegate*<nint, byte>)GetVirtualFunction(7))(Instance) != 0;
+    /// <summary>
+    /// Called each time the action is executed. Dispatches through the objects vtable.
+    /// </summary>
+    /// <remarks><see cref="CustomAction"/> overrides this to run managed code instead.</remarks>
+    public virtual unsafe void OnExecute() => ((delegate* unmanaged<nint, void>)GetVirtualFunction(6))(Instance);
 
-    public unsafe void OnEnd() => ((delegate*<nint, void>)GetVirtualFunction(8))(Instance);
+    /// <summary>
+    /// Called once per frame while the action is active. Dispatches through the objects vtable.
+    /// </summary>
+    /// <returns>False to end the action</returns>
+    /// <remarks><see cref="CustomAction"/> overrides this to run managed code instead.</remarks>
+    public virtual unsafe bool OnUpdate() => ((delegate* unmanaged<nint, byte>)GetVirtualFunction(7))(Instance) != 0;
+
+    /// <summary>
+    /// Called when the action ends. Dispatches through the objects vtable.
+    /// </summary>
+    /// <remarks><see cref="CustomAction"/> overrides this to run managed code instead.</remarks>
+    public virtual unsafe void OnEnd() => ((delegate* unmanaged<nint, void>)GetVirtualFunction(8))(Instance);
 }

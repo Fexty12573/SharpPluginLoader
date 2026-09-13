@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using SharpPluginLoader.Core;
-using SharpPluginLoader.Core.Actions;
+﻿using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace PlayerAnimationViewer
 {
@@ -52,11 +43,11 @@ namespace PlayerAnimationViewer
             w.Write(lmt.Header.MotionCount);
             w.Write(lmt.Header.Unknown1);
             w.Write(0u); // Padding
-            
+
             var motionOffsets = new List<long>();
             var offsetsOffset = ms.Position;
             for (var i = 0; i < lmt.Header.MotionCount; ++i)
-                 w.Write(0ul); // Placeholder for motion offsets
+                w.Write(0ul); // Placeholder for motion offsets
 
             // Serialize Motion Headers
             for (var i = 0; i < lmt.Header.MotionCount; ++i)
@@ -66,7 +57,7 @@ namespace PlayerAnimationViewer
                     motionOffsets.Add(0);
                     continue;
                 }
-                
+
                 motionOffsets.Add(ms.Position);
                 SerializeMotion(ref lmt.Header.GetMotion(i), w, ref lmt.Header);
             }

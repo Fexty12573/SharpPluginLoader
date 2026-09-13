@@ -1,15 +1,9 @@
-﻿using System.IO;
-using System.Numerics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Microsoft.Win32;
+using PlayerAnimationViewer.Sound;
 using SharpPluginLoader.Core;
 using SharpPluginLoader.Core.Components;
-using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
-using SharpPluginLoader.Core.Geometry;
 using SharpPluginLoader.Core.IO;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Models;
@@ -17,6 +11,10 @@ using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Rendering;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Resources.Animation;
+using System.IO;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace PlayerAnimationViewer
 {
@@ -99,7 +97,8 @@ namespace PlayerAnimationViewer
         private Motion* _addParamMotion;
         private TimelineObject? _addParamTimlObject;
 
-        private readonly NativeArray<LmtParamMemberDef> _paramMemberDefBuffer = NativeArray<LmtParamMemberDef>.Create(0x200);
+        private const int PoolRefillThreshold = 20;
+        private readonly NativeArray<LmtParamMemberDef> _paramMemberDefBuffer = NativeArray<LmtParamMemberDef>.Create(0x1000);
         private LmtParamMemberDefPool* _paramMemberDefPool;
         private NativeArray<LmtParamType> LmtParamTypes => new(
             MemoryUtil.Read<nint>(0x1451c5c20),
@@ -107,13 +106,28 @@ namespace PlayerAnimationViewer
         );
         #endregion
         #endregion
+        #region Effect Player
+        private string _customEpvPath = string.Empty;
+        private bool _customEpvExists = true;
+        private uint _groupId;
+        private uint _recordId;
+        private List<nint> _effectHandles = [];
+
+        private delegate nint DestroyEfcHandle(nint handle);
+        private Hook<DestroyEfcHandle> _destroyEfcHandleHook = null!;
+        private NativeAction<nint, nint, uint> _killEffect;
+        #endregion
+        #region Sound Player
+        private int _wwevId;
+        private short _eventId;
+        #endregion
 
         public void OnLoad()
         {
             var timlObjDti = MtDti.Find("nTimeline::Object");
             Ensure.NotNull(timlObjDti);
 
-            _timlObjectDtiList.AddRange(timlObjDti.Children);
+            _timlObjectDtiList.AddRange(timlObjDti.AllChildren.Where(dti => dti.Child is null));
             _paramMemberDefPool = MemoryUtil.Alloc<LmtParamMemberDefPool>();
             _paramMemberDefPool->Pool = _paramMemberDefBuffer.Pointer;
             _paramMemberDefPool->PoolSize = _paramMemberDefBuffer.Length * sizeof(LmtParamMemberDef);
@@ -129,6 +143,30 @@ namespace PlayerAnimationViewer
             }
 
             _lmtBitMapping = LmtBitMapping.LoadFrom(LmtBitMappingFile);
+
+            var addr = PatternScanner.FindFirst(Pattern.FromString("48 83 7E 70 00 48 8D 5E 70 74 10"));
+            if (addr == 0)
+            {
+                Log.Error("Could not find cEfcHandle::~cEfcHandle");
+                goto FindKillEffect;
+            }
+
+            _destroyEfcHandleHook = Hook.Create<DestroyEfcHandle>(addr - 58, handle =>
+            {
+                _effectHandles.Remove(handle);
+                return _destroyEfcHandleHook.Original(handle);
+            });
+
+        FindKillEffect:
+            addr = PatternScanner.FindFirst(
+                Pattern.FromString("48 8B 02 48 8B E9 48 8B CA 41 8B F0 48 8B DA FF 50 20"));
+            if (addr == 0)
+            {
+                Log.Error("Could not find sMhEffect::endEffect");
+                return;
+            }
+
+            _killEffect = new NativeAction<IntPtr, IntPtr, uint>(addr - 24);
         }
 
         public void OnUpdate(float deltaTime)
@@ -136,8 +174,8 @@ namespace PlayerAnimationViewer
             var player = Player.MainPlayer;
             if (player is null)
                 return;
-            
-            if (!Input.IsDown(Button.L2)) 
+
+            if (!Input.IsDown(Button.L2))
                 return;
 
             if (Input.IsPressed(Button.R3))
@@ -164,7 +202,7 @@ namespace PlayerAnimationViewer
                 if (actionList.Actions != 0)
                     for (var i = 0; i < actionList.Count; i++)
                         Log.Info($"Id: {i}, Name: {actionList[i]?.Name ?? "N/A"}");
-                
+
                 actionList = player.ActionController.GetActionList(1);
                 if (actionList.Actions != 0)
                     for (var i = 0; i < actionList.Count; i++)
@@ -217,6 +255,118 @@ namespace PlayerAnimationViewer
                 {
                     var entity = _selectedModel.As<Entity>();
                     ImGui.Text($"Current Action: {entity.ActionController.CurrentAction}");
+
+                    if (ImGui.CollapsingHeader("Effect Player"))
+                    {
+                        ImGuiExtensions.InputScalar("Group Id", ref _groupId);
+                        ImGuiExtensions.InputScalar("Record Id", ref _recordId);
+                        ImGui.InputText("Custom EPV Path", ref _customEpvPath, 255);
+
+                        if (!_customEpvExists)
+                        {
+                            ImGui.TextColored(new Vector4(0.8f, 0.61f, 0.43f, 1.0f), "Failed to load EPV");
+                        }
+
+                        if (ImGui.Button("Play"))
+                        {
+                            try
+                            {
+                                if (_customEpvPath.Length != 0)
+                                {
+                                    var epv = ResourceManager.GetResource<EffectProvider>(_customEpvPath, MtDti.Find("rEffectProvider")!);
+                                    if (epv is null)
+                                    {
+                                        _customEpvExists = false;
+                                    }
+                                    else
+                                    {
+                                        _customEpvExists = true;
+                                        _effectHandles.Add(entity.CreateEffect(epv, _groupId, _recordId));
+                                    }
+                                }
+                                else
+                                {
+                                    _effectHandles.Add(entity.CreateEffect(_groupId, _recordId));
+                                }
+                            }
+                            catch (InvalidOperationException e)
+                            {
+                                Log.Error(e.Message);
+                            }
+                        }
+
+                        ImGui.SameLine();
+
+                        if (ImGui.Button("Reload from Disk"))
+                        {
+                            if (_effectHandles.Count > 0)
+                            {
+                                ImGui.OpenPopup("Warning");
+                            }
+                            else
+                            {
+                                Resource? efx = null;
+                                if (_customEpvPath.Length != 0)
+                                {
+                                    var epv = ResourceManager.GetResource<EffectProvider>(_customEpvPath, MtDti.Find("rEffectProvider")!);
+                                    if (epv is null)
+                                    {
+                                        _customEpvExists = false;
+                                    }
+                                    else
+                                    {
+                                        _customEpvExists = true;
+                                        efx = epv.GetElement(_groupId, _recordId)?.EffectAsset;
+                                    }
+                                }
+                                else
+                                {
+                                    efx = entity.GetEffect(_groupId, _recordId)?.EffectAsset;
+                                }
+
+                                if (efx is not null)
+                                {
+                                    using var stream = MtFileStream.FromPath($@".\nativePC\{efx.FilePath}.efx", OpenMode.Read, false);
+                                    if (stream is not null)
+                                    {
+                                        if (efx.LoadFrom(stream))
+                                            Log.Info($"Successfully reloaded {efx.FilePath}.efx");
+                                    }
+                                }
+                            }
+                        }
+
+                        ImGui.SameLine();
+
+                        if (ImGui.Button("Kill All"))
+                        {
+                            var mhEffect = SingletonManager.GetSingleton("sMhEffect")!;
+                            foreach (var handle in _effectHandles)
+                            {
+                                _killEffect.Invoke(mhEffect.Instance, handle, 5);
+                            }
+                        }
+
+                        ImGui.Text($"Live Handles: {_effectHandles.Count}");
+                    }
+
+                    if (ImGui.CollapsingHeader("Sound Player"))
+                    {
+                        ImGui.InputInt("WWEV Id", ref _wwevId);
+                        ImGuiExtensions.InputScalar("Event Id", ref _eventId);
+
+                        if (ImGui.Button("Play"))
+                        {
+                            if (entity.PlaySound(_wwevId, _eventId))
+                                Log.Info($"Played sound {_wwevId}:{_eventId}");
+                        }
+                    }
+
+                    if (ImGui.BeginPopup("Warning"))
+                    {
+                        ImGui.Text("Make sure to kill all emitters before attempting to reload.");
+                        ImGui.EndPopup();
+                    }
                 }
 
                 if (_selectedModel.Is("uPlayer") && ImGui.CollapsingHeader("Flags & Triggers"))
@@ -255,8 +405,6 @@ namespace PlayerAnimationViewer
                         }
                     }
                 }
-
-                ImGui.NewLine();
 
                 if (ImGui.CollapsingHeader("Frame Viewer"))
                 {
@@ -355,7 +503,7 @@ namespace PlayerAnimationViewer
                         _startSpeed = 1f;
 
                         _animationId = _selectedDti.InheritsFrom("uWeapon")
-                            ? new AnimationId(0, 0) 
+                            ? new AnimationId(0, 0)
                             : new AnimationId(12, 0);
 
                         _lmtPlayer = GetLmtPlayer(_selectedAnimLayer!);
@@ -459,7 +607,7 @@ namespace PlayerAnimationViewer
 
                     return;
                 }
-                
+
                 ImGui.Separator();
                 if (ImGui.Button("Save"))
                 {
@@ -579,7 +727,7 @@ namespace PlayerAnimationViewer
                         }
 
                         if (ImGuiExtensions.BeginTimeline(name, 0f, motion.FrameNum,
-                                ref _selectedModel.CurrentAnimation.Id == (uint)i ? ref _selectedAnimLayer.CurrentFrame : ref _framePointer, 
+                                ref _selectedModel.CurrentAnimation.Id == (uint)i ? ref _selectedAnimLayer.CurrentFrame : ref _framePointer,
                                 (ImGuiTimelineFlags)_timelineFlags))
                         {
                             foreach (ref var param in motion.Metadata.Params)
@@ -630,7 +778,7 @@ namespace PlayerAnimationViewer
                                             _selectedParamMemberName = memberName;
                                         }
                                     }
-                                    
+
                                     ImGuiExtensions.EndTimelineGroup();
                                 }
 
@@ -758,7 +906,7 @@ namespace PlayerAnimationViewer
 
                             if (_addParamDef is null)
                                 ImGui.EndDisabled();
-                            
+
                             ImGui.EndPopup();
                         }
 
@@ -880,7 +1028,7 @@ namespace PlayerAnimationViewer
                 }
 
                 ImGui.SameLine();
-                
+
                 if (ImGui.Button("Import Animations"))
                 {
                     ImGui.CloseCurrentPopup();
@@ -1027,7 +1175,7 @@ namespace PlayerAnimationViewer
 
         private void DisplayBitMappings()
         {
-            if (_selectedKeyframe->ApplyType is not (ApplyType.Flags or ApplyType.Trigger)) 
+            if (_selectedKeyframe->ApplyType is not (ApplyType.Flags or ApplyType.Trigger))
                 return;
 
             var mappings = _lmtBitMapping.GetBitMapping(
@@ -1136,7 +1284,7 @@ namespace PlayerAnimationViewer
                 fullSb.AppendLine(sb.ToString());
                 File.WriteAllText(Path.Combine(dir, $"{dti.Name.Replace("::", "_")}.txt"), sb.ToString());
             }
-            
+
             File.WriteAllText(Path.Combine(dir, "LMT_Metadata.txt"), fullSb.ToString());
         }
 
@@ -1227,7 +1375,7 @@ namespace PlayerAnimationViewer
                 if (claw is not null)
                     list.Add(claw);
             }
-                
+
             list.AddRange(Monster.GetAllMonsters());
             return list;
         }
@@ -1315,7 +1463,7 @@ namespace PlayerAnimationViewer
                 claimedLmt = new ClaimedLmt(_selectedLmt);
                 _claimedLmts.Add(claimedLmt);
             }
-            
+
             if (kfListIndex == -1)
                 claimedLmt.ModifiedKeyframeLists.Add(newKfList);
             else
@@ -1485,7 +1633,7 @@ namespace PlayerAnimationViewer
             //_supplementalGlyphRanges[5] = 0x2AFF;
             //_supplementalGlyphRanges[6] = 0x0000; // Null terminator
             //_supplementalGlyphRanges[7] = 0x0000;
-            
+
             var io = ImGui.GetIO();
             _supplementalFont = io.Fonts.AddFontFromFileTTF(
                 SupplementalFontFile,

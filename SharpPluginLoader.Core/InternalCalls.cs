@@ -1,7 +1,4 @@
-﻿
-using SharpPluginLoader.Core.Resources;
-using SharpPluginLoader.Core.Resources.Animation;
-using SharpPluginLoader.Core.Rendering;
+﻿using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core
 {
@@ -37,6 +34,8 @@ namespace SharpPluginLoader.Core
         public static delegate* unmanaged<nint, nint, void> RenderObbPtr;
         public static delegate* unmanaged<nint, nint, void> RenderCapsulePtr;
         public static delegate* unmanaged<nint, nint, void> RenderLinePtr;
+        public static delegate* unmanaged<nint, nuint> SupplyCustomMeshPtr;
+        public static delegate* unmanaged<byte*, nuint> SupplyCustomMeshFromFilePtr;
 
         public static delegate* unmanaged<string, out uint, out uint, nint> LoadTexturePtr;
         public static delegate* unmanaged<nint, void> UnloadTexturePtr;
@@ -114,6 +113,10 @@ namespace SharpPluginLoader.Core
         public static void RenderCapsule(nint capsulePtr, nint colorPtr) => RenderCapsulePtr(capsulePtr, colorPtr);
 
         public static void RenderLine(nint linePtr, nint colorPtr) => RenderLinePtr(linePtr, colorPtr);
+
+        public static nuint SupplyCustomMesh(nint meshPtr) => SupplyCustomMeshPtr(meshPtr);
+
+        public static nuint SupplyCustomMeshFromFile(byte* path) => SupplyCustomMeshFromFilePtr(path);
 
         public static nint LoadTexture(string path, out uint w, out uint h) => LoadTexturePtr(path, out w, out h);
 

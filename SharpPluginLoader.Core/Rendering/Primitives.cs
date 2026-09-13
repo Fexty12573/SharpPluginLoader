@@ -1,11 +1,9 @@
-﻿using System.Buffers;
+﻿using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.MtTypes;
 using System.Numerics;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using SharpPluginLoader.Core.Memory;
-using SharpPluginLoader.Core.MtTypes;
+using System.Text;
 
 namespace SharpPluginLoader.Core.Rendering;
 
@@ -165,22 +163,84 @@ public static class Primitives
         Lines[index] = new ColoredLine { Line = line, Color = color };
     }
 
+    /// <summary>
+    /// Renders a given mesh with the given transform and color.
+    /// </summary>
+    /// <param name="mesh">The mesh to render. Must have been previously registered via <see cref="SupplyCustomMesh"/>.</param>
+    /// <param name="transform">The transform of the mesh</param>
+    /// <param name="color">The color of the mesh</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderMesh(MeshHandle mesh, Matrix4x4 transform, MtColor color)
+    {
+        var index = Interlocked.Increment(ref _meshIndex) - 1;
+        Meshes[index] = new ColoredMesh { Transform = transform, Color = color.ToVector4(), Mesh = mesh };
+    }
+
+    /// <inheritdoc cref="RenderMesh(MeshHandle,Matrix4x4,MtColor)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void RenderMesh(MeshHandle mesh, Matrix4x4 transform, Vector4 color)
+    {
+        var index = Interlocked.Increment(ref _meshIndex) - 1;
+        Meshes[index] = new ColoredMesh { Transform = transform, Color = color, Mesh = mesh };
+    }
+
+    /// <summary>
+    /// Registers a custom mesh to be used with <see cref="RenderMesh(MeshHandle,Matrix4x4,MtColor)"/>.
+    /// </summary>
+    /// <param name="vertices">The vertices of the mesh with each w component set to 1.</param>
+    /// <param name="indices">The indices of the mesh.</param>
+    /// <returns>A handle to the registered mesh.</returns>
+    public static unsafe MeshHandle SupplyCustomMesh(Span<Vector4> vertices, Span<uint> indices)
+    {
+        fixed (Vector4* verticesPtr = vertices)
+        {
+            fixed (uint* indicesPtr = indices)
+            {
+                var mesh = new CustomMesh
+                {
+                    Vertices = verticesPtr,
+                    Indices = indicesPtr,
+                    VertexCount = vertices.Length,
+                    IndexCount = indices.Length
+                };
+
+                return InternalCalls.SupplyCustomMesh(MemoryUtil.AddressOf(ref mesh));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Loads and registers a mesh from a .obj file.
+    /// </summary>
+    /// <param name="objPath">The path to the .obj file</param>
+    /// <returns>A handle to the registered mesh, or <see cref="MeshHandle.Invalid"/> if loading failed.</returns>
+    public static unsafe MeshHandle SupplyCustomMesh(string objPath)
+    {
+        fixed (byte* bytes = Encoding.UTF8.GetBytes(objPath))
+        {
+            return InternalCalls.SupplyCustomMeshFromFile(bytes);
+        }
+    }
+
     [UnmanagedCallersOnly]
     private static unsafe void RetrievePrimitives(
         ColoredSphere** outSpheres, long* sphereCount,
         ColoredObb** outObbs, long* obbCount,
         ColoredCapsule** outCapsules, long* capsuleCount,
-        ColoredLine** outLines, long* lineCount)
+        ColoredLine** outLines, long* lineCount,
+        ColoredMesh** outMeshes, long* meshCount)
     {
         *outSpheres = Spheres.Pointer;
         *outObbs = Obbs.Pointer;
         *outCapsules = Capsules.Pointer;
         *outLines = Lines.Pointer;
+        *outMeshes = Meshes.Pointer;
 
         *sphereCount = _sphereIndex;
         *obbCount = _obbIndex;
         *capsuleCount = _capsuleIndex;
         *lineCount = _lineIndex;
+        *meshCount = _meshIndex;
     }
 
     [UnmanagedCallersOnly]
@@ -190,6 +250,7 @@ public static class Primitives
         _obbIndex = 0;
         _capsuleIndex = 0;
         _lineIndex = 0;
+        _meshIndex = 0;
     }
 
     private const int MaxPrimitives = 2048;
@@ -198,11 +259,13 @@ public static class Primitives
     private static readonly NativeArray<ColoredObb> Obbs = NativeArray<ColoredObb>.Create(MaxPrimitives);
     private static readonly NativeArray<ColoredCapsule> Capsules = NativeArray<ColoredCapsule>.Create(MaxPrimitives);
     private static readonly NativeArray<ColoredLine> Lines = NativeArray<ColoredLine>.Create(MaxPrimitives);
+    private static readonly NativeArray<ColoredMesh> Meshes = NativeArray<ColoredMesh>.Create(MaxPrimitives);
 
     private static int _sphereIndex;
     private static int _obbIndex;
     private static int _capsuleIndex;
     private static int _lineIndex;
+    private static int _meshIndex;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 0x20)]
@@ -231,4 +294,21 @@ internal struct ColoredLine
 {
     [FieldOffset(0x00)] public MtLineSegment Line;
     [FieldOffset(0x20)] public Vector4 Color;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x20)]
+file unsafe struct CustomMesh
+{
+    [FieldOffset(0x00)] public Vector4* Vertices;
+    [FieldOffset(0x08)] public uint* Indices;
+    [FieldOffset(0x10)] public nint VertexCount;
+    [FieldOffset(0x18)] public nint IndexCount;
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x60)]
+internal struct ColoredMesh
+{
+    [FieldOffset(0x00)] public Matrix4x4 Transform;
+    [FieldOffset(0x40)] public Vector4 Color;
+    [FieldOffset(0x50)] public MeshHandle Mesh;
 }

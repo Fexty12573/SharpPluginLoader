@@ -9,8 +9,10 @@
 
 #include <array>
 #include <dxgi1_4.h>
+#include <random>
 #include <span>
 #include <vector>
+#include <unordered_map>
 
 struct sMhCamera;
 class D3DModule;
@@ -50,14 +52,28 @@ private:
         std::vector<Vertex> Vertices;
         std::vector<u32> Indices;
     };
+    struct CustomMesh {
+        Vertex* Vertices;
+        u32* Indices;
+        size_t VertexCount;
+        size_t IndexCount;
+    };
+    using MeshHandle = u64;
 
     void late_init_d3d11(D3DModule* d3dmodule);
     void late_init_d3d12(D3DModule* d3dmodule, IDXGISwapChain* swap_chain);
     void create_frame_contexts(D3DModule* d3dmodule, IDXGISwapChain3* sc3);
 
+    MeshHandle generate_mesh_handle();
+
     static CpuMesh load_mesh(const std::string& path);
     static void load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out);
     static void load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out);
+    static void load_mesh_d3d11(ID3D11Device* device, const CpuMesh& mesh, Mesh11& out);
+    static void load_mesh_d3d12(ID3D12Device* device, const CpuMesh& mesh, Mesh12& out);
+    static MeshHandle register_mesh(CpuMesh&& mesh);
+    static MeshHandle supply_mesh(const CustomMesh* mesh);
+    static MeshHandle supply_mesh(const char* path);
 
     static DirectX::XMMATRIX XMMatrixAdd(DirectX::FXMMATRIX M1, DirectX::CXMMATRIX M2) {
         DirectX::XMMATRIX m;
@@ -92,6 +108,11 @@ private:
         DirectX::XMFLOAT4 Position;
         DirectX::XMFLOAT4 Color;
     };
+    struct MeshDrawCall {
+        MtMatrix Transform;
+        MtColorF Color;
+        MeshHandle Mesh;
+    };
 
     static constexpr u32 MAX_INSTANCES = 2048;
     static constexpr u32 MAX_LINES = 2048;
@@ -100,7 +121,8 @@ private:
         primitives::Sphere** spheres, size_t* sphere_count,
         primitives::OBB** cubes, size_t* cube_count,
         primitives::Capsule** capsules, size_t* capsule_count,
-        primitives::Line** lines, size_t* line_count) = nullptr;
+        primitives::Line** lines, size_t* line_count,
+        MeshDrawCall** mesh_draw_calls, size_t* mesh_draw_call_count) = nullptr;
     void(*m_release_primitives)() = nullptr;
     void*(*m_get_singleton)(const char* name) = nullptr;
     sMhCamera* m_camera = nullptr;
@@ -109,6 +131,7 @@ private:
     std::span<primitives::OBB> m_cubes;
     std::span<primitives::Capsule> m_capsules;
     std::span<primitives::Line> m_lines;
+    std::span<MeshDrawCall> m_mesh_draw_calls;
 
     size_t m_sphere_count = 0;
     size_t m_cube_count = 0;
@@ -123,6 +146,9 @@ private:
     float m_line_thickness = 3.0f;
     bool m_draw_primitives_as_lines = true;
 
+    MeshHandle m_next_mesh_handle = 1;
+    std::vector<std::pair<MeshHandle, CpuMesh>> m_queued_meshes{};
+
     #pragma region D3D11
 
     Mesh11 m_d3d11_cylinder{};
@@ -130,6 +156,7 @@ private:
     Mesh11 m_d3d11_hemisphere_bottom{};
     Mesh11 m_d3d11_sphere{};
     Mesh11 m_d3d11_cube{};
+    std::unordered_map<MeshHandle, Mesh11> m_d3d11_meshes{};
     ComPtr<ID3D11Buffer> m_d3d11_htop_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_hbottom_transform_buffer = nullptr;
     ComPtr<ID3D11Buffer> m_d3d11_transform_buffer = nullptr;
@@ -158,6 +185,7 @@ private:
     Mesh12 m_d3d12_hemisphere_bottom{};
     Mesh12 m_d3d12_sphere{};
     Mesh12 m_d3d12_cube{};
+    std::unordered_map<MeshHandle, Mesh12> m_d3d12_meshes{};
     ComPtr<ID3D12Resource> m_d3d12_htop_transform_buffer = nullptr;
     ComPtr<ID3D12Resource> m_d3d12_hbottom_transform_buffer = nullptr;
     ComPtr<ID3D12Resource> m_d3d12_transform_buffer = nullptr;

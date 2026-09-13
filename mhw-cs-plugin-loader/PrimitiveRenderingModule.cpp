@@ -49,6 +49,9 @@ void PrimitiveRenderingModule::initialize(CoreClr* coreclr) {
     );
 
     set_rendering_options(&rendering_option_pointers);
+
+    coreclr->add_internal_call("SupplyCustomMesh", static_cast<MeshHandle(*)(const CustomMesh*)>(&supply_mesh));
+    coreclr->add_internal_call("SupplyCustomMeshFromFile", static_cast<MeshHandle(*)(const char*)>(&supply_mesh));
 }
 
 void PrimitiveRenderingModule::shutdown() {
@@ -92,29 +95,28 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
     primitives::OBB* cubes = nullptr;
     primitives::Capsule* capsules = nullptr;
     primitives::Line* lines = nullptr;
+    MeshDrawCall* draw_calls = nullptr;
+    size_t draw_call_count = 0;
 
     m_retrieve_primitives(
         &spheres, &m_sphere_count,
         &cubes, &m_cube_count,
         &capsules, &m_capsule_count,
-        &lines, &m_line_count
+        &lines, &m_line_count,
+        &draw_calls, &draw_call_count
     );
 
     m_spheres = std::span(spheres, m_sphere_count);
     m_cubes = std::span(cubes, m_cube_count);
     m_capsules = std::span(capsules, m_capsule_count);
     m_lines = std::span(lines, m_line_count);
+    m_mesh_draw_calls = std::span(draw_calls, draw_call_count);
 
-    //if (m_spheres.empty() && 
-    //    m_cubes.empty() && 
-    //    m_capsules.empty() &&
-    //    m_lines.empty()) {
-    //    return;
-    //}
     if (m_sphere_count == 0 &&
         m_cube_count == 0 &&
         m_capsule_count == 0 &&
-        m_line_count == 0) {
+        m_line_count == 0 &&
+        draw_call_count == 0) {
         return;
     }
 
@@ -239,6 +241,60 @@ void PrimitiveRenderingModule::render_primitives_for_d3d11(ID3D11DeviceContext* 
             m_d3d11_cube.IndexCount,
             i, 0, 0, 0
         );
+    }
+
+    // Custom Meshes ------------------------
+    if (draw_call_count != 0) {
+        std::ranges::sort(m_mesh_draw_calls, [](const auto& a, const auto& b) {
+            return a.Mesh < b.Mesh;
+        });
+
+        auto chunked = std::views::chunk_by(m_mesh_draw_calls, [](const auto& a, const auto& b) {
+            return a.Mesh == b.Mesh;
+        });
+
+        for (const auto& group : chunked) {
+            const auto mesh_iter = m_d3d11_meshes.find(group.front().Mesh);
+            if (mesh_iter == m_d3d11_meshes.end()) {
+                continue;
+            }
+
+            const auto& mesh = mesh_iter->second;
+
+            i = 0;
+            HandleResult(context->Map(m_d3d11_transform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &msr));
+            auto data = (Instance*)msr.pData;
+
+            for (const auto& draw_call : group) {
+                data[i++] = {
+                    .Transform = XMMatrixTranspose(XMMATRIX{ draw_call.Transform.ptr() }),
+                    .Color = { draw_call.Color.r, draw_call.Color.g, draw_call.Color.b, draw_call.Color.a }
+                };
+
+                if (i >= MAX_INSTANCES) {
+                    break;
+                }
+            }
+
+            context->Unmap(m_d3d11_transform_buffer.Get(), 0);
+
+            // Set up pipeline
+            context->IASetIndexBuffer(mesh.IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+            buffers[0] = mesh.VertexBuffer.Get();
+
+            context->IASetVertexBuffers(
+                0,
+                static_cast<UINT>(buffers.size()),
+                buffers.data(),
+                strides.data(),
+                offsets.data()
+            );
+            context->DrawIndexedInstanced(
+                mesh.IndexCount,
+                i, 0, 0, 0
+            );
+        }
     }
 
     // Capsules -----------------------------
@@ -438,29 +494,28 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
     primitives::OBB* cubes = nullptr;
     primitives::Capsule* capsules = nullptr;
     primitives::Line* lines = nullptr;
+    MeshDrawCall* draw_calls = nullptr;
+    size_t draw_call_count = 0;
 
     m_retrieve_primitives(
         &spheres, &m_sphere_count,
         &cubes, &m_cube_count,
         &capsules, &m_capsule_count,
-        &lines, &m_line_count
+        &lines, &m_line_count,
+        &draw_calls, &draw_call_count
     );
 
     m_spheres = std::span(spheres, m_sphere_count);
     m_cubes = std::span(cubes, m_cube_count);
     m_capsules = std::span(capsules, m_capsule_count);
     m_lines = std::span(lines, m_line_count);
+    m_mesh_draw_calls = std::span(draw_calls, draw_call_count);
 
-    //if (m_spheres.empty() && 
-    //    m_cubes.empty() &&
-    //    m_capsules.empty() &&
-    //    m_lines.empty()) {
-    //    return;
-    //}
     if (m_sphere_count == 0 &&
         m_cube_count == 0 &&
         m_capsule_count == 0 &&
-        m_line_count == 0) {
+        m_line_count == 0 &&
+        draw_call_count == 0) {
         return;
     }
 
@@ -596,6 +651,58 @@ void PrimitiveRenderingModule::render_primitives_for_d3d12(IDXGISwapChain3* swap
             m_d3d12_cube.IndexCount,
             i, 0, 0, 0
         );
+    }
+
+    // Custom Meshes ------------------------
+    if (draw_call_count != 0) {
+        std::ranges::sort(m_mesh_draw_calls, [](const auto& a, const auto& b) {
+            return a.Mesh < b.Mesh;
+        });
+
+        auto chunked = std::views::chunk_by(m_mesh_draw_calls, [](const auto& a, const auto& b) {
+            return a.Mesh == b.Mesh;
+        });
+
+        for (const auto& group : chunked) {
+            const auto mesh_iter = m_d3d12_meshes.find(group.front().Mesh);
+            if (mesh_iter == m_d3d12_meshes.end()) {
+                continue;
+            }
+
+            const auto& mesh = mesh_iter->second;
+
+            i = 0;
+            const D3D12_RANGE range{
+                0,
+                sizeof(Instance) * std::min<u32>((u32)group.size(), MAX_INSTANCES)
+            };
+            Instance* data = nullptr;
+            HandleResult(m_d3d12_transform_buffer->Map(0, &range, (void**)&data));
+
+            for (const auto& draw_call : group) {
+                data[i++] = {
+                    .Transform = XMMatrixTranspose(XMMATRIX{ draw_call.Transform.ptr() }),
+                    .Color = { draw_call.Color.r, draw_call.Color.g, draw_call.Color.b, draw_call.Color.a }
+                };
+
+                if (i >= MAX_INSTANCES) {
+                    break;
+                }
+            }
+
+            m_d3d12_transform_buffer->Unmap(0, nullptr);
+
+            // Set up pipeline
+            views[0] = mesh.VertexBufferView;
+            views[1] = m_d3d12_transform_buffer_view;
+
+            m_d3d12_command_list->IASetIndexBuffer(&mesh.IndexBufferView);
+            m_d3d12_command_list->IASetVertexBuffers(0, (u32)views.size(), views.data());
+            m_d3d12_command_list->DrawIndexedInstanced(
+                mesh.IndexCount,
+                i, 0, 0, 0
+            );
+        }
     }
 
     // Capsules -----------------------------
@@ -794,11 +901,17 @@ void PrimitiveRenderingModule::late_init_d3d11(D3DModule* d3dmodule) {
         return;
     }
 
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Sphere.obj", m_d3d11_sphere);
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Cube.obj", m_d3d11_cube);
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Hemisphere.obj", m_d3d11_hemisphere_top);
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/BottomHemisphere.obj", m_d3d11_hemisphere_bottom);
-    load_mesh_d3d11(d3dmodule->m_d3d11_device, "/Resources/Cylinder.obj", m_d3d11_cylinder);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "chunk:/Resources/Sphere.obj", m_d3d11_sphere);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "chunk:/Resources/Cube.obj", m_d3d11_cube);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "chunk:/Resources/Hemisphere.obj", m_d3d11_hemisphere_top);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "chunk:/Resources/BottomHemisphere.obj", m_d3d11_hemisphere_bottom);
+    load_mesh_d3d11(d3dmodule->m_d3d11_device, "chunk:/Resources/Cylinder.obj", m_d3d11_cylinder);
+
+    for (const auto& [handle, mesh] : m_queued_meshes) {
+        load_mesh_d3d11(d3dmodule->m_d3d11_device, mesh, m_d3d11_meshes[handle]);
+    }
+
+    m_queued_meshes.clear();
 
     // Create ViewProj Constant Buffer
     D3D11_BUFFER_DESC bd{};
@@ -1018,11 +1131,17 @@ void PrimitiveRenderingModule::late_init_d3d12(D3DModule* d3dmodule, IDXGISwapCh
         return;
     }
 
-    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Sphere.obj", m_d3d12_sphere);
-    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cube.obj", m_d3d12_cube);
-    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Hemisphere.obj", m_d3d12_hemisphere_top);
-    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/BottomHemisphere.obj", m_d3d12_hemisphere_bottom);
-    load_mesh_d3d12(d3dmodule->m_d3d12_device, "/Resources/Cylinder.obj", m_d3d12_cylinder);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "chunk:/Resources/Sphere.obj", m_d3d12_sphere);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "chunk:/Resources/Cube.obj", m_d3d12_cube);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "chunk:/Resources/Hemisphere.obj", m_d3d12_hemisphere_top);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "chunk:/Resources/BottomHemisphere.obj", m_d3d12_hemisphere_bottom);
+    load_mesh_d3d12(d3dmodule->m_d3d12_device, "chunk:/Resources/Cylinder.obj", m_d3d12_cylinder);
+
+    for (const auto& [handle, mesh] : m_queued_meshes) {
+        load_mesh_d3d12(d3dmodule->m_d3d12_device, mesh, m_d3d12_meshes[handle]);
+    }
+
+    m_queued_meshes.clear();
 
     // Mesh Root Signature ----------------------------------------------
     CD3DX12_ROOT_PARAMETER root_parameters[3]{};
@@ -1455,40 +1574,61 @@ void PrimitiveRenderingModule::create_frame_contexts(D3DModule* d3dmodule, IDXGI
     }
 }
 
+PrimitiveRenderingModule::MeshHandle PrimitiveRenderingModule::generate_mesh_handle() {
+    return m_next_mesh_handle++;
+}
+
 PrimitiveRenderingModule::CpuMesh PrimitiveRenderingModule::load_mesh(const std::string& path) {
-    CpuMesh mesh;
-    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
-    const auto& chunk = chunk_module->request_chunk("Default");
-    const auto& sphere = chunk->get_file(path);
+    const auto do_load = [](std::istream& stream) {
+        CpuMesh mesh;
 
-    std::istringstream obj_stream{ std::string{(const char*)sphere->Contents.data(), sphere->size()} };
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::string warn, err;
 
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::string warn, err;
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &err, &obj_stream)) {
-        dlog::error("Failed to load obj file: {}", err);
-    }
-
-    for (const auto& shape : shapes) {
-        for (const auto& index : shape.mesh.indices) {
-            mesh.Vertices.emplace_back(
-                attrib.vertices[3 * index.vertex_index + 0],
-                attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2],
-                1.0f
-            );
-            mesh.Indices.push_back((u32)mesh.Indices.size());
+        if (!tinyobj::LoadObj(&attrib, &shapes, nullptr, &warn, &err, &stream)) {
+            dlog::error("Failed to load obj file: {}", err);
         }
-    }
 
-    return mesh;
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                mesh.Vertices.emplace_back(
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2],
+                    1.0f
+                );
+                mesh.Indices.push_back((u32)mesh.Indices.size());
+            }
+        }
+
+        return mesh;
+    };
+
+    // Load from chunk
+    if (path.starts_with("chunk:")) {
+        const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
+        const auto& chunk = chunk_module->request_chunk("Default");
+        const auto& sphere = chunk->get_file(path.substr(6));
+
+        std::istringstream obj_stream{ std::string{(const char*)sphere->Contents.data(), sphere->size()} };
+        return do_load(obj_stream);
+    }
+    
+    // Load from disk
+    std::ifstream stream{ path };
+    return do_load(stream);
 }
 
 void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const std::string& path, Mesh11& out) {
-    const CpuMesh mesh = load_mesh(path);
+    load_mesh_d3d11(device, load_mesh(path), out);
+}
 
+void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out) {
+    load_mesh_d3d12(device, load_mesh(path), out);
+}
+
+void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const CpuMesh& mesh, Mesh11& out) {
     out.IndexCount = (u32)mesh.Indices.size();
 
     D3D11_BUFFER_DESC bd{};
@@ -1515,9 +1655,7 @@ void PrimitiveRenderingModule::load_mesh_d3d11(ID3D11Device* device, const std::
     HandleResult(device->CreateBuffer(&bd, &sd, out.IndexBuffer.GetAddressOf()));
 }
 
-void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::string& path, Mesh12& out) {
-    const CpuMesh mesh = load_mesh(path);
-
+void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const CpuMesh& mesh, Mesh12& out) {
     out.IndexCount = (u32)mesh.Indices.size();
 
     D3D12_HEAP_PROPERTIES heap_properties{};
@@ -1569,4 +1707,26 @@ void PrimitiveRenderingModule::load_mesh_d3d12(ID3D12Device* device, const std::
     out.IndexBufferView.BufferLocation = out.IndexBuffer->GetGPUVirtualAddress();
     out.IndexBufferView.SizeInBytes = sizeof(u32) * (u32)mesh.Indices.size();
     out.IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+}
+
+PrimitiveRenderingModule::MeshHandle PrimitiveRenderingModule::register_mesh(CpuMesh&& mesh) {
+    const auto& self = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+
+    const auto handle = self->generate_mesh_handle();
+    self->m_queued_meshes.emplace_back(handle, std::move(mesh));
+
+    return handle;
+}
+
+PrimitiveRenderingModule::MeshHandle PrimitiveRenderingModule::supply_mesh(const CustomMesh* mesh) {
+    CpuMesh cpu_mesh{
+        .Vertices = { mesh->Vertices, mesh->Vertices + mesh->VertexCount },
+        .Indices = { mesh->Indices, mesh->Indices + mesh->IndexCount }
+    };
+
+    return register_mesh(std::move(cpu_mesh));
+}
+
+PrimitiveRenderingModule::MeshHandle PrimitiveRenderingModule::supply_mesh(const char* path) {
+    return register_mesh(load_mesh(path));
 }

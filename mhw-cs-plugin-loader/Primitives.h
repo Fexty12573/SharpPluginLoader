@@ -21,6 +21,8 @@ struct Capsule {
 };
 dti_size_assert(Capsule, 0x40);
 
+using Cylinder = Capsule;
+
 dti_offset_assert(MtOBB, extent, 0x40);
 dti_size_assert(MtOBB, 0x50);
 struct OBB {

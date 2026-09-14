@@ -132,3 +132,30 @@ int* myPtr = MemoryUtil.AsPointer(ref myRef);
 // Convert the pointer back to a reference
 ref int myRef2 = ref MemoryUtil.AsRef(myPtr);
 ```
+
+## Writing to exe Memory
+To write to executable memory, the page protection must be changed first. The framework provides a few methods of achieving this.
+
+The first option, is for writing raw bytes:
+```cs
+MemoryUtil.WriteBytesSafe(0x12345678, [0x12, 0x34, 0x56]);
+```
+This simply writes the given bytes to the given address, while properly adjusting the page protection to RWX.
+
+For more fine grained control there is `MemoryUtil.WithRwx`:
+```cs
+MemoryUtil.WithRwx(0x12345678, 8, addr =>
+{
+    MemoryUtil.GetRef<long>(addr) = 9999;
+});
+```
+Inside of the delegate, you can write to the memory region described in the call with the guarantee that it will have the RWX protection. The `addr` parameter of the delegate is the address passed into `WithRwx`, mainly for convenience.
+
+If you need full control you can make use of the `SharpPluginLoader.Core.Memory.MemoryProtection` class. An example of how it can be used is the following:
+```cs
+using (var prot = new MemoryProtection(0x12345678, 8))
+{
+    MemoryUtil.GetRef<long>(addr) = 9999;
+}
+```
+Note the `using` block. This makes it so the protection is automatically reverted at the end of the block. If you want a permanent memory protection change you must keep the `MemoryProtection` object alive.

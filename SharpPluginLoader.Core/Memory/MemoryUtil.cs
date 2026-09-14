@@ -90,6 +90,18 @@ namespace SharpPluginLoader.Core.Memory
             return array;
         }
 
+        /// <summary>
+        /// Executes f while the memory region given is set to R/W/X permissions.
+        /// </summary>
+        /// <param name="address">The start address of the memory region</param>
+        /// <param name="size">The size of the memory region</param>
+        /// <param name="f">The function to execute</param>
+        public static void WithRwx(nint address, int size, Action<nint> f)
+        {
+            using var prot = new MemoryProtection(address, size);
+            f(address);
+        }
+
         #region Mirror Methods for long
 
         /// <inheritdoc cref="Read{T}(nint)"/>
@@ -111,7 +123,7 @@ namespace SharpPluginLoader.Core.Memory
         }
 
         /// <inheritdoc cref="ReadArray{T}(nint,int)"/>
-        public static  T[] ReadArray<T>(long address, int count = 1) where T : unmanaged
+        public static T[] ReadArray<T>(long address, int count = 1) where T : unmanaged
         {
             var array = new T[count];
             for (var i = 0; i < count; i++)
@@ -134,6 +146,13 @@ namespace SharpPluginLoader.Core.Memory
                 array[i] = ReadStruct<T>(address + i * Marshal.SizeOf<T>());
 
             return array;
+        }
+
+        /// <inheritdoc cref="WithRwx(nint,int,Action{nint})"/>
+        public static void WithRwx(long address, int size, Action<long> f)
+        {
+            using var prot = new MemoryProtection((nint)address, size);
+            f(address);
         }
 
         #endregion

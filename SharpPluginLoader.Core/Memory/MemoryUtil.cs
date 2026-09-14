@@ -91,6 +91,42 @@ namespace SharpPluginLoader.Core.Memory
         }
 
         /// <summary>
+        /// Reads a specified number of bytes from a given address.
+        /// </summary>
+        /// <param name="address">The address to read from</param>
+        /// <param name="count">The number of bytes to read</param>
+        /// <returns>The bytes read</returns>
+        public static byte[] ReadBytes(nint address, int count)
+        {
+            var bytes = new byte[count];
+            Marshal.Copy(address, bytes, 0, count);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Writes a specified number of bytes to a given address.
+        /// </summary>
+        /// <remarks>Do not write to EXE regions using this method. Use <see cref="WriteBytesSafe"/> instead.</remarks>
+        /// <param name="address">The address to write to</param>
+        /// <param name="bytes">The bytes to write</param>
+        public static void WriteBytes(nint address, byte[] bytes)
+        {
+            Marshal.Copy(bytes, 0, address, bytes.Length);
+        }
+
+        /// <summary>
+        /// Writes a specified number of bytes to a given address.
+        /// </summary>
+        /// <remarks>This method changes the memory protection of the page prior to writing, and is thus safe to use on EXE regions.</remarks>
+        /// <param name="address">The address to write to</param>
+        /// <param name="bytes">The bytes to write</param>
+        public static void WriteBytesSafe(nint address, byte[] bytes)
+        {
+            using var protection = new MemoryProtection(address, bytes.Length);
+            Marshal.Copy(bytes, 0, address, bytes.Length);
+        }
+
+        /// <summary>
         /// Executes f while the memory region given is set to R/W/X permissions.
         /// </summary>
         /// <param name="address">The start address of the memory region</param>
@@ -155,43 +191,25 @@ namespace SharpPluginLoader.Core.Memory
             f(address);
         }
 
+        /// <inheritdoc cref="ReadBytes(nint,int)"/>
+        public static byte[] ReadBytes(long address, int count)
+        {
+            return ReadBytes((nint)address, count);
+        }
+
+        /// <inheritdoc cref="WriteBytes(nint,byte[])"/>
+        public static void WriteBytes(long address, byte[] bytes)
+        {
+            WriteBytes((nint)address, bytes);
+        }
+
+        /// <inheritdoc cref="WriteBytesSafe(nint,byte[])"/>
+        public static void WriteBytesSafe(long address, byte[] bytes)
+        {
+            WriteBytesSafe((nint)address, bytes);
+        }
+
         #endregion
-
-        /// <summary>
-        /// Reads a specified number of bytes from a given address.
-        /// </summary>
-        /// <param name="address">The address to read from</param>
-        /// <param name="count">The number of bytes to read</param>
-        /// <returns>The bytes read</returns>
-        public static byte[] ReadBytes(nint address, int count)
-        {
-            var bytes = new byte[count];
-            Marshal.Copy(address, bytes, 0, count);
-            return bytes;
-        }
-
-        /// <summary>
-        /// Writes a specified number of bytes to a given address.
-        /// </summary>
-        /// <remarks>Do not write to EXE regions using this method. Use <see cref="WriteBytesSafe"/> instead.</remarks>
-        /// <param name="address">The address to write to</param>
-        /// <param name="bytes">The bytes to write</param>
-        public static void WriteBytes(nint address, byte[] bytes)
-        {
-            Marshal.Copy(bytes, 0, address, bytes.Length);
-        }
-
-        /// <summary>
-        /// Writes a specified number of bytes to a given address.
-        /// </summary>
-        /// <remarks>This method changes the memory protection of the page prior to writing, and is thus safe to use on EXE regions.</remarks>
-        /// <param name="address">The address to write to</param>
-        /// <param name="bytes">The bytes to write</param>
-        public static void WriteBytesSafe(nint address, byte[] bytes)
-        {
-            using var protection = new MemoryProtection(address, bytes.Length);
-            Marshal.Copy(bytes, 0, address, bytes.Length);
-        }
 
         #endregion
 

@@ -71,6 +71,40 @@ public readonly struct Patch : IDisposable
         if (enable) Enable();
     }
 
+    /// <inheritdoc cref="Patch(nint,byte[],bool)"/>
+    public Patch(long address, byte[] patchedBytes, bool enable = false)
+    {
+        Address = (nint)address;
+        OriginalBytes = MemoryUtil.ReadBytes(address, patchedBytes.Length);
+        PatchedBytes = patchedBytes;
+
+        if (enable) Enable();
+    }
+
+    /// <inheritdoc cref="Patch(nint,string,bool)"/>
+    public Patch(long address, string asm, bool enable = false)
+    {
+        Address = (nint)address;
+        PatchedBytes = Assembler.Assemble(asm);
+        Ensure.NotNull(PatchedBytes);
+
+        OriginalBytes = MemoryUtil.ReadBytes(Address, PatchedBytes.Length);
+
+        if (enable) Enable();
+    }
+
+    /// <inheritdoc cref="Patch(nint,IEnumerable{string},bool)"/>
+    public Patch(long address, IEnumerable<string> asm, bool enable = false)
+    {
+        Address = (nint)address;
+        PatchedBytes = Assembler.Assemble(asm);
+        Ensure.NotNull(PatchedBytes);
+
+        OriginalBytes = MemoryUtil.ReadBytes(Address, PatchedBytes.Length);
+
+        if (enable) Enable();
+    }
+
     /// <summary>
     /// Whether the patch is currently enabled.
     /// </summary>

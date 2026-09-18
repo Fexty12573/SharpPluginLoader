@@ -32,7 +32,7 @@ void GuiModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Gui",
         L"PropagateDialogResult"
     );
-    m_get_singleton = coreclr->get_method<void* (const char*)>(
+    m_get_singleton = coreclr->get_method<void*(const char*)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.SingletonManager",
         L"GetSingletonNative"

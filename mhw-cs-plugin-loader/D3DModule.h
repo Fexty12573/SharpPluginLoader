@@ -27,6 +27,7 @@ private:
     void initialize_for_d3d12(const uintptr_t renderer);
     void initialize_for_d3d11(const uintptr_t renderer);
 
+    bool common_initialize_imgui(IDXGISwapChain* swap_chain, DXGI_SWAP_CHAIN_DESC* desc, bool d3d12);
     void d3d12_initialize_imgui(IDXGISwapChain* swap_chain);
     void d3d11_initialize_imgui(IDXGISwapChain* swap_chain);
 

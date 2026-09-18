@@ -21,20 +21,6 @@
 // DirectXTK12 References SerializeRootSignature so we need to link this
 #pragma comment(lib, "d3d12.lib")
 
-// DXGI exposes methods to set a swap-chain color space, but not to query the
-// active one. MHW uses this back-buffer format for its HDR output path.
-static ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer_format) {
-    switch (back_buffer_format) {
-    case DXGI_FORMAT_R10G10B10A2_UNORM:
-        dlog::debug("Using HDR10 color management for ImGui");
-        return ImGui_ImplDXGI_ColorSpace_HDR10;
-    case DXGI_FORMAT_B8G8R8A8_UNORM:
-    default:
-        dlog::debug("Using SDR color management for ImGui");
-        return ImGui_ImplDXGI_ColorSpace_SDR;
-    }
-}
-
 void D3DModule::initialize(CoreClr* coreclr) {
     if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
         dlog::debug("Skipping D3D module initialization because imgui rendering is disabled");
@@ -161,32 +147,62 @@ void D3DModule::initialize_for_d3d11(const uintptr_t renderer) {
     m_d3d_resize_buffers_hook = safetyhook::create_inline(resize_buffers, d3d_resize_buffers_hook);
 }
 
-void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
-    DXGI_SWAP_CHAIN_DESC desc;
-    if (FAILED(swap_chain->GetDesc(&desc))) {
+bool D3DModule::common_initialize_imgui(IDXGISwapChain* swap_chain, DXGI_SWAP_CHAIN_DESC* desc, bool d3d12) {
+    if (FAILED(swap_chain->GetDesc(desc))) {
         dlog::error("Failed to get DXGI swap chain description");
-        return;
+        return false;
     }
 
-    RECT client_rect;
-    GetClientRect(desc.OutputWindow, &client_rect);
+    assert(desc->OutputWindow == m_game_window);
 
-    const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
+    RECT client_rect;
+    GetClientRect(m_game_window, &client_rect);
+
+    const MtSize viewport_size = { desc->BufferDesc.Width, desc->BufferDesc.Height };
     const MtSize window_size = {
         (u32)(client_rect.right - client_rect.left),
         (u32)(client_rect.bottom - client_rect.top)
     };
 
     const auto& config = preloader::LoaderConfig::get();
-    const auto context = m_core_initialize_imgui(viewport_size, window_size, true, config.get_gui_config());
-
+    const auto context = m_core_initialize_imgui(viewport_size, window_size, d3d12, config.get_gui_config());
     igSetCurrentContext(context);
 
     imgui_load_fonts();
 
-    desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    m_game_window = desc.OutputWindow;
-    desc.Windowed = GetWindowLongPtr(desc.OutputWindow, GWL_STYLE) & WS_POPUP ? FALSE : TRUE;
+    if (!ImGui_ImplWin32_Init(m_game_window)) {
+        dlog::error("Failed to initialize ImGui Win32");
+        return false;
+    }
+
+    ImGui_ImplWin32_EnableDpiAwareness();
+
+    if (GetWindowLongPtr(m_game_window, GWLP_WNDPROC) != (LONG_PTR)my_window_proc) {
+        m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
+    }
+
+    return true;
+}
+
+// DXGI exposes methods to set a swap-chain color space, but not to query the
+// active one. MHW uses this back-buffer format for its HDR output path.
+static ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer_format) {
+    switch (back_buffer_format) {
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+        dlog::debug("Using HDR10 color management for ImGui");
+        return ImGui_ImplDXGI_ColorSpace_HDR10;
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    default:
+        dlog::debug("Using SDR color management for ImGui");
+        return ImGui_ImplDXGI_ColorSpace_SDR;
+    }
+}
+
+void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
+    DXGI_SWAP_CHAIN_DESC desc;
+    if (!common_initialize_imgui(swap_chain, &desc, true)) {
+        return;
+    }
 
     m_d3d12_buffer_count = desc.BufferCount;
     m_d3d12_frame_contexts.resize(desc.BufferCount, FrameContext{});
@@ -270,13 +286,6 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 
     const auto imgui_color_space = infer_imgui_color_space(back_buffer_format);
 
-    if (!ImGui_ImplWin32_Init(m_game_window)) {
-        dlog::error("Failed to initialize ImGui Win32");
-        return;
-    }
-
-    ImGui_ImplWin32_EnableDpiAwareness();
-
     if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
         back_buffer_format, m_d3d12_srv_heap.Get(),
         m_d3d12_srv_heap->GetCPUDescriptorHandleForHeapStart(),
@@ -291,10 +300,6 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         return;
     }
 
-    if (GetWindowLongPtr(m_game_window, GWLP_WNDPROC) != (LONG_PTR)my_window_proc) {
-        m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
-    }
-
     m_is_initialized = true;
 
     dlog::debug("Initialized D3D12");
@@ -304,8 +309,7 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
     m_d3d11_device->GetImmediateContext(&m_d3d11_device_context);
 
     DXGI_SWAP_CHAIN_DESC desc;
-    if (FAILED(swap_chain->GetDesc(&desc))) {
-        dlog::error("Failed to get DXGI swap chain description");
+    if (!common_initialize_imgui(swap_chain, &desc, false)) {
         return;
     }
 
@@ -317,35 +321,11 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
         back_buffer_format = back_buffer_desc.Format;
     }
 
-    const auto imgui_color_space = infer_imgui_color_space(back_buffer_format);
-
-    RECT client_rect;
-    GetClientRect(desc.OutputWindow, &client_rect);
-
-    const MtSize viewport_size = { desc.BufferDesc.Width, desc.BufferDesc.Height };
-    const MtSize window_size = {
-        (u32)(client_rect.right - client_rect.left),
-        (u32)(client_rect.bottom - client_rect.top)
-    };
-
-    const auto& config = preloader::LoaderConfig::get();
-    const auto context = m_core_initialize_imgui(viewport_size, window_size, false, config.get_gui_config());
-    igSetCurrentContext(context);
-
-    imgui_load_fonts();
-
-    if (!ImGui_ImplWin32_Init(m_game_window)) {
-        dlog::error("Failed to initialize ImGui Win32");
-        return;
-    }
+    const auto imgui_color_space = infer_imgui_color_space(desc.BufferDesc.Format);
 
     if (!ImGui_ImplDX11_Init(m_d3d11_device, m_d3d11_device_context, imgui_color_space)) {
         dlog::error("Failed to initialize ImGui D3D11");
         return;
-    }
-
-    if (GetWindowLongPtr(m_game_window, GWLP_WNDPROC) != (LONG_PTR)my_window_proc) {
-        m_game_window_proc = (WNDPROC)SetWindowLongPtr(m_game_window, GWLP_WNDPROC, (LONG_PTR)my_window_proc);
     }
 
     m_is_initialized = true;

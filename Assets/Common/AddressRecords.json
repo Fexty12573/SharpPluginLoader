@@ -435,6 +435,11 @@
         "Offset": -15
     },
     {
+        "Name": "sMhRender:Assignment",
+        "Pattern": "89 44 24 20 E8 ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? C7 83 ?? ?? ?? ?? 06 00 00 00 48 89 03",
+        "Offset": 9
+    },
+    {
         "Name": "D3DRender12:SwapChainPresentCall",
         "Pattern": "FF 50 40 C6 83 D9 10 00 00 01 85 C0 75 1A 41 FF C4 44 8D 78 01",
         "Offset": 0

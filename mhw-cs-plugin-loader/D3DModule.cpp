@@ -93,13 +93,15 @@ void D3DModule::common_initialize(const uintptr_t render_singleton) {
 
     dlog::debug("Initializing D3D module for {}", m_is_d3d12 ? "D3D12" : "D3D11");
 
-    const auto game_window_name = std::format("MONSTER HUNTER: WORLD({})", NativePluginFramework::get_game_revision());
-    dlog::debug("Looking for game window: {}", game_window_name);
+    std::string game_revision = std::string(NativePluginFramework::get_game_revision());
+    if (game_revision != std::string(AddressRepository::UNKNOWN_REVISION)) {
+        const auto game_window_name = std::format("MONSTER HUNTER: WORLD({})", game_revision);
+        dlog::debug("Looking for game window: {}", game_window_name);
 
-    m_game_window = FindWindowA(nullptr, game_window_name.c_str());
-    if (!m_game_window) {
-        dlog::error("Failed to find game window ({})", GetLastError());
-        return;
+        m_game_window = FindWindowA(nullptr, game_window_name.c_str());
+        if (!m_game_window) {
+            dlog::warn("Couldn't find game window ({})", GetLastError());
+        }
     }
 
     const auto renderer = *(uintptr_t*)(render_singleton + 0x78);
@@ -194,7 +196,11 @@ bool D3DModule::common_initialize_imgui(IDXGISwapChain* swap_chain, DXGI_SWAP_CH
         return false;
     }
 
-    assert(desc->OutputWindow == m_game_window);
+    if (m_game_window) {
+        assert(m_game_window == desc->OutputWindow);
+    } else {
+        m_game_window = desc->OutputWindow;
+    }
 
     RECT client_rect;
     GetClientRect(m_game_window, &client_rect);

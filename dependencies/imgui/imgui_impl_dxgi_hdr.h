@@ -3,18 +3,15 @@
 enum ImGui_ImplDXGI_ColorSpace
 {
     ImGui_ImplDXGI_ColorSpace_SDR = 0,
-    ImGui_ImplDXGI_ColorSpace_scRGB,
-    ImGui_ImplDXGI_ColorSpace_HDR10,
+    ImGui_ImplDXGI_ColorSpace_HDR10
 };
 
 inline const char* ImGui_ImplDXGI_GetColorSpaceShaderDefine(ImGui_ImplDXGI_ColorSpace color_space)
 {
     switch (color_space)
     {
-    case ImGui_ImplDXGI_ColorSpace_scRGB:
-        return "1";
     case ImGui_ImplDXGI_ColorSpace_HDR10:
-        return "2";
+        return "1";
     default:
         return "0";
     }
@@ -75,9 +72,6 @@ float4 main(PS_INPUT input) : SV_Target
     float4 out_col = input.col * texture0.Sample(sampler0, input.uv);
 
 #if IMGUI_COLOR_SPACE == 1
-    // scRGB is linear Rec.709 and defines 1.0 as 80 nits.
-    out_col.rgb = SrgbToLinear(saturate(out_col.rgb)) * (GRAPHICS_WHITE_NITS / 80.0);
-#elif IMGUI_COLOR_SPACE == 2
     // HDR10 uses Rec.2020 primaries and the absolute ST.2084/PQ transfer curve.
     float3 linear_rec709 = SrgbToLinear(saturate(out_col.rgb));
     float3 linear_rec2020 = Rec709ToRec2020(linear_rec709);

@@ -25,26 +25,18 @@
 // DirectXTK12 References SerializeRootSignature so we need to link this
 #pragma comment(lib, "d3d12.lib")
 
-namespace {
-
 // DXGI exposes methods to set a swap-chain color space, but not to query the
-// active one. MHW uses these back-buffer formats for its two HDR output paths.
-ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer_format) {
+// active one. MHW uses this back-buffer format for its HDR output path.
+static ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer_format) {
     switch (back_buffer_format) {
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-        dlog::debug("Using scRGB color management for ImGui");
-        return ImGui_ImplDXGI_ColorSpace_scRGB;
-
     case DXGI_FORMAT_R10G10B10A2_UNORM:
         dlog::debug("Using HDR10 color management for ImGui");
         return ImGui_ImplDXGI_ColorSpace_HDR10;
-
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
     default:
         dlog::debug("Using SDR color management for ImGui");
         return ImGui_ImplDXGI_ColorSpace_SDR;
     }
-}
-
 }
 
 void D3DModule::initialize(CoreClr* coreclr) {

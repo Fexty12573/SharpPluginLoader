@@ -515,8 +515,6 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 
     imgui_load_fonts();
 
-    CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
     desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     m_game_window = desc.OutputWindow;
     desc.Windowed = GetWindowLongPtr(desc.OutputWindow, GWL_STYLE) & WS_POPUP ? FALSE : TRUE;

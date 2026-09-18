@@ -27,13 +27,13 @@ private:
     void initialize_for_d3d12(const uintptr_t renderer);
     void initialize_for_d3d11(const uintptr_t renderer);
 
+    void imgui_load_fonts();
     bool common_initialize_imgui(IDXGISwapChain* swap_chain, DXGI_SWAP_CHAIN_DESC* desc, bool d3d12);
     void d3d12_initialize_imgui(IDXGISwapChain* swap_chain);
     void d3d11_initialize_imgui(IDXGISwapChain* swap_chain);
 
     void d3d12_deinitialize_imgui();
     void d3d11_deinitialize_imgui();
-    void imgui_load_fonts();
 
     static TextureHandle register_texture(void* texture);
     static TextureHandle load_texture(const char* path, u32* out_width, u32* out_height);

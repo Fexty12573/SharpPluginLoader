@@ -147,6 +147,47 @@ void D3DModule::initialize_for_d3d11(const uintptr_t renderer) {
     m_d3d_resize_buffers_hook = safetyhook::create_inline(resize_buffers, d3d_resize_buffers_hook);
 }
 
+void D3DModule::imgui_load_fonts() {
+    if (m_fonts_loaded) {
+        return;
+    }
+
+    const auto& io = *igGetIO();
+    ImFontAtlas_Clear(io.Fonts);
+
+    CustomFont* custom_fonts;
+    const int custom_font_count = m_core_get_custom_fonts(&custom_fonts);
+
+    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
+    const auto& default_chunk = chunk_module->request_chunk("Default");
+    const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
+    const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
+    const auto& fa6 = default_chunk->get_file("/Resources/fa-solid-900.ttf");
+
+    ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
+    font_cfg->FontDataOwnedByAtlas = false;
+    font_cfg->MergeMode = false;
+
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
+    font_cfg->MergeMode = true;
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
+    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, fa6->Contents.data(), (i32)fa6->size(), 16.0f, font_cfg, icons_ranges);
+
+    for (int i = 0; i < custom_font_count; ++i) {
+        auto& font = custom_fonts[i];
+        font.Font = ImFontAtlas_AddFontFromFileTTF(io.Fonts, font.Path, font.Size, font.Config, font.GlyphRanges);
+        dlog::debug("Loaded custom font: {} - {}", font.Name, font.Path);
+    }
+
+    ImFontAtlas_Build(io.Fonts);
+
+    ImFontConfig_destroy(font_cfg);
+
+    m_core_resolve_custom_fonts();
+
+    m_fonts_loaded = true;
+}
+
 bool D3DModule::common_initialize_imgui(IDXGISwapChain* swap_chain, DXGI_SWAP_CHAIN_DESC* desc, bool d3d12) {
     if (FAILED(swap_chain->GetDesc(desc))) {
         dlog::error("Failed to get DXGI swap chain description");
@@ -357,62 +398,6 @@ void D3DModule::d3d11_deinitialize_imgui() {
     ImGui_ImplWin32_Shutdown();
 }
 
-void D3DModule::imgui_load_fonts() {
-    if (m_fonts_loaded) {
-        return;
-    }
-
-    const auto& io = *igGetIO();
-    ImFontAtlas_Clear(io.Fonts);
-
-    CustomFont* custom_fonts;
-    const int custom_font_count = m_core_get_custom_fonts(&custom_fonts);
-
-    const auto& chunk_module = NativePluginFramework::get_module<ChunkModule>();
-    const auto& default_chunk = chunk_module->request_chunk("Default");
-    const auto& roboto = default_chunk->get_file("/Resources/Roboto-Medium.ttf");
-    const auto& noto_sans_jp = default_chunk->get_file("/Resources/NotoSansJP-Regular.ttf");
-    const auto& fa6 = default_chunk->get_file("/Resources/fa-solid-900.ttf");
-
-    ImFontConfig* font_cfg = ImFontConfig_ImFontConfig();
-    font_cfg->FontDataOwnedByAtlas = false;
-    font_cfg->MergeMode = false;
-
-    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, roboto->Contents.data(), (i32)roboto->size(), 16.0f, font_cfg, nullptr);
-    font_cfg->MergeMode = true;
-    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, noto_sans_jp->Contents.data(), (i32)noto_sans_jp->size(), 18.0f, font_cfg, s_japanese_glyph_ranges);
-    ImFontAtlas_AddFontFromMemoryTTF(io.Fonts, fa6->Contents.data(), (i32)fa6->size(), 16.0f, font_cfg, icons_ranges);
-
-    for (int i = 0; i < custom_font_count; ++i) {
-        auto& font = custom_fonts[i];
-        font.Font = ImFontAtlas_AddFontFromFileTTF(io.Fonts, font.Path, font.Size, font.Config, font.GlyphRanges);
-        dlog::debug("Loaded custom font: {} - {}", font.Name, font.Path);
-    }
-
-    ImFontAtlas_Build(io.Fonts);
-
-    ImFontConfig_destroy(font_cfg);
-
-    m_core_resolve_custom_fonts();
-
-    m_fonts_loaded = true;
-}
-
-TextureHandle D3DModule::register_texture(void* texture) {
-    const auto& self = NativePluginFramework::get_module<D3DModule>();
-    if (!self->m_texture_manager) {
-        dlog::error("Cannot register texture during Buffer Resize event");
-        return nullptr;
-    }
-
-    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
-        dlog::error("Cannot register texture during Buffer Resize event (D3D12)");
-        return nullptr;
-    }
-
-    return self->m_texture_manager->register_texture(texture);
-}
-
 TextureHandle D3DModule::load_texture(const char* path, u32* out_width, u32* out_height) {
     const auto& self = NativePluginFramework::get_module<D3DModule>();
     if (!self->m_texture_manager) {
@@ -437,13 +422,23 @@ void D3DModule::unload_texture(TextureHandle handle) {
     self->m_texture_manager->unload_texture(handle);
 }
 
-bool D3DModule::is_d3d12() {
-    return m_is_d3d12;
+TextureHandle D3DModule::register_texture(void* texture) {
+    const auto& self = NativePluginFramework::get_module<D3DModule>();
+    if (!self->m_texture_manager) {
+        dlog::error("Cannot register texture during Buffer Resize event");
+        return nullptr;
+    }
+
+    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
+        dlog::error("Cannot register texture during Buffer Resize event (D3D12)");
+        return nullptr;
+    }
+
+    return self->m_texture_manager->register_texture(texture);
 }
 
-template<typename T, typename F, typename ...Args>
-auto invoke_if(const std::optional<std::shared_ptr<T>>& opt, F func, Args&&... args) {
-    return opt.and_then(std::bind(func, std::forward<Args>(args)...));
+bool D3DModule::is_d3d12() {
+    return m_is_d3d12;
 }
 
 HRESULT D3DModule::d3d12_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
@@ -545,30 +540,6 @@ UINT64 D3DModule::d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fen
     return self->m_d3d_signal_hook.call<UINT64>(command_queue, fence, value);
 }
 
-HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags) {
-    const auto self = NativePluginFramework::get_module<D3DModule>();
-    const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
-
-    if (swap_chain != self->m_swap_chain) {
-        return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
-    }
-
-    dlog::debug("ResizeBuffers called, resetting...");
-
-    if (self->m_is_initialized) {
-        self->m_is_initialized = false;
-        if (self->m_is_d3d12) {
-            self->d3d12_deinitialize_imgui();
-        } else {
-            self->d3d11_deinitialize_imgui();
-        }
-    }
-
-    prm->shutdown();
-
-    return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
-}
-
 HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
@@ -625,6 +596,29 @@ void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::s
     }
 }
 
+HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
+
+    if (swap_chain != self->m_swap_chain) {
+        return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
+    }
+
+    dlog::debug("ResizeBuffers called, resetting...");
+
+    if (self->m_is_initialized) {
+        self->m_is_initialized = false;
+        if (self->m_is_d3d12) {
+            self->d3d12_deinitialize_imgui();
+        } else {
+            self->d3d11_deinitialize_imgui();
+        }
+    }
+
+    prm->shutdown();
+
+    return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);
+}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

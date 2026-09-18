@@ -90,6 +90,11 @@ namespace SharpPluginLoader.Core
         public uint AllocatorIndex => (Get<uint>(0x30) >> 23) & 0x3F;
 
         /// <summary>
+        /// Gets the allocator used by this class.
+        /// </summary>
+        public unsafe MtAllocator Allocator => new(GetAllocator.Invoke(Instance));
+
+        /// <summary>
         /// Gets the attributes of the class.
         /// </summary>
         public uint Attributes => Get<uint>(0x30) >> 29;
@@ -236,5 +241,7 @@ namespace SharpPluginLoader.Core
                 parent, attr, allocatorIndex
             );
         }
+
+        private static readonly NativeFunction<nint, nint> GetAllocator = new(AddressRepository.Get("MtAllocator:GetAllocator"));
     }
 }

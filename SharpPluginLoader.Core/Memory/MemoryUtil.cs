@@ -106,7 +106,7 @@ namespace SharpPluginLoader.Core.Memory
         /// <summary>
         /// Writes a specified number of bytes to a given address.
         /// </summary>
-        /// <remarks>Do not write to EXE regions using this method. Use <see cref="WriteBytesSafe"/> instead.</remarks>
+        /// <remarks>Do not write to EXE regions using this method. Use <see cref="WriteBytesSafe(nint,byte[])"/> instead.</remarks>
         /// <param name="address">The address to write to</param>
         /// <param name="bytes">The bytes to write</param>
         public static void WriteBytes(nint address, byte[] bytes)
@@ -365,6 +365,31 @@ namespace SharpPluginLoader.Core.Memory
         {
             var length = StringLength(address);
             return (encoding ?? Encoding.UTF8).GetString((byte*)address, length);
+        }
+
+        /// <summary>
+        /// Creates a nullterminated, UTF8-Encoded string from the given string.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>An array of bytes representing the encoded string.</returns>
+        public static NativeArray<byte> CreateNullterminated(string str) => CreateNullterminated(str, Encoding.UTF8);
+
+        /// <summary>
+        /// Creates a nullterminated string with the given encoding from the given string.
+        /// </summary>
+        /// <param name="str">The string to encode</param>
+        /// <param name="encoding">The encoding to use</param>
+        /// <returns>An array of bytes representing the encoded string.</returns>
+        public static NativeArray<byte> CreateNullterminated(string str, Encoding encoding)
+        {
+            var bytes = encoding.GetBytes(str);
+            var ptr = Alloc<byte>(bytes.Length + 1);
+            ptr[bytes.Length] = 0;
+
+            fixed (byte* src = bytes)
+                Copy(src, ptr, bytes.Length);
+
+            return new NativeArray<byte>((nint)ptr, bytes.Length + 1);
         }
 
         #region Mirror Methods for long

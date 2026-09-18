@@ -468,5 +468,45 @@
         "Name": "Keyboard:WriteInput",
         "Pattern": "41 57 48 81 EC 20 01 00 00 48 8B E9 48 8B FA 48 8B 89 10 0A 00 00",
         "Offset": -10
+    },
+    {
+        "Name": "StartMenu:AccessPages",
+        "Pattern": "48 8D 0D ?? ?? ?? ?? 49 8B C7 4C 8D B6 C8 29 00 00 48 C1 E0 04",
+        "Offset": 3
+    },
+    {
+        "Name": "StartMenu:FormatOptionName",
+        "Pattern": "40 53 48 83 EC 20 41 8B 08 48 8B DA 41 8B 50 04 83 F9 11 75 18",
+        "Offset": 0
+    },
+    {
+        "Name": "StartMenu:SelectOption",
+        "Pattern": "8B 81 98 22 00 00 49 8B E8 48 63 FA 48 8B D9 A9 11 00 00 80",
+        "Offset": -15
+    },
+    {
+        "Name": "GuiObject:FormatText",
+        "Pattern": "48 85 C9 74 34 48 85 D2 74 25 0F B6 02",
+        "Offset": 0
+    },
+    {
+        "Name": "StartMenu:IsOptionVisible",
+        "Pattern": "83 C2 FE 48 8B D9 83 FA 3A 77 6E",
+        "Offset": -6
+    },
+    {
+        "Name": "StartMenu:IsOptionClickable",
+        "Pattern": "48 83 EC 20 48 63 DA 48 8B F9 83 FB 4B",
+        "Offset": -6
+    },
+    {
+        "Name": "Gui:GetLanguageIdentifierFromId",
+        "Pattern": "83 F9 17 77 0F 48 63 C1",
+        "Offset": 0
+    },
+    {
+        "Name": "MtAllocator:GetAllocator",
+        "Pattern": "48 C1 E8 17 83 E0 3F 48 8B 04 C1",
+        "Offset": -10
     }
 ]

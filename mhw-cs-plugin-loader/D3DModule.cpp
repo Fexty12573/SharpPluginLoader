@@ -621,6 +621,10 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
         }
     }
 
+    if (self->m_texture_manager) {
+        self->m_texture_manager.reset();
+    }
+
     prm->shutdown();
 
     return self->m_d3d_resize_buffers_hook.call<HRESULT>(swap_chain, buffer_count, w, h, format, flags);

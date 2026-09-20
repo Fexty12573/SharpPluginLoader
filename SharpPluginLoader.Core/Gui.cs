@@ -23,6 +23,37 @@ namespace SharpPluginLoader.Core
         public static MtObject SingletonInstance => SingletonManager.GetSingleton("sMhGUI")!;
 
         /// <summary>
+        /// The current game language.
+        /// </summary>
+        public static Language CurrentLanguage => SingletonInstance.Get<Language>(0x4C);
+
+        /// <summary>
+        /// Gets the list of currently active GUI objects.
+        /// </summary>
+        public static MtArray<Unit> ActiveObjects => SingletonInstance.GetInlineObject<MtArray<Unit>>(0x260);
+
+        /// <summary>
+        /// Finds a GUI object by its DTI.
+        /// </summary>
+        /// <param name="dti">The DTI of the GUI object to find</param>
+        /// <returns>The GUI object, or <see langword="null"/> if it wasn't found</returns>
+        public static Unit? FindObject(MtDti dti)
+        {
+            return ActiveObjects.FirstOrDefault(o => o.GetDti() == dti);
+        }
+
+        /// <summary>
+        /// Finds a GUI object by its name.
+        /// </summary>
+        /// <param name="name">The name of the GUI object to find</param>
+        /// <returns>The GUI object, or <see langword="null"/> if it wasn't found</returns>
+        public static Unit? FindObject(string name)
+        {
+            var dti = MtDti.Find(name);
+            return dti is not null ? FindObject(dti) : null;
+        }
+
+        /// <summary>
         /// Displays a popup message on the screen.
         /// </summary>
         /// <param name="message">The message to display</param>
@@ -88,10 +119,15 @@ namespace SharpPluginLoader.Core
 
             if (CachedMessages.Count > 30)
                 Marshal.FreeHGlobal(CachedMessages.Dequeue());
-            
+
             InternalCalls.QueueYesNoDialog(msgPtr);
         }
 
+        /// <summary>
+        /// Displays a message window with the specified message and offset.
+        /// </summary>
+        /// <param name="message">The message to display</param>
+        /// <param name="offset">The offset to apply to the window. By default it is in the center of the screen</param>
         public static unsafe void DisplayMessageWindow(string message, Vector2 offset = new())
         {
             var msgPtr = Marshal.StringToHGlobalAnsi(message);
@@ -104,6 +140,10 @@ namespace SharpPluginLoader.Core
             DisplayMessageWindowFunc.Invoke(SingletonInstance.Instance, msgPtr, 0, (nint)offsetPtr, false);
         }
 
+        /// <summary>
+        /// Displays an alert with the given message. The alert disappears automatically after a few seconds.
+        /// </summary>
+        /// <param name="message">The alert to display</param>
         public static unsafe void DisplayAlert(string message)
         {
             DisplayAlertFunc.Invoke(message);
@@ -239,5 +279,32 @@ namespace SharpPluginLoader.Core
         public static string PaleblueDisable => "<STYL MOJI_PALEBLUE_DISABLE>";
         public static string None => "</STYL>";
 #pragma warning restore CS1591
+    }
+
+    public enum Language
+    {
+        Japanese = 0,
+        English = 1,
+        French = 2,
+        Spanish = 3,
+        German = 4,
+        Italian = 5,
+        Korean = 6,
+        ChineseTraditional = 7,
+        ChineseSimplified = 8,
+        Portuguese = 9,
+        Russian = 10,
+        Polish = 11,
+        Dutch = 12,
+        Finnish = 13,
+        Danish = 14,
+        Norwegian = 15,
+        Czech = 16,
+        Hungarian = 17,
+        Slovak = 18,
+        Other = 19,
+        PortugueseBrazil = 20,
+        Arabic = 21,
+        SpanishLatinAmerica = 22,
     }
 }

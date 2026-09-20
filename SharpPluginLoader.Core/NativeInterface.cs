@@ -7,7 +7,9 @@ using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Fsm.Weapon;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Networking;
+using SharpPluginLoader.Core.Savedata;
 using SharpPluginLoader.Core.Steam;
+using SharpPluginLoader.Core.UI;
 
 namespace SharpPluginLoader.Core
 {
@@ -76,7 +78,7 @@ namespace SharpPluginLoader.Core
                 PlaceNativeDlls();
                 AddressRepository.Initialize();
 
-                Task.WaitAll([
+                Task.WaitAll(
                     Task.Run(SingletonManager.Initialize),
                     Task.Run(Gui.Initialize),
                     Task.Run(Quest.Initialize),
@@ -89,7 +91,9 @@ namespace SharpPluginLoader.Core
                     Task.Run(Matchmaking.Initialize),
                     Task.Run(FsmExtender.Initialize),
                     Task.Run(ActionCloner.Initialize),
-                ]);
+                    Task.Run(UserData.Initialize),
+                    Task.Run(StartMenu.Initialize)
+                );
             }
             catch (Exception e)
             {

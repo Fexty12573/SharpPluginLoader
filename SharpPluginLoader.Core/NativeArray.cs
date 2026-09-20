@@ -70,6 +70,11 @@ namespace SharpPluginLoader.Core
         /// </summary>
         public nint Address { get; private set; }
 
+        /// <summary>
+        /// Gets the size of the array in bytes.
+        /// </summary>
+        public int ByteSize => Length * sizeof(T);
+
         private readonly bool _ownsPointer;
         private readonly IAllocator _allocator;
 

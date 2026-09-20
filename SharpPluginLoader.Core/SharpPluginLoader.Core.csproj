@@ -24,122 +24,122 @@
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <NoWarn>1701;1702;1591</NoWarn>
+		<NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <NoWarn>1701;1702;1591</NoWarn>
+		<NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
-	  <None Update="NativeAction.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>NativeAction.cs</LastGenOutput>
-	  </None>
-	  <None Update="NativeFunction.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>NativeFunction.cs</LastGenOutput>
-	  </None>
+		<None Update="NativeAction.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>NativeAction.cs</LastGenOutput>
+		</None>
+		<None Update="NativeFunction.tt">
+			<Generator>TextTemplatingFileGenerator</Generator>
+			<LastGenOutput>NativeFunction.cs</LastGenOutput>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Hook.cs" />
+		<NativeLibs Remove="Hook.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
-	  <PackageReference Include="SharpPluginLoader.ImGui" Version="1.90.2" />
+		<PackageReference Include="Reloaded.Hooks" Version="4.3.0" />
+		<PackageReference Include="SharpPluginLoader.ImGui" Version="1.90.2" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="NativeFunction.tt" />
+		<NativeLibs Remove="NativeFunction.tt" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Compile Update="NativeAction.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>NativeAction.tt</DependentUpon>
-	  </Compile>
-	  <Compile Update="NativeFunction.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>NativeFunction.tt</DependentUpon>
-	  </Compile>
+		<Compile Update="NativeAction.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>NativeAction.tt</DependentUpon>
+		</Compile>
+		<Compile Update="NativeFunction.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>NativeFunction.tt</DependentUpon>
+		</Compile>
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="NativeAction.tt" />
+		<NativeLibs Remove="NativeAction.tt" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Quest.cs" />
+		<NativeLibs Remove="Quest.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Memory.cs" />
+		<NativeLibs Remove="Memory.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Resource.cs" />
+		<NativeLibs Remove="Resource.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="ResourceManager.cs" />
+		<NativeLibs Remove="ResourceManager.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Monster.cs" />
+		<NativeLibs Remove="Monster.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="AnimationLayerComponent.cs" />
+		<NativeLibs Remove="AnimationLayerComponent.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="ActionController.cs" />
+		<NativeLibs Remove="ActionController.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="EffectProvider.cs" />
+		<NativeLibs Remove="EffectProvider.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Utility.cs" />
+		<NativeLibs Remove="Utility.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Entity.cs" />
+		<NativeLibs Remove="Entity.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Player.cs" />
+		<NativeLibs Remove="Player.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Input.cs" />
+		<NativeLibs Remove="Input.cs" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="call $(SolutionDir)post-build.bat $(SolutionDir) $(Configuration)" />
+		<Exec Command="call $(SolutionDir)post-build.bat $(SolutionDir) $(Configuration)" />
 	</Target>
 	<ItemGroup>
-	  <NativeLibs Remove="NativeArray.cs" />
+		<NativeLibs Remove="NativeArray.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Ensure.cs" />
+		<NativeLibs Remove="Ensure.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="CameraSystem.cs" />
+		<NativeLibs Remove="CameraSystem.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="MtString.cs" />
+		<NativeLibs Remove="MtString.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Timer.cs" />
+		<NativeLibs Remove="Timer.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Area.cs" />
+		<NativeLibs Remove="Area.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="..\README.md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="SingletonManager.cs" />
+		<NativeLibs Remove="SingletonManager.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="Unit.cs" />
+		<NativeLibs Remove="Unit.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="UnitManager.cs" />
+		<NativeLibs Remove="UnitManager.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <NativeLibs Remove="EffectEmitter.cs" />
+		<NativeLibs Remove="EffectEmitter.cs" />
 	</ItemGroup>
 </Project>

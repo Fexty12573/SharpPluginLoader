@@ -1,5 +1,7 @@
 ﻿
+using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.SaveData;
+using SharpPluginLoader.Core.UI;
 
 namespace SharpPluginLoader.Core.Savedata;
 
@@ -61,6 +63,19 @@ public class UserData : MtObject
     public unsafe Span<uint> GuidingLandsRegionPoints => new(GetPtrInline(0x269B30), 6);
     public unsafe Span<uint> GuidingLandsMaxAchievedLevels => new(GetPtrInline(0x269C10), 6);
 
+    internal static void Initialize()
+    {
+        _selectSaveSlotHook = Hook.Create<SelectSaveSlotDelegate>(AddressRepository.Get("SaveData:SelectSlot"), (userData, slot) =>
+        {
+            _selectSaveSlotHook.Original(userData, slot);
+
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnSelectSaveSlot))
+                plugin.OnSelectSaveSlot(slot);
+
+            StartMenu.ApplyOptions();
+        });
+    }
+
     private static MtObject SingletonInstance
     {
         get
@@ -83,6 +98,8 @@ public class UserData : MtObject
         }
     }
 
+    private delegate void SelectSaveSlotDelegate(nint userData, int slot);
     private static MtObject? _singletonInstance;
     private static int _userDataSize;
+    private static Hook<SelectSaveSlotDelegate> _selectSaveSlotHook = null!;
 }

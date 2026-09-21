@@ -6,3 +6,5 @@
   href: UserInput.md
 - name: Custom Actions
   href: CustomActions.md
+- name: Custom Start Menu Entry
+  href: StartMenuOption.md

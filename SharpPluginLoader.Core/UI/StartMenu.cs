@@ -16,8 +16,15 @@ public static unsafe class StartMenu
     /// </summary>
     /// <param name="option">The option to add.</param>
     /// <returns>The ID of the added option.</returns>
+    /// <remarks>
+    /// This function must be called either in the <see cref="IPlugin.OnLoad"/> or <see cref="IPlugin.Initialize"/> methods.
+    /// Calling it in any other context is invalid.
+    /// </remarks>
     public static int AddOption(StartMenuOption option)
     {
+        if (_optionsApplied)
+            throw new InvalidOperationException("Cannot add start menu options after they have been applied");
+
         var id = Interlocked.Increment(ref _currentOptionId) - 1;
         Options[id] = option;
         return id;
@@ -46,9 +53,7 @@ public static unsafe class StartMenu
                 if (!Options.TryGetValue(id, out var opt))
                     return _isOptionVisibleHook.Original(gui, id);
 
-                var visible = opt.IsVisible?.Invoke() ?? true;
-                return visible ? True : False;
-
+                return opt.Visible ? True : False;
             }
         );
 
@@ -59,9 +64,7 @@ public static unsafe class StartMenu
                 if (!Options.TryGetValue(id, out var opt))
                     return _isOptionClickableHook.Original(gui, id);
 
-                var clickable = opt.IsClickable?.Invoke() ?? true;
-                return clickable ? True : False;
-
+                return opt.Clickable ? True : False;
             }
         );
 
@@ -84,10 +87,12 @@ public static unsafe class StartMenu
             AddressRepository.Get("StartMenu:HoverOption"),
             (gui, option) =>
             {
-                if (option != null && Options.ContainsKey(option->ActionId))
+                if (option != null && Options.TryGetValue(option->ActionId, out var opt))
                 {
+                    var key = opt.Clickable ? option->DescKey : option->DisabledDescKey;
+
                     // GMD 11 is cm_start_menu_*
-                    QueueCommonTextOp.Invoke(Gui.SingletonInstance.Instance, gui, option->DescKey, 11, 0, false);
+                    QueueCommonTextOp.Invoke(Gui.SingletonInstance.Instance, gui, key, 11, 0, false);
                     return;
                 }
 
@@ -119,7 +124,7 @@ public static unsafe class StartMenu
         Ensure.NotNull(gmd);
 
         var allocator = dti.Allocator;
-        var newCount = gmd.MessageCount + 2 * Options.Count; // 2x for name and desc
+        var newCount = gmd.MessageCount + 3 * Options.Count; // 2x for name, desc and disabled-desc
         var messages = (byte**)allocator.Allocate(newCount * 8);
         MemoryUtil.Copy(gmd.Messages, messages, 8 * gmd.MessageCount);
 
@@ -165,6 +170,7 @@ public static unsafe class StartMenu
             {
                 var name = option.GetName(language);
                 var desc = option.GetDesc(language);
+                var disa = option.GetDisabledDesc?.Invoke(language);
 
                 if (!messageCache.TryGetValue(name, out var nameIdx))
                 {
@@ -180,12 +186,20 @@ public static unsafe class StartMenu
                     messageCache[desc] = descIdx;
                 }
 
+                var disaIdx = descIdx;
+                if (disa is not null && !messageCache.TryGetValue(disa, out disaIdx))
+                {
+                    disaIdx = gmdIndex++;
+                    messages[disaIdx] = MemoryUtil.CreateNullterminated(disa).Pointer;
+                    messageCache[disa] = disaIdx;
+                }
+
                 newOptions[optIndex++] = new MenuOption
                 {
                     ActionId = id,
                     NameKey = nameIdx,
                     DescKey = descIdx,
-                    Unk = 0,
+                    DisabledDescKey = disaIdx,
                 };
             }
 
@@ -195,7 +209,7 @@ public static unsafe class StartMenu
                 ActionId = 0x4C,
                 NameKey = 0,
                 DescKey = 0,
-                Unk = 0,
+                DisabledDescKey = 0,
             };
 
             MemoryUtil.WithRwx(pages.Address, pages.ByteSize, _ =>
@@ -270,6 +284,11 @@ public class StartMenuOption
     public required Func<Language, string> GetDesc { get; init; }
 
     /// <summary>
+    /// Gets the alternate description of the option for the specified language, if the option is disabled (not clickable).
+    /// </summary>
+    public Func<Language, string>? GetDisabledDesc { get; init; }
+
+    /// <summary>
     /// Returns true if the option is visible at the current time, false otherwise. If null, the option is always visible
     /// </summary>
     public Func<bool>? IsVisible { get; init; }
@@ -278,6 +297,9 @@ public class StartMenuOption
     /// Returns true if the option is clickable at the current time, false otherwise. If null, the option is always clickable
     /// </summary>
     public Func<bool>? IsClickable { get; init; }
+
+    internal bool Visible => IsVisible?.Invoke() ?? true;
+    internal bool Clickable => IsClickable?.Invoke() ?? true;
 }
 
 /// <summary>
@@ -316,5 +338,5 @@ internal struct MenuOption
     public int ActionId;
     public int NameKey;
     public int DescKey;
-    public int Unk;
+    public int DisabledDescKey;
 }

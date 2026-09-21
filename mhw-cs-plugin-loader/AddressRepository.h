@@ -8,6 +8,8 @@ class AddressRepository
 public:
     AddressRepository(): m_address_records() {}
 
+    static constexpr const char* UNKNOWN_REVISION = "unknown";
+
     /// <summary>
     /// Loads all the patterns from the address repo JSON (in filechunk) and resolves them.
     /// If a valid cache is on disk, it will use that instead of pattern scanning for the addresses.
@@ -43,6 +45,5 @@ private:
 
 private:
     const char* m_game_revision = nullptr;
-    static constexpr const char* UNKNOWN_REVISION = "unknown";
     std::unordered_map<std::string, uintptr_t> m_address_records;
 };

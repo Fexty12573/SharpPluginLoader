@@ -157,12 +157,12 @@ namespace SharpPluginLoader.Core
         public string Author { get; }
 
         /// <summary>
-        /// Gets the currently loaded plugin instance of that type.
+        /// Gets the currently loaded plugin instance by this name.
         /// </summary>
-        /// <returns>The loaded instance of the desired plugin type, or null if its not loaded.</returns>
-        public static T? GetInstance<T>() where T : IPlugin
+        /// <returns>The loaded instance of the desired plugin, or null if it's not loaded.</returns>
+        public static IPlugin? GetInstance(string name)
         {
-            return PluginManager.Instance.GetPlugin<T>();
+            return PluginManager.Instance.GetPlugin(name);
         }
 
         /// <summary>

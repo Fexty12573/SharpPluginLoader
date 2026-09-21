@@ -501,18 +501,13 @@ namespace SharpPluginLoader.Core
             }
         }
 
-        public T? GetPlugin<T>() where T : IPlugin
-        {
-            return (T?) GetPlugin(typeof(T));
-        }
-
-        public IPlugin? GetPlugin(Type type)
+        public IPlugin? GetPlugin(string name)
         {
             lock (_contexts)
             {
                 foreach (var context in _contexts.Values)
                 {
-                    if (context.Plugin.GetType() == type)
+                    if (context.Plugin.Name == name)
                         return context.Plugin;
                 }
             }

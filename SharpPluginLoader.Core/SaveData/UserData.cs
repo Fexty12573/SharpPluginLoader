@@ -60,8 +60,8 @@ public class UserData : MtObject
         return GetInlineObject<EquipSet>(0x10CBE8 + index * 0x2B0);
     }
 
-    public unsafe Span<uint> GuidingLandsRegionPoints => new(GetPtrInline(0x269B30), 6);
-    public unsafe Span<uint> GuidingLandsMaxAchievedLevels => new(GetPtrInline(0x269C10), 6);
+    public unsafe Span<int> GuidingLandsRegionPoints => new(GetPtrInline(0x269B30), 6);
+    public unsafe Span<byte> GuidingLandsMaxAchievedLevels => new(GetPtrInline(0x269C10), 6);
 
     internal static void Initialize()
     {

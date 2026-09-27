@@ -15,8 +15,8 @@ private:
     static GuiElement* gui_element_set_vtable(const GuiElement* self, GuiElement* other);
 
 private:
-    void*(*m_get_singleton)(const char* name) = nullptr;
     void(*m_propagate_dialog_result)(void*, void*, int) = nullptr;
+    void*(*m_get_singleton)(const char* name) = nullptr;
     void(*m_display_dialog)(void*, void*) = nullptr;
 
     std::array<void*, 6> m_dialog_vtable = {

@@ -5,6 +5,7 @@ using SharpPluginLoader.Core.Configuration;
 using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Networking;
 using SharpPluginLoader.Core.Resources;
+using SharpPluginLoader.Core.Rendering;
 
 namespace SharpPluginLoader.Core
 {
@@ -36,6 +37,9 @@ namespace SharpPluginLoader.Core
 
         /// <inheritdoc cref="IPlugin.OnResourceLoad"/>
         internal bool OnResourceLoad;
+
+        /// <inheritdoc cref="IPlugin.OnCreateShader"/>
+        internal bool OnCreateShader;
 
         /// <inheritdoc cref="IPlugin.OnChatMessageSent"/>
         internal bool OnChatMessageSent;
@@ -244,6 +248,17 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         [PluginEvent]
         public void OnResourceLoad(Resource? resource, MtDti dti, string path, LoadFlags flags) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Gets called when the game creates a new shader. Comes from multiple threads at once.
+        /// </summary>
+        /// <param name="info">Metadata and fields to optionally define a replacement shader</param>
+        /// <remarks>
+        /// info->DxbcHash is in the format of "9ff245fb-4fd555e0-04d0ef15-84609fe1" (0 padded).<br/>
+        /// The game loads shaders primarily at startup but occasionally during gameplay or when changing graphics settings.
+        /// </remarks>
+        [PluginEvent]
+        public unsafe void OnCreateShader(ShaderInfo* info) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets called when a chat message is sent (on the local side).

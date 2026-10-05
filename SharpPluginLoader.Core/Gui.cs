@@ -66,11 +66,11 @@ namespace SharpPluginLoader.Core
             var durationSeconds = (float)duration.TotalSeconds;
             var delaySeconds = (float)delay.TotalSeconds;
 
-            var messagePtr = Marshal.StringToHGlobalAnsi(message);
+            var messagePtr = Marshal.StringToCoTaskMemUTF8(message);
             CachedMessages.Enqueue(messagePtr);
 
             if (CachedMessages.Count > 30)
-                Marshal.FreeHGlobal(CachedMessages.Dequeue());
+                Marshal.FreeCoTaskMem(CachedMessages.Dequeue());
 
             DisplayPopupFunc.Invoke(SingletonInstance.Instance, messagePtr, durationSeconds, delaySeconds, false, xOff, yOff);
         }
@@ -96,7 +96,9 @@ namespace SharpPluginLoader.Core
         public static unsafe void DisplayMessage(string message, TimeSpan delay, bool isImportant = false)
         {
             var delaySeconds = (float)delay.TotalSeconds;
-            DisplayMessageFunc.Invoke(SingletonManager.GetSingleton("sChat")!.Instance, message, delaySeconds, 0, isImportant);
+            nint msgPtr = Marshal.StringToCoTaskMemUTF8(message);
+            DisplayMessageFunc.Invoke(SingletonManager.GetSingleton("sChat")!.Instance, msgPtr, delaySeconds, 0, isImportant);
+            Marshal.FreeCoTaskMem(msgPtr);
         }
 
         /// <inheritdoc cref="DisplayMessage(string,TimeSpan,bool)"/>
@@ -113,12 +115,12 @@ namespace SharpPluginLoader.Core
         /// <param name="callback">The callback to call when the user clicks a button</param>
         public static void DisplayYesNoDialog(string message, DialogCallback callback)
         {
-            var msgPtr = Marshal.StringToHGlobalAnsi(message);
+            var msgPtr = Marshal.StringToCoTaskMemUTF8(message);
             DialogCallbacks.Enqueue(callback);
             CachedMessages.Enqueue(msgPtr);
 
             if (CachedMessages.Count > 30)
-                Marshal.FreeHGlobal(CachedMessages.Dequeue());
+                Marshal.FreeCoTaskMem(CachedMessages.Dequeue());
 
             InternalCalls.QueueYesNoDialog(msgPtr);
         }
@@ -130,12 +132,12 @@ namespace SharpPluginLoader.Core
         /// <param name="offset">The offset to apply to the window. By default it is in the center of the screen</param>
         public static unsafe void DisplayMessageWindow(string message, Vector2 offset = new())
         {
-            var msgPtr = Marshal.StringToHGlobalAnsi(message);
+            var msgPtr = Marshal.StringToCoTaskMemUTF8(message);
             var offsetPtr = &offset;
 
             CachedMessages.Enqueue(msgPtr);
             if (CachedMessages.Count > 30)
-                Marshal.FreeHGlobal(CachedMessages.Dequeue());
+                Marshal.FreeCoTaskMem(CachedMessages.Dequeue());
 
             DisplayMessageWindowFunc.Invoke(SingletonInstance.Instance, msgPtr, 0, (nint)offsetPtr, false);
         }
@@ -146,7 +148,9 @@ namespace SharpPluginLoader.Core
         /// <param name="message">The alert to display</param>
         public static unsafe void DisplayAlert(string message)
         {
-            DisplayAlertFunc.Invoke(message);
+            var msgPtr = Marshal.StringToCoTaskMemUTF8(message);
+            DisplayAlertFunc.Invoke(msgPtr);
+            Marshal.FreeCoTaskMem(msgPtr);
         }
 
         [UnmanagedCallersOnly]
@@ -174,9 +178,9 @@ namespace SharpPluginLoader.Core
         private static readonly Queue<DialogCallback> DialogCallbacks = new();
         private static readonly Queue<nint> CachedMessages = new();
         private static readonly NativeAction<nint, nint, float, float, bool, float, float> DisplayPopupFunc = new(AddressRepository.Get("Gui:DisplayPopup"));
-        private static readonly NativeAction<nint, string, float, uint, bool> DisplayMessageFunc = new(AddressRepository.Get("Gui:DisplayMessage"));
+        private static readonly NativeAction<nint, nint, float, uint, bool> DisplayMessageFunc = new(AddressRepository.Get("Gui:DisplayMessage"));
         private static readonly NativeAction<nint, nint, nint, nint, bool> DisplayMessageWindowFunc = new(AddressRepository.Get("Gui:DisplayMessageWindow"));
-        private static readonly NativeAction<string> DisplayAlertFunc = new(AddressRepository.Get("Gui:DisplayAlert"));
+        private static readonly NativeAction<nint> DisplayAlertFunc = new(AddressRepository.Get("Gui:DisplayAlert"));
         private static Hook<ChatMessageSentDelegate> _chatMessageSentHook = null!;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]

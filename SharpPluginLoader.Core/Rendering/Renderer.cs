@@ -557,10 +557,10 @@ namespace SharpPluginLoader.Core.Rendering
             style.FramePadding = new Vector2(6.0f, 6.0f);
             style.FrameRounding = 1.0f;
             style.FrameBorderSize = 0.0f;
-            style.ItemSpacing = new Vector2(12.0f, 6.0f);
+            style.ItemSpacing = new Vector2(8.0f, 6.0f);
             style.ItemInnerSpacing = new Vector2(6.0f, 3.0f);
             style.CellPadding = new Vector2(12.0f, 6.0f);
-            style.IndentSpacing = 20.0f;
+            style.IndentSpacing = 14.0f;
             style.ColumnsMinSpacing = 6.0f;
             style.ScrollbarSize = 12.0f;
             style.ScrollbarRounding = 0.0f;

@@ -4,9 +4,9 @@
 #include "PrimitiveRenderingModule.h"
 #include "LoaderConfig.h"
 
+#include <dxgi.h>
 #include <d3d11.h>
 #include <d3d12.h>
-#include <dxgi.h>
 #include <IconsFontAwesome6.h>
 #include <wrl.h>
 
@@ -80,8 +80,9 @@ private:
 
     struct ShaderReplacement {
         int Type;
-        unsigned char* Source;
         int Length;
+        unsigned char* Source = nullptr;
+        ~ShaderReplacement() { if (Source) delete[] Source; }
     };
 
     struct ShaderInfo {
@@ -114,11 +115,16 @@ private:
         std::string hash = std::format("{:08x}-{:08x}-{:08x}-{:08x}", dxbc[1], dxbc[2], dxbc[3], dxbc[4]);
         std::memcpy(info.DxbcHash, hash.c_str(), 35);
         info.DxbcHash[35] = '\0';
-        info.Replacement.Source = nullptr;
         return info;
     }
 
-    static bool compile_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out);
+    static void allocate_shader_replacement(ShaderReplacement* re, unsigned char* source, int length) {
+        if (re->Source) delete[] re->Source;
+        re->Source = new unsigned char[length];
+        std::memcpy(re->Source, source, length);
+    }
+
+    static bool compile_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob);
 
     #pragma region D3D12
 

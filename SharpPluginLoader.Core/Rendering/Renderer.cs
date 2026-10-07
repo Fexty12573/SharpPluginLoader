@@ -733,8 +733,20 @@ namespace SharpPluginLoader.Core.Rendering
     public unsafe struct ShaderReplacement
     {
         public ShaderSourceType Type;
-        public byte* Source;
         public int Length;
+        public byte* Source;
+        public unsafe void Set(byte[] source, ShaderSourceType type)
+        {
+            Type = type;
+            Length = source.Length;
+            fixed (ShaderReplacement* thisPtr = &this)
+            {
+                fixed (byte* sourcePtr = source)
+                {
+                    InternalCalls.AllocateShaderReplacement(thisPtr, sourcePtr, source.Length);
+                }
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

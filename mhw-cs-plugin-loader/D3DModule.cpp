@@ -567,25 +567,34 @@ UINT64 D3DModule::d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fen
     return self->m_d3d_signal_hook.call<UINT64>(command_queue, fence, value);
 }
 
-bool D3DModule::compile_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob) {
-    HRESULT hr = D3DCompile(
-        re.Source,
-        re.Length,
-        nullptr,
-        nullptr,
-        nullptr,
-        "main",
-        target,
-        0,
-        0,
-        blob,
-        nullptr
-    );
-    if (FAILED(hr)) {
-        dlog::error("Failed to compile replacement shader");
-        return false;
+bool D3DModule::maybe_prepare_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob) {
+    if (!re.Source) return false;
+    switch (re.Type) {
+    case ShaderSourceType::HLSL: {
+        HRESULT hr = D3DCompile(
+            re.Source,
+            re.Length,
+            nullptr,
+            nullptr,
+            nullptr,
+            "main",
+            target,
+            0,
+            0,
+            blob,
+            nullptr
+        );
+        if (FAILED(hr)) {
+            dlog::error("Failed to compile replacement shader");
+            return false;
+        }
+        *out = CD3DX12_SHADER_BYTECODE(*blob);
+        break;
     }
-    *out = CD3DX12_SHADER_BYTECODE(*blob);
+    case ShaderSourceType::Binary:
+        *out = CD3DX12_SHADER_BYTECODE(re.Source, re.Length);
+        break;
+    }
     return true;
 }
 
@@ -593,37 +602,15 @@ HRESULT D3DModule::d3d12_create_graphics_pipeline_state_hook(ID3D12Device* devic
     const auto self = NativePluginFramework::get_module<D3DModule>();
     ShaderInfo vs_info;
     ComPtr<ID3DBlob> vs_blob;
-    if (desc->VS.pShaderBytecode) {
-        vs_info = self->get_shader_info((uint32_t*)desc->VS.pShaderBytecode);
+    if (get_shader_info(vs_info, (uint32_t*)desc->VS.pShaderBytecode)) {
         self->m_core_create_shader(&vs_info);
-        ShaderReplacement& re = vs_info.Replacement;
-        if (re.Source) {
-            switch (re.Type) {
-            case ShaderSourceType::HLSL:
-                compile_replacement_shader(re, "vs_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->VS, vs_blob.GetAddressOf());
-                break;
-            case ShaderSourceType::Binary:
-                ((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->VS = CD3DX12_SHADER_BYTECODE(re.Source, re.Length);
-                break;
-            }
-        }
+        maybe_prepare_replacement_shader(vs_info.Replacement, "vs_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->VS, vs_blob.GetAddressOf());
     }
     ShaderInfo ps_info;
     ComPtr<ID3DBlob> ps_blob;
-    if (desc->PS.pShaderBytecode) {
-        ps_info = self->get_shader_info((uint32_t*)desc->PS.pShaderBytecode);
+    if (get_shader_info(ps_info, (uint32_t*)desc->PS.pShaderBytecode)) {
         self->m_core_create_shader(&ps_info);
-        ShaderReplacement& re = ps_info.Replacement;
-        if (re.Source) {
-            switch (re.Type) {
-            case ShaderSourceType::HLSL:
-                compile_replacement_shader(re, "ps_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->PS, ps_blob.GetAddressOf());
-                break;
-            case ShaderSourceType::Binary:
-                ((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->PS = CD3DX12_SHADER_BYTECODE(re.Source, re.Length);
-                break;
-            }
-        }
+        maybe_prepare_replacement_shader(ps_info.Replacement, "ps_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->PS, ps_blob.GetAddressOf());
     }
     return self->m_d3d_create_graphics_pipeline_hook.call<HRESULT>(device, desc, riid, pipeline_state);
 }
@@ -632,20 +619,9 @@ HRESULT D3DModule::d3d12_create_compute_pipeline_state_hook(ID3D12Device* device
     const auto self = NativePluginFramework::get_module<D3DModule>();
     ShaderInfo cs_info;
     ComPtr<ID3DBlob> cs_blob;
-    if (desc->CS.pShaderBytecode) {
-        cs_info = self->get_shader_info((uint32_t*)desc->CS.pShaderBytecode);
+    if (get_shader_info(cs_info, (uint32_t*)desc->CS.pShaderBytecode)) {
         self->m_core_create_shader(&cs_info);
-        ShaderReplacement& re = cs_info.Replacement;
-        if (re.Source) {
-            switch (re.Type) {
-            case ShaderSourceType::HLSL:
-                compile_replacement_shader(re, "cs_5_0", &((D3D12_COMPUTE_PIPELINE_STATE_DESC*)desc)->CS, cs_blob.GetAddressOf());
-                break;
-            case ShaderSourceType::Binary:
-                ((D3D12_COMPUTE_PIPELINE_STATE_DESC*)desc)->CS = CD3DX12_SHADER_BYTECODE(re.Source, re.Length);
-                break;
-            }
-        }
+        maybe_prepare_replacement_shader(cs_info.Replacement, "cs_5_0", &((D3D12_COMPUTE_PIPELINE_STATE_DESC*)desc)->CS, cs_blob.GetAddressOf());
     }
     return self->m_d3d_create_compute_pipeline_hook.call<HRESULT>(device, desc, riid, pipeline_state);
 }
@@ -708,72 +684,42 @@ void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::s
 
 HRESULT D3DModule::d3d11_create_vertex_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11VertexShader** vertex_shader) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
-    ShaderInfo info = self->get_shader_info((uint32_t*)shader_bytecode);
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
     self->m_core_create_shader(&info);
-    ShaderReplacement& re = info.Replacement;
     ComPtr<ID3DBlob> blob;
-    if (re.Source) {
-        CD3DX12_SHADER_BYTECODE sbc;
-        switch (re.Type) {
-        case ShaderSourceType::HLSL:
-            if (compile_replacement_shader(re, "vs_5_0", &sbc, blob.GetAddressOf())) {
-                shader_bytecode = sbc.pShaderBytecode;
-                bytecode_length = sbc.BytecodeLength;
-            }
-            break;
-        case ShaderSourceType::Binary:
-            shader_bytecode = re.Source;
-            bytecode_length = re.Length;
-            break;
-        }
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "vs_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
     }
     return self->m_d3d_create_vertex_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, vertex_shader);
 }
 
 HRESULT D3DModule::d3d11_create_pixel_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11PixelShader** pixel_shader) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
-    ShaderInfo info = self->get_shader_info((uint32_t*)shader_bytecode);
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
     self->m_core_create_shader(&info);
-    ShaderReplacement& re = info.Replacement;
     ComPtr<ID3DBlob> blob;
-    if (re.Source) {
-        CD3DX12_SHADER_BYTECODE sbc;
-        switch (re.Type) {
-        case ShaderSourceType::HLSL:
-            if (compile_replacement_shader(re, "ps_5_0", &sbc, blob.GetAddressOf())) {
-                shader_bytecode = sbc.pShaderBytecode;
-                bytecode_length = sbc.BytecodeLength;
-            }
-            break;
-        case ShaderSourceType::Binary:
-            shader_bytecode = re.Source;
-            bytecode_length = re.Length;
-            break;
-        }
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "ps_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
     }
     return self->m_d3d_create_pixel_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, pixel_shader);
 }
 
 HRESULT D3DModule::d3d11_create_compute_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11ComputeShader** compute_shader) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
-    ShaderInfo info = self->get_shader_info((uint32_t*)shader_bytecode);
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
     self->m_core_create_shader(&info);
-    ShaderReplacement& re = info.Replacement;
     ComPtr<ID3DBlob> blob;
-    if (re.Source) {
-        CD3DX12_SHADER_BYTECODE sbc;
-        switch (re.Type) {
-        case ShaderSourceType::HLSL:
-            if (compile_replacement_shader(re, "cs_5_0", &sbc, blob.GetAddressOf())) {
-                shader_bytecode = sbc.pShaderBytecode;
-                bytecode_length = sbc.BytecodeLength;
-            }
-            break;
-        case ShaderSourceType::Binary:
-            shader_bytecode = re.Source;
-            bytecode_length = re.Length;
-            break;
-        }
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "cs_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
     }
     return self->m_d3d_create_compute_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, compute_shader);
 }

@@ -110,12 +110,12 @@ private:
 
     std::unique_ptr<TextureManager> m_texture_manager;
 
-    static ShaderInfo get_shader_info(uint32_t* dxbc) {
-        ShaderInfo info;
+    static inline bool get_shader_info(ShaderInfo& info, uint32_t* dxbc) {
+        if (!dxbc) return false;
         std::string hash = std::format("{:08x}-{:08x}-{:08x}-{:08x}", dxbc[1], dxbc[2], dxbc[3], dxbc[4]);
         std::memcpy(info.DxbcHash, hash.c_str(), 35);
         info.DxbcHash[35] = '\0';
-        return info;
+        return true;
     }
 
     static void allocate_shader_replacement(ShaderReplacement* re, unsigned char* source, int length) {
@@ -124,7 +124,7 @@ private:
         std::memcpy(re->Source, source, length);
     }
 
-    static bool compile_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob);
+    static bool maybe_prepare_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob);
 
     #pragma region D3D12
 

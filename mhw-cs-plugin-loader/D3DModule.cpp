@@ -637,5 +637,14 @@ LRESULT D3DModule::my_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
     if (self->m_is_initialized) {
         ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
     }
+    const auto& io = *igGetIO();
+    if (io.WantCaptureKeyboard || (io.NavActive && (io.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0)) {
+        switch (msg) {
+        case WM_CHAR: // Typing in chat.
+            return DefWindowProc(hwnd, msg, wparam, lparam);
+        default:
+            break;
+        }
+    }
     return CallWindowProc(self->m_game_window_proc, hwnd, msg, wparam, lparam);
 }

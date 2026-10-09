@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using ImGuiNET;
@@ -204,11 +203,209 @@ namespace SharpPluginLoader.Core.Rendering
             config->MenuKey = Utf8StringMarshaller.ConvertToUnmanaged(_menuKey.ToString());
             var io = ImGui.GetIO();
             config->KeyboardNavigation = (io.ConfigFlags & ImGuiConfigFlags.NavEnableKeyboard) != 0;
+            config->GamepadNavigation = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) != 0;
             config->FontScale = io.FontGlobalScale;
             config->WindowTransparency = _baseAlpha;
             InternalCalls.SaveGuiConfig(config);
             Utf8StringMarshaller.Free(config->MenuKey);
             MemoryUtil.Free(config);
+        }
+
+        public static unsafe void ToggleMenu()
+        {
+            _showMenu = !_showMenu;
+            if (!_showMenu && _optionsChanged)
+            {
+                SaveConfig();
+                _optionsChanged = false;
+            }
+            _lastWindow = null;
+        }
+
+        public static unsafe void FocusLastWindow()
+        {
+            ImGuiPatches.FocusWindow(_lastWindow);
+        }
+
+        private static bool KeyboardNavActive(ImGuiIOPtr io)
+        {
+            return _showMenu && io.NavActive && (io.ConfigFlags & ImGuiConfigFlags.NavEnableKeyboard) != 0;
+        }
+
+        private static bool GamepadNavActive(ImGuiIOPtr io)
+        {
+            return _showMenu && io.NavActive && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) != 0;
+        }
+
+        /*
+        private static readonly Dictionary<Button, ImGuiKey> imguiGamepadMap = new Dictionary<Button, ImGuiKey>()
+        {
+            { Button.Share,    ImGuiKey.GamepadBack },
+            { Button.L3,       ImGuiKey.GamepadL3 },
+            { Button.R3,       ImGuiKey.GamepadR3 },
+            { Button.Options,  ImGuiKey.GamepadStart },
+            { Button.Up,       ImGuiKey.GamepadDpadUp },
+            { Button.Right,    ImGuiKey.GamepadDpadRight },
+            { Button.Down,     ImGuiKey.GamepadDpadDown },
+            { Button.Left,     ImGuiKey.GamepadDpadLeft },
+            { Button.L1,       ImGuiKey.GamepadL1 },
+            { Button.R1,       ImGuiKey.GamepadR1 },
+            { Button.L2,       ImGuiKey.GamepadL2 },
+            { Button.R2,       ImGuiKey.GamepadR2 },
+            { Button.Triangle, ImGuiKey.GamepadFaceUp },
+            { Button.Circle,   ImGuiKey.GamepadFaceRight },
+            { Button.Cross,    ImGuiKey.GamepadFaceDown },
+            { Button.Square,   ImGuiKey.GamepadFaceLeft },
+            { Button.LsUp,     ImGuiKey.GamepadLStickUp },
+            { Button.LsRight,  ImGuiKey.GamepadLStickRight },
+            { Button.LsDown,   ImGuiKey.GamepadLStickDown },
+            { Button.LsLeft,   ImGuiKey.GamepadLStickLeft },
+            { Button.RsUp,     ImGuiKey.GamepadRStickUp },
+            { Button.RsRight,  ImGuiKey.GamepadRStickRight },
+            { Button.RsDown,   ImGuiKey.GamepadRStickDown },
+            { Button.RsLeft,   ImGuiKey.GamepadRStickLeft }
+        };
+        */
+
+        private static readonly Dictionary<Button, ImGuiKey> imguiGamepadMap = new Dictionary<Button, ImGuiKey>()
+        {
+            { Button.Up,       ImGuiKey.UpArrow },
+            { Button.Right,    ImGuiKey.RightArrow },
+            { Button.Down,     ImGuiKey.DownArrow },
+            { Button.Left,     ImGuiKey.LeftArrow },
+            { Button.Circle,   ImGuiKey.Escape },
+            { Button.Cross,    ImGuiKey.Enter }
+        };
+
+        private static unsafe void OnPadUpdate()
+        {
+            Input.UpdatePadState();
+
+            var io = ImGui.GetIO();
+            if (GamepadNavActive(io))
+            {
+                if (Input.IsPressed(Button.Share))
+                {
+                    ImGuiPatches.FocusWindow(null);
+                    Input.Block(Button.Share);
+                }
+                else
+                {
+                    foreach (Button button in imguiGamepadMap.Keys)
+                    {
+                        if (Input.IsChanged(button))
+                        {
+                            io.AddKeyEvent(imguiGamepadMap[button], Input.IsDown(button));
+                        }
+                    }
+                    Input.BlockPad();
+                    Input.PadCaptured = true;
+                }
+            }
+            else if (_showMenu)
+            {
+                if (Input.IsPressed(Button.Share))
+                {
+                    FocusLastWindow();
+                    Input.Block(Button.Share);
+                }
+                else if (Input.IsDown(Button.Share))
+                {
+                    // Block the button used to unfocus the window.
+                    Input.Block(Button.Share);
+                }
+            }
+
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnPadUpdate))
+                plugin.OnPadUpdate();
+        }
+
+        private static unsafe void OnMouseUpdate()
+        {
+            Input.UpdateMouseState();
+
+            var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
+            var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+
+            if (anyFocused || anyHovered)
+            {
+                // Tell the game to not reset the cursor to the middle of the
+                // screen when Camera Mouse Controls are on.
+                // MonsterHunterWorld.exe+4898F0 - cmp [rax+000147A8],r15b(0)
+                MemoryUtil.GetRef<byte>(Gui.SingletonInstance.Instance + 0x147A8) = 0x1;
+                Input.BlockScrollWheel();
+                Input.MouseCaptured = true;
+            }
+
+            if (anyFocused)
+            {
+                Input.BlockMouseDelta();
+                Input.BlockMouseClicks();
+                _lastUpdateHadFocus = true;
+            }
+            else if (anyHovered || _lastUpdateHadFocus)
+            {
+                // Block the click used to unfocus the window.
+                if (Input.IsDown(Mouse.Left))
+                    Input.Block(Mouse.Left);
+                else
+                    _lastUpdateHadFocus = false;
+            }
+
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnMouseUpdate))
+                plugin.OnMouseUpdate();
+        }
+
+        private static unsafe void OnKeyboardUpdate()
+        {
+            Input.UpdateKeyboardState();
+
+            if (_lastUpdateHadKeyboard)
+            {
+                // Block Escape/Enter if it was presumably used to exit an input field.
+                if (Input.IsDown(Key.Escape))
+                    _waitForRelease = Key.Escape;
+                else if (Input.IsDown(Key.Enter))
+                    _waitForRelease = Key.Enter;
+            }
+
+            if (_waitForRelease == null)
+            {
+                // Block the key used to bring up the menu.
+                if (Input.IsDown(_menuKey))
+                {
+                    ToggleMenu();
+                    _waitForRelease = _menuKey;
+                }
+#if DEBUG
+                else if (Input.IsDown(_demoKey))
+                {
+                    _showDemo = !_showDemo;
+                    _waitForRelease = _demoKey;
+                }
+#endif
+            }
+
+            // The unlikely case of Escape/Enter and _menuKey being held at the
+            // same time is not worth handling.
+            if (_waitForRelease != null)
+            {
+                if (Input.IsDown((Key)_waitForRelease))
+                    Input.Block((Key)_waitForRelease);
+                else
+                    _waitForRelease = null;
+            }
+
+            var io = ImGui.GetIO();
+            _lastUpdateHadKeyboard = io.WantCaptureKeyboard || KeyboardNavActive(io);
+            if (_lastUpdateHadKeyboard)
+            {
+                Input.BlockAllKeys();
+                Input.KeyboardCaptured = true;
+            }
+
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnKeyboardUpdate))
+                plugin.OnKeyboardUpdate();
         }
 
         [UnmanagedCallersOnly]
@@ -246,147 +443,46 @@ namespace SharpPluginLoader.Core.Rendering
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            // Set NavNoCaptureKeyboard because it doesn't include ctrl+tab and handle it by
-            // checking io.NavActive when deciding to block keyboard or not.
-            io.ConfigFlags |= ImGuiConfigFlags.NavNoCaptureKeyboard;
             // Currently causes a freeze when dragging a window outside of the main window.
             // Most likely the WndProc doesn't process events anymore which causes windows to think it's frozen.
             // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+            // Set NavNoCaptureKeyboard because it doesn't include ctrl+tab. Instead handle it by
+            // checking io.NavActive when deciding to block the keyboard or not.
+            io.ConfigFlags |= ImGuiConfigFlags.NavNoCaptureKeyboard;
             if (config->KeyboardNavigation)
-            {
                 io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
-            }
+
+            io.BackendFlags |= ImGuiBackendFlags.HasGamepad; // Doesn't work?
+            if (config->GamepadNavigation)
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
 
             io.FontGlobalScale = config->FontScale;
             _baseAlpha = config->WindowTransparency;
 
             SetupImGuiStyle();
 
-            var sMhMouse = SingletonManager.GetSingleton("sMhMouse");
-            if (sMhMouse is not null)
+            _padUpdateHook = Hook.Create<PadUpdateDelegate>(AddressRepository.Get("Pad:WriteState"), (steamController, pad, stackOffset) =>
             {
-                _mouseUpdateHook = Hook.Create<MouseUpdateDelegate>(sMhMouse.GetVirtualFunction(6), m =>
-                {
-                    var anyFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
-                    var anyHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow);
+                _padUpdateHook.Original(steamController, pad, stackOffset);
+                byte padIndex = MemoryUtil.Read<byte>(pad + 0xA);
+                if (padIndex == 0) OnPadUpdate();
+            });
 
-                    if (anyFocused || anyHovered)
-                    {
-                        // Tell the game to not reset the cursor to the middle of the screen
-                        // when Camera Mouse Controls are on.
-                        // MonsterHunterWorld.exe+4898F0 - cmp [rax+000147A8],r15b(0)
-                        MemoryUtil.GetRef<byte>(Gui.SingletonInstance.Instance + 0x147A8) = 0x1;
-                    }
-
-                    _mouseUpdateHook.Original(m);
-
-                    if (anyFocused || anyHovered)
-                    {
-                        MemoryUtil.GetRef<int>(m + 0x17C) = 0; // Scroll wheel.
-                    }
-
-                    if (anyFocused)
-                    {
-                        // Zero mouse delta used for camera movement.
-                        MemoryUtil.GetRef<ulong>(m + 0xFC) = 0L; // dX(int), dY(int).
-                        MemoryUtil.GetRef<byte>(m + 0x108) = 0x0; // Combat.
-                        MemoryUtil.GetRef<byte>(m + 0x188) = 0x0; // Menu.
-                        MemoryUtil.GetRef<byte>(m + 0x194) = 0x0; // Dialogue.
-                        _lastUpdateHadFocus = true;
-                    }
-                    else if (anyHovered || _lastUpdateHadFocus)
-                    {
-                        // Block mouse1 clicks. Use _lastUpdateHadFocus to more consistently block
-                        // a click used to unfocus the ImGui window.
-                        ref byte m1Combat = ref MemoryUtil.GetRef<byte>(m + 0x108);
-                        ref byte m1Menu = ref MemoryUtil.GetRef<byte>(m + 0x188);
-                        ref byte m1Dialogue = ref MemoryUtil.GetRef<byte>(m + 0x194);
-                        if ((m1Combat & 0x1) == 0 && (m1Menu & 0x1) == 0 && (m1Dialogue & 0x1) == 0) // Wait for release.
-                        {
-                            _lastUpdateHadFocus = false;
-                        }
-                        m1Combat &= 0xFE;
-                        m1Menu &= 0xFE;
-                        m1Dialogue &= 0xFE;
-                    }
-                });
-            }
-
-            var sMhKeyboard = SingletonManager.GetSingleton("sMhKeyboard");
-            if (sMhKeyboard is not null)
+            // uGUICommonCursor jump to set cursor: MonsterHunterWorld.exe+507068 - jmp MonsterHunterWorld.exe+22E9040
+            // SetCursorPos(): MonsterHunterWorld.exe+22E91E6 - call qword ptr [MonsterHunterWorld.exe+4C97830]
+            _mouseSetPosMenuNop = new Patch(AddressRepository.Get("Mouse:GuiSetPos"), [0xEB], true);
+            _mouseUpdateHook = Hook.Create<MouseUpdateDelegate>(AddressRepository.Get("Mouse:WriteState"), (m, mState) =>
             {
-                _keyboardUpdateHook = Hook.Create<KeyboardUpdateDelegate>(AddressRepository.Get("Keyboard:WriteInput"), (kb, kbState) =>
-                {
-                    _keyboardUpdateHook.Original(kb, kbState);
+                _mouseUpdateHook.Original(m, mState);
+                OnMouseUpdate();
+            });
 
-                    if (_lastUpdateHadKeyboard)
-                    {
-                        // Block Escape/Enter if they were presumably used to exit an input field.
-                        // If for some reason the menu key is being held here, this will supersede it
-                        // and cause the menu to be re-toggled on the release of Escape or Enter.
-                        if (Input.IsDown(Key.Escape))
-                        {
-                            _waitForRelease = Key.Escape;
-                        }
-                        else if (Input.IsDown(Key.Enter))
-                        {
-                            _waitForRelease = Key.Enter;
-                        }
-                    }
-
-                    if (_waitForRelease == null)
-                    {
-                        // Block the key used to bring up the menu.
-                        if (Input.IsDown(_menuKey))
-                        {
-                            _showMenu = !_showMenu;
-                            if (!_showMenu && _optionsChanged)
-                            {
-                                SaveConfig();
-                                _optionsChanged = false;
-                            }
-                            _waitForRelease = _menuKey;
-                        }
-#if DEBUG
-                        else if (Input.IsDown(_demoKey))
-                        {
-                            _showDemo = !_showDemo;
-                            _waitForRelease = _demoKey;
-                        }
-#endif
-                    }
-
-                    unsafe
-                    {
-                        KeyboardState* state = (KeyboardState*)kbState;
-
-                        if (_waitForRelease != null)
-                        {
-                            byte* vkTable = (byte*)(kb + 0x38);
-                            byte vk = vkTable[(int)_waitForRelease];
-                            uint vkMask = 1u << (vk & 0x1F);
-                            // No longer down = Released.
-                            if ((state->On[vk >> 5] & vkMask) == 0)
-                            {
-                                _waitForRelease = null;
-                            }
-                            else
-                            {
-                                // On the update a key is first "Down", it seems to only be set in
-                                // KeyboardState::On. So negating that should effectively block it.
-                                state->On[vk >> 5] &= ~vkMask;
-                            }
-                        }
-
-                        var io = ImGui.GetIO();
-                        _lastUpdateHadKeyboard = io.WantCaptureKeyboard || io.NavActive;
-                        if (_lastUpdateHadKeyboard)
-                        {
-                            NativeMemory.Clear((byte*)state, (nuint)Marshal.SizeOf<KeyboardState>());
-                        }
-                    }
-                });
-            }
+            _keyboardUpdateHook = Hook.Create<KeyboardUpdateDelegate>(AddressRepository.Get("Keyboard:WriteState"), (kb, kbState) =>
+            {
+                _keyboardUpdateHook.Original(kb, kbState);
+                OnKeyboardUpdate();
+            });
 
             Log.Debug("Renderer.Initialize");
 
@@ -398,6 +494,11 @@ namespace SharpPluginLoader.Core.Rendering
         {
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnRender))
                 plugin.OnRender();
+        }
+
+        public static void RequestMouseCapture()
+        {
+            _mouseCaptureRequested = true;
         }
 
         [UnmanagedCallersOnly]
@@ -413,6 +514,10 @@ namespace SharpPluginLoader.Core.Rendering
                 ImGui.GetStyle().Alpha = anyFocused ? _baseAlpha : Math.Max(_baseAlpha - 0.5f, 0.25f);
 
             ImGui.NewFrame();
+
+            _lastWindow = ImGuiPatches.GetCurrentWindowRead();
+            _mouseCaptureRequested = false;
+
             if (_showMenu)
             {
                 if (ImGui.Begin("SharpPluginLoader", ref _showMenu, ImGuiWindowFlags.MenuBar))
@@ -444,13 +549,19 @@ namespace SharpPluginLoader.Core.Rendering
                             if (ImGui.Checkbox("Keyboard Navigation", ref keyboardNav))
                             {
                                 if (keyboardNav)
-                                {
                                     io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
-                                }
                                 else
-                                {
                                     io.ConfigFlags &= ~ImGuiConfigFlags.NavEnableKeyboard;
-                                }
+                                _optionsChanged = true;
+                            }
+                            ImGui.SameLine();
+                            bool gamepadNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) != 0;
+                            if (ImGui.Checkbox("Gamepad Navigation", ref gamepadNav))
+                            {
+                                if (gamepadNav)
+                                    io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
+                                else
+                                    io.ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
                                 _optionsChanged = true;
                             }
 
@@ -491,8 +602,7 @@ namespace SharpPluginLoader.Core.Rendering
                     {
                         if (plugin.PluginData.ImGuiWrappedInTreeNode)
                         {
-                            if (ImGui.TreeNodeEx(plugin.Name,
-                                    ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
+                            if (ImGui.TreeNodeEx(plugin.Name, ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.SpanAvailWidth))
                             {
                                 plugin.OnImGuiRender();
                                 ImGui.TreePop();
@@ -521,6 +631,11 @@ namespace SharpPluginLoader.Core.Rendering
             ImGui.PopStyleVar();
 
             ImGui.EndFrame();
+
+            bool lostFocus = anyFocused && !ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow);
+            if (lostFocus && _lastWindow != null && _mouseCaptureRequested)
+                ImGuiPatches.FocusWindow(_lastWindow);
+
             ImGui.Render();
 
             return (nint)ImGui.GetDrawData().NativePtr;
@@ -628,31 +743,18 @@ namespace SharpPluginLoader.Core.Rendering
             style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 0.501960813999176f);
         }
 
-        private static nint GetCursorPositionHook(nint app, out Point pos)
-        {
-            var result = _getCursorPositionHook.Original(app, out pos);
-            _mousePos = new Vector2(pos.X, pos.Y);
-            if (ImGui.GetCurrentContext() == 0)
-                return result;
-
-            if (ImGui.GetIO().MouseDrawCursor)
-            {
-                pos.X = 0;
-                pos.Y = 0;
-            }
-
-            return result;
-        }
-
-        private delegate nint GetCursorPositionDelegate(nint app, out Point pos);
-        private delegate void MouseUpdateDelegate(nint sMhMouse);
-        private static Hook<GetCursorPositionDelegate> _getCursorPositionHook = null!;
+        private delegate void PadUpdateDelegate(nint sMhSteamController, nint sPad, nint stackOffset);
+        private static Hook<PadUpdateDelegate> _padUpdateHook = null!;
+        private static Patch _mouseSetPosMenuNop;
+        private delegate void MouseUpdateDelegate(nint sMhMouse, nint mState);
         private static Hook<MouseUpdateDelegate> _mouseUpdateHook = null!;
         private delegate void KeyboardUpdateDelegate(nint sMhKeyboard, nint kbState);
         private static Hook<KeyboardUpdateDelegate> _keyboardUpdateHook = null!;
+        private static bool _mouseCaptureRequested = false;
         private static bool _lastUpdateHadFocus = false;
         private static bool _lastUpdateHadKeyboard = false;
         private static Key? _waitForRelease = null;
+
         private static bool _showMenu = false;
         private static Key _menuKey = DefaultMenuKey;
         private static string _menuKeyStr = DefaultMenuKey.ToString();
@@ -660,12 +762,12 @@ namespace SharpPluginLoader.Core.Rendering
         private static bool _showDemo = false;
         private static Key _demoKey = DefaultDemoKey;
 #endif
+        private static unsafe ImGuiWindow* _lastWindow = null;
         private static float _baseAlpha = 1.0f;
         private static RenderingOptionPointers _renderingOptionPointers;
         private static bool _optionsChanged = false;
         private static Vector2 _viewportSize;
         private static Vector2 _windowSize;
-        private static Vector2 _mousePos;
         private static Vector2 _mousePosScalingFactor;
         private static bool _fontsSubmitted = false;
 
@@ -712,6 +814,7 @@ namespace SharpPluginLoader.Core.Rendering
     {
         public byte* MenuKey;
         public bool KeyboardNavigation;
+        public bool GamepadNavigation;
         public float FontScale;
         public float WindowTransparency;
     }

@@ -1,6 +1,8 @@
 #include "D3DModule.h"
 
 #include <dxgi1_4.h>
+#include <d3dx12.h>
+#include <d3dcompiler.h>
 
 #include "CoreClr.h"
 #include "Config.h"
@@ -55,6 +57,11 @@ void D3DModule::initialize(CoreClr* coreclr) {
         L"SharpPluginLoader.Core.Rendering.Renderer",
         L"ResolveCustomFonts"
     );
+    m_core_create_shader = coreclr->get_method<void(ShaderInfo*)>(
+        config::SPL_CORE_ASSEMBLY_NAME,
+        L"SharpPluginLoader.Core.Rendering.Renderer",
+        L"CreateShader"
+    );
     m_get_singleton = coreclr->get_method<void*(const char*)>(
         config::SPL_CORE_ASSEMBLY_NAME,
         L"SharpPluginLoader.Core.SingletonManager",
@@ -70,6 +77,8 @@ void D3DModule::initialize(CoreClr* coreclr) {
     coreclr->add_internal_call("LoadTexture", (void*)load_texture);
     coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);
     coreclr->add_internal_call("RegisterTexture", (void*)register_texture);
+
+    coreclr->add_internal_call("AllocateShaderReplacement", allocate_shader_replacement);
 
     coreclr->add_internal_call("SaveGuiConfig", preloader::LoaderConfig::save_gui_config);
 }
@@ -123,14 +132,19 @@ void D3DModule::initialize_for_d3d12(const uintptr_t renderer) {
 
     const auto swap_chain_vft = *(void***)m_swap_chain;
     const auto cmd_queue_vft = *(void***)m_d3d12_command_queue;
+    const auto device_vft = *(void***)m_d3d12_device;
 
     const auto present = swap_chain_vft[8];
     const auto resize_buffers = swap_chain_vft[13];
     const auto signal = cmd_queue_vft[14];
+    const auto create_graphics_pipeline_state = device_vft[10];
+    const auto create_compute_pipeline_state = device_vft[11];
 
     m_d3d_present_hook = safetyhook::create_inline(present, d3d12_present_hook);
     m_d3d_resize_buffers_hook = safetyhook::create_inline(resize_buffers, d3d_resize_buffers_hook);
     m_d3d_signal_hook = safetyhook::create_inline(signal, d3d12_signal_hook);
+    m_d3d_create_graphics_pipeline_hook = safetyhook::create_inline(create_graphics_pipeline_state, d3d12_create_graphics_pipeline_state_hook);
+    m_d3d_create_compute_pipeline_hook = safetyhook::create_inline(create_compute_pipeline_state, d3d12_create_compute_pipeline_state_hook);
 }
 
 void D3DModule::initialize_for_d3d11(const uintptr_t renderer) {
@@ -141,12 +155,19 @@ void D3DModule::initialize_for_d3d11(const uintptr_t renderer) {
     }
 
     const auto swap_chain_vft = *(void***)m_swap_chain;
+    const auto device_vft = *(void***)m_d3d11_device;
 
     const auto present = swap_chain_vft[8];
     const auto resize_buffers = swap_chain_vft[13];
+    const auto create_vertex_shader = device_vft[12];
+    const auto create_pixel_shader = device_vft[15];
+    const auto create_compute_shader = device_vft[18];
 
     m_d3d_present_hook = safetyhook::create_inline(present, d3d11_present_hook);
     m_d3d_resize_buffers_hook = safetyhook::create_inline(resize_buffers, d3d_resize_buffers_hook);
+    m_d3d_create_vertex_shader_hook = safetyhook::create_inline(create_vertex_shader, d3d11_create_vertex_shader_hook);
+    m_d3d_create_pixel_shader_hook = safetyhook::create_inline(create_pixel_shader, d3d11_create_pixel_shader_hook);
+    m_d3d_create_compute_shader_hook = safetyhook::create_inline(create_compute_shader, d3d11_create_compute_shader_hook);
 }
 
 void D3DModule::imgui_load_fonts() {
@@ -546,6 +567,65 @@ UINT64 D3DModule::d3d12_signal_hook(ID3D12CommandQueue* command_queue, ID3D12Fen
     return self->m_d3d_signal_hook.call<UINT64>(command_queue, fence, value);
 }
 
+bool D3DModule::maybe_prepare_replacement_shader(ShaderReplacement& re, const char* target, D3D12_SHADER_BYTECODE* out, ID3DBlob** blob) {
+    if (!re.Source) return false;
+    switch (re.Type) {
+    case ShaderSourceType::HLSL: {
+        HRESULT hr = D3DCompile(
+            re.Source,
+            re.Length,
+            nullptr,
+            nullptr,
+            nullptr,
+            "main",
+            target,
+            0,
+            0,
+            blob,
+            nullptr
+        );
+        if (FAILED(hr)) {
+            dlog::error("Failed to compile replacement shader");
+            return false;
+        }
+        *out = CD3DX12_SHADER_BYTECODE(*blob);
+        break;
+    }
+    case ShaderSourceType::Binary:
+        *out = CD3DX12_SHADER_BYTECODE(re.Source, re.Length);
+        break;
+    }
+    return true;
+}
+
+HRESULT D3DModule::d3d12_create_graphics_pipeline_state_hook(ID3D12Device* device, const D3D12_GRAPHICS_PIPELINE_STATE_DESC* desc, REFIID riid, void** pipeline_state) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    ShaderInfo vs_info;
+    ComPtr<ID3DBlob> vs_blob;
+    if (get_shader_info(vs_info, (uint32_t*)desc->VS.pShaderBytecode)) {
+        self->m_core_create_shader(&vs_info);
+        maybe_prepare_replacement_shader(vs_info.Replacement, "vs_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->VS, vs_blob.GetAddressOf());
+    }
+    ShaderInfo ps_info;
+    ComPtr<ID3DBlob> ps_blob;
+    if (get_shader_info(ps_info, (uint32_t*)desc->PS.pShaderBytecode)) {
+        self->m_core_create_shader(&ps_info);
+        maybe_prepare_replacement_shader(ps_info.Replacement, "ps_5_0", &((D3D12_GRAPHICS_PIPELINE_STATE_DESC*)desc)->PS, ps_blob.GetAddressOf());
+    }
+    return self->m_d3d_create_graphics_pipeline_hook.call<HRESULT>(device, desc, riid, pipeline_state);
+}
+
+HRESULT D3DModule::d3d12_create_compute_pipeline_state_hook(ID3D12Device* device, const D3D12_COMPUTE_PIPELINE_STATE_DESC* desc, REFIID riid, void** pipeline_state) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    ShaderInfo cs_info;
+    ComPtr<ID3DBlob> cs_blob;
+    if (get_shader_info(cs_info, (uint32_t*)desc->CS.pShaderBytecode)) {
+        self->m_core_create_shader(&cs_info);
+        maybe_prepare_replacement_shader(cs_info.Replacement, "cs_5_0", &((D3D12_COMPUTE_PIPELINE_STATE_DESC*)desc)->CS, cs_blob.GetAddressOf());
+    }
+    return self->m_d3d_create_compute_pipeline_hook.call<HRESULT>(device, desc, riid, pipeline_state);
+}
+
 HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
     const auto self = NativePluginFramework::get_module<D3DModule>();
     const auto prm = NativePluginFramework::get_module<PrimitiveRenderingModule>();
@@ -600,6 +680,48 @@ void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::s
         igUpdatePlatformWindows();
         igRenderPlatformWindowsDefault(nullptr, nullptr);
     }
+}
+
+HRESULT D3DModule::d3d11_create_vertex_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11VertexShader** vertex_shader) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
+    self->m_core_create_shader(&info);
+    ComPtr<ID3DBlob> blob;
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "vs_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
+    }
+    return self->m_d3d_create_vertex_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, vertex_shader);
+}
+
+HRESULT D3DModule::d3d11_create_pixel_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11PixelShader** pixel_shader) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
+    self->m_core_create_shader(&info);
+    ComPtr<ID3DBlob> blob;
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "ps_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
+    }
+    return self->m_d3d_create_pixel_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, pixel_shader);
+}
+
+HRESULT D3DModule::d3d11_create_compute_shader_hook(ID3D11Device* device, const void* shader_bytecode, SIZE_T bytecode_length, ID3D11ClassLinkage* class_linkage, ID3D11ComputeShader** compute_shader) {
+    const auto self = NativePluginFramework::get_module<D3DModule>();
+    ShaderInfo info;
+    get_shader_info(info, (uint32_t*)shader_bytecode);
+    self->m_core_create_shader(&info);
+    ComPtr<ID3DBlob> blob;
+    CD3DX12_SHADER_BYTECODE sbc;
+    if (maybe_prepare_replacement_shader(info.Replacement, "cs_5_0", &sbc, blob.GetAddressOf())) {
+        shader_bytecode = sbc.pShaderBytecode;
+        bytecode_length = sbc.BytecodeLength;
+    }
+    return self->m_d3d_create_compute_shader_hook.call<HRESULT>(device, shader_bytecode, bytecode_length, class_linkage, compute_shader);
 }
 
 HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buffer_count, UINT w, UINT h, DXGI_FORMAT format, UINT flags) {

@@ -7,6 +7,7 @@ namespace preloader {
     struct LoaderGuiConfig {
         const char* UnmanagedMenuKey = nullptr;
         bool KeyboardNavigation = false;
+        bool GamepadNavigation = false;
         float FontScale = 1.0f;
         float WindowTransparency = 1.0f;
     };

@@ -21,7 +21,7 @@
         {
             if (ControllerKeybinds.TryGetValue(name, out var controllerKeybind))
                 return Input.IsPressed(controllerKeybind.Key) && controllerKeybind.Modifiers.All(Input.IsDown);
-            
+
             if (KeyboardKeybinds.TryGetValue(name, out var keyboardKeybind))
                 return Input.IsPressed(keyboardKeybind.Key) && keyboardKeybind.Modifiers.All(Input.IsDown);
 

@@ -121,6 +121,12 @@ namespace SharpPluginLoader.Core
         internal bool OnLobbySearch;
         #endregion
 
+        #region Input
+        internal bool OnPadUpdate;
+        internal bool OnMouseUpdate;
+        internal bool OnKeyboardUpdate;
+        #endregion
+
         #region Rendering
         /// <inheritdoc cref="IPlugin.OnRender"/>
         internal bool OnRender;
@@ -466,6 +472,17 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         [PluginEvent]
         public void OnLobbySearch(ref int maxResults) => throw new NotImplementedException();
+        #endregion
+
+        #region Input
+        [PluginEvent]
+        public void OnPadUpdate() => throw new NotImplementedException();
+
+        [PluginEvent]
+        public void OnMouseUpdate() => throw new NotImplementedException();
+
+        [PluginEvent]
+        public void OnKeyboardUpdate() => throw new NotImplementedException();
         #endregion
 
         #region Rendering

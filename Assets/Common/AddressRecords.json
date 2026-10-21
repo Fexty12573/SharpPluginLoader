@@ -470,7 +470,22 @@
         "Offset": 13
     },
     {
-        "Name": "Keyboard:WriteInput",
+        "Name": "Pad:WriteState",
+        "Pattern": "48 89 5C 24 08 57 44 8B 9A 60 01 00 00 48 8B DA 41 0F BF 40 08 4D 8B D0",
+        "Offset": 0
+    },
+    {
+        "Name": "Mouse:WriteState",
+        "Pattern": "48 8B 1D ?? ?? ?? ?? 48 8B FA 4C 89 6C 24 78 48 8B F1 4C 89 7C 24 70 48 85 DB",
+        "Offset": -17
+    },
+    {
+        "Name": "Mouse:GuiSetPos",
+        "Pattern": "84 C0 75 23 38 83 08 29 00 00 74 1B 48 8B 0D ?? ?? ?? ??",
+        "Offset": 2
+    },
+    {
+        "Name": "Keyboard:WriteState",
         "Pattern": "41 57 48 81 EC 20 01 00 00 48 8B E9 48 8B FA 48 8B 89 10 0A 00 00",
         "Offset": -10
     },

@@ -526,6 +526,13 @@ namespace SharpPluginLoader.Core.Rendering
             return (nint)ImGui.GetDrawData().NativePtr;
         }
 
+        [UnmanagedCallersOnly]
+        internal static unsafe void CreateShader(ShaderInfo* info)
+        {
+            foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnCreateShader))
+                plugin.OnCreateShader(info);
+        }
+
         internal static void Shutdown()
         {
             ImGui.DestroyContext();
@@ -714,5 +721,38 @@ namespace SharpPluginLoader.Core.Rendering
         public bool KeyboardNavigation;
         public float FontScale;
         public float WindowTransparency;
+    }
+
+    public enum ShaderSourceType : int
+    {
+        HLSL = 0,
+        Binary = 1
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ShaderReplacement
+    {
+        public ShaderSourceType Type;
+        public int Length;
+        public byte* Source;
+        public unsafe void Set(byte[] source, ShaderSourceType type)
+        {
+            Type = type;
+            Length = source.Length;
+            fixed (ShaderReplacement* thisPtr = &this)
+            {
+                fixed (byte* sourcePtr = source)
+                {
+                    InternalCalls.AllocateShaderReplacement(thisPtr, sourcePtr, source.Length);
+                }
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ShaderInfo
+    {
+        public fixed sbyte DxbcHash[36];
+        public ShaderReplacement Replacement;
     }
 }

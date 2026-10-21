@@ -8,3 +8,5 @@
   href: CustomActions.md
 - name: Custom Start Menu Entry
   href: StartMenuOption.md
+- name: Shader Replacement
+  href: ShaderReplacement.md

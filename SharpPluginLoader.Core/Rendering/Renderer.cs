@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -413,6 +413,7 @@ namespace SharpPluginLoader.Core.Rendering
                 ImGui.GetStyle().Alpha = anyFocused ? _baseAlpha : Math.Max(_baseAlpha - 0.5f, 0.25f);
 
             ImGui.NewFrame();
+            bool wasMenuShown = _showMenu;
             if (_showMenu)
             {
                 if (ImGui.Begin("SharpPluginLoader", ref _showMenu, ImGuiWindowFlags.MenuBar))
@@ -506,6 +507,13 @@ namespace SharpPluginLoader.Core.Rendering
                 }
 
                 ImGui.End();
+            }
+
+            // 菜单通过 X 关闭时不会经过 _waitForRelease，导致下一帧仍吃掉游戏聊天键。
+            if (wasMenuShown && !_showMenu)
+            {
+                _lastUpdateHadKeyboard = false;
+                _waitForRelease = Key.Escape;
             }
 
             foreach (var plugin in PluginManager.Instance.GetPlugins(p => p.OnImGuiFreeRender))

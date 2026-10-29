@@ -9,20 +9,20 @@
 #include "CoreClr.h"
 
 void ImGuiModule::initialize(CoreClr* coreclr) {
-    coreclr->add_internal_call("BeginTimeline", &ImGuiModule::begin_timeline);
-    coreclr->add_internal_call("EndTimeline", &ImGuiModule::end_timeline);
-    coreclr->add_internal_call("BeginTimelineGroup", &ImGuiModule::begin_timeline_group);
-    coreclr->add_internal_call("EndTimelineGroup", &ImGuiModule::end_timeline_group);
-    coreclr->add_internal_call("TimelineTrack", &ImGuiModule::timeline_track);
+    coreclr->add_internal_call("BeginTimeline", ImGuiModule::begin_timeline);
+    coreclr->add_internal_call("EndTimeline", ImGuiModule::end_timeline);
+    coreclr->add_internal_call("BeginTimelineGroup", ImGuiModule::begin_timeline_group);
+    coreclr->add_internal_call("EndTimelineGroup", ImGuiModule::end_timeline_group);
+    coreclr->add_internal_call("TimelineTrack", ImGuiModule::timeline_track);
 
-    coreclr->add_internal_call("Bitfield", &ImGui::Bitfield);
+    coreclr->add_internal_call("Bitfield", ImGui::Bitfield);
 
-    coreclr->add_internal_call("NotificationSuccess", &ImGuiModule::notification_success);
-    coreclr->add_internal_call("NotificationError", &ImGuiModule::notification_error);
-    coreclr->add_internal_call("NotificationWarning", &ImGuiModule::notification_warning);
-    coreclr->add_internal_call("NotificationInfo", &ImGuiModule::notification_info);
-    coreclr->add_internal_call("Notification", &ImGuiModule::notification);
-    coreclr->add_internal_call("RenderNotifications", &ImGui::RenderNotifications);
+    coreclr->add_internal_call("NotificationSuccess", ImGuiModule::notification_success);
+    coreclr->add_internal_call("NotificationError", ImGuiModule::notification_error);
+    coreclr->add_internal_call("NotificationWarning", ImGuiModule::notification_warning);
+    coreclr->add_internal_call("NotificationInfo", ImGuiModule::notification_info);
+    coreclr->add_internal_call("Notification", ImGuiModule::notification);
+    coreclr->add_internal_call("RenderNotifications", ImGui::RenderNotifications);
 }
 
 void ImGuiModule::shutdown() {

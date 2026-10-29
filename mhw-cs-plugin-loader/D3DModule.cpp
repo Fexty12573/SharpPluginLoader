@@ -74,9 +74,9 @@ void D3DModule::initialize(CoreClr* coreclr) {
         self->common_initialize(ctx.rax);
     });
 
-    coreclr->add_internal_call("LoadTexture", (void*)load_texture);
-    coreclr->add_internal_call("UnloadTexture", (void*)unload_texture);
-    coreclr->add_internal_call("RegisterTexture", (void*)register_texture);
+    coreclr->add_internal_call("LoadTexture", load_texture);
+    coreclr->add_internal_call("UnloadTexture", unload_texture);
+    coreclr->add_internal_call("RegisterTexture", register_texture);
 
     coreclr->add_internal_call("AllocateShaderReplacement", allocate_shader_replacement);
 

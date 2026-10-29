@@ -23,10 +23,10 @@ public unsafe class MtFileStream : MtStream, IDisposable
             return null;
 
         var stream = dti.CreateInstance<MtFileStream>();
-        stream._ownsPointer = true;
-        stream._file = file;
         if (stream.Instance == 0)
             return null;
+        stream._ownsPointer = true;
+        stream._file = file;
 
         var ctor = new NativeFunction<nint, nint, nint>(AddressRepository.Get("MtFileStream:Ctor"));
         ctor.Invoke(stream.Instance, file.Instance);
@@ -66,7 +66,6 @@ public unsafe class MtFileStream : MtStream, IDisposable
     {
         if (_ownsPointer)
         {
-            _file?.Dispose();
             Destroy(true);
         }
     }

@@ -17,7 +17,7 @@
         /// This method isn't actually a cast, but rather a construction of a new object of the specified type.
         /// This is because the actual type of the object is unknown at runtime. That means that the new object will
         /// have the same instance as this object.
-        /// 
+        ///
         /// It is also important to note that this method does not perform any type checking. It is recommended to first
         /// check the type of the object using the <see cref="Is"/> method before casting, unless you are certain that the
         /// object is of the correct type.

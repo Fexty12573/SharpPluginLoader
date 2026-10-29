@@ -1,5 +1,4 @@
-﻿
-namespace SharpPluginLoader.Core.IO;
+﻿namespace SharpPluginLoader.Core.IO;
 
 /// <summary>
 /// Represents any kind of stream.

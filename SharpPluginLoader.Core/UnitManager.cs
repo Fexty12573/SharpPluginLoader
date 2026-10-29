@@ -40,7 +40,7 @@ public static class UnitManager
     /// <returns>The new unit.</returns>
     /// <remarks>
     /// This function does not register the unit in a line. You must do that manually.
-    /// 
+    ///
     /// </remarks>
     public static T? NewUnit<T>(MtDti dti) where T : Unit
     {

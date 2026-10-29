@@ -1,5 +1,4 @@
-﻿
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 using SharpPluginLoader.Core.Memory;
 
@@ -30,7 +29,7 @@ public class MtCipherStream : MtStream, IDisposable
         cstream._ownsPointer = true;
         if (cstream.Instance == 0)
             return null;
-        
+
         byte[] keyBytes = [..Encoding.UTF8.GetBytes(key), 0];
         cstream._keyPointer = MemoryUtil.Alloc(keyBytes.LongLength);
         MemoryUtil.WriteBytes(cstream._keyPointer, keyBytes);

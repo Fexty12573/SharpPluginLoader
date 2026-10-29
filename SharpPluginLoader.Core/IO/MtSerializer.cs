@@ -5,7 +5,7 @@ namespace SharpPluginLoader.Core.IO;
 
 /// <summary>
 /// Provides an interface for serializing and deserializing objects to and from binary and XML formats.
-/// 
+///
 /// The binary serialization format is CAPCOM's proprietary XFS format, commonly used by .fsm files.
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 0x378)]

@@ -1,5 +1,4 @@
-﻿
-using SharpPluginLoader.Core.Memory;
+﻿using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.IO;
 

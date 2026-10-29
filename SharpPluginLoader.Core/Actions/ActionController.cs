@@ -54,7 +54,7 @@ namespace SharpPluginLoader.Core.Actions
         /// <remarks>For monsters use the <see cref="Monster.ForceAction"/> method instead.</remarks>
         public unsafe void DoAction(int actionSet, int actionId)
         {
-            var actionInfo = stackalloc float[2] { actionSet, actionId };
+            var actionInfo = stackalloc int[2] { actionSet, actionId };
             DoActionFunc.Invoke(Instance, (nint)actionInfo);
         }
 

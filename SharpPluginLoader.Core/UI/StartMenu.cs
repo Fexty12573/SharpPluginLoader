@@ -1,4 +1,4 @@
-﻿
+
 using System.Runtime.InteropServices;
 using System.Text;
 using SharpPluginLoader.Core.Memory;
@@ -105,7 +105,8 @@ public static unsafe class StartMenu
 
         foreach (var lang in Enum.GetValues<Language>())
         {
-            LanguageIdentifiers[lang] = Marshal.PtrToStringUTF8(getLanguageStr.Invoke(lang))!;
+            LanguageIdentifiers[lang] =
+                Marshal.PtrToStringUTF8(getLanguageStr.Invoke(lang)) ?? "English";
         }
     }
 
@@ -115,7 +116,8 @@ public static unsafe class StartMenu
             return;
 
         var language = Gui.CurrentLanguage;
-        var langStr = LanguageIdentifiers[language];
+        if (!LanguageIdentifiers.TryGetValue(language, out var langStr) || string.IsNullOrEmpty(langStr))
+            langStr = LanguageIdentifiers[Language.English];
 
         var dti = MtDti.Find("rGUIMessage");
         Ensure.NotNull(dti);

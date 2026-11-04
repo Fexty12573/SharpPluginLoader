@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SharpPluginLoader.Core.IO
+﻿namespace SharpPluginLoader.Core.IO
 {
     /// <summary>
     /// The buttons on a controller using Playstation names.
@@ -36,5 +30,14 @@ namespace SharpPluginLoader.Core.IO
         RsRight = 1 << 21,
         RsDown = 1 << 22,
         RsLeft = 1 << 23
+    }
+
+    public enum Mouse : uint
+    {
+        Left = 1,
+        Right = 1 << 1,
+        Middle = 1 << 2,
+        Mouse4 = 1 << 3,
+        Mouse5 = 1 << 4
     }
 }

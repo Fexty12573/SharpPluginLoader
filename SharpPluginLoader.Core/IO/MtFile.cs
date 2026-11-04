@@ -1,5 +1,4 @@
-﻿
-using SharpPluginLoader.Core.Memory;
+﻿using SharpPluginLoader.Core.Memory;
 
 namespace SharpPluginLoader.Core.IO;
 
@@ -24,10 +23,10 @@ public unsafe class MtFile : MtObject, IDisposable
         if (dti is null)
             return null;
 
-        var file = new MtFile(MemoryUtil.Alloc(dti.Size))
-        {
-            _ownsPointer = true
-        };
+        var file = dti.CreateInstance<MtFile>();
+        if (file.Instance == 0)
+            return null;
+        file._ownsPointer = true;
 
         var ctor = new NativeFunction<nint, string, OpenMode, uint, nint>(AddressRepository.Get("MtFile:Ctor"));
         ctor.Invoke(file.Instance, path, mode, createPath ? 2u : 0u);
@@ -176,8 +175,7 @@ public unsafe class MtFile : MtObject, IDisposable
     {
         if (_ownsPointer)
         {
-            Destroy(false);
-            MemoryUtil.Free(Instance);
+            Destroy(true);
         }
     }
 

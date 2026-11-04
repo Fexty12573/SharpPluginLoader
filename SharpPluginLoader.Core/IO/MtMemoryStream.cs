@@ -21,9 +21,11 @@ public class MtMemoryStream : MtStream, IDisposable
             return null;
 
         var stream = dti.CreateInstance<MtMemoryStream>();
+        if (stream.Instance == 0)
+            return null;
         stream._ownsPointer = true;
 
-        return stream.Instance == 0 ? null : stream;
+        return stream;
     }
 
     /// <summary>
@@ -42,6 +44,8 @@ public class MtMemoryStream : MtStream, IDisposable
             return null;
 
         var stream = dti.CreateInstance<MtMemoryStream>();
+        if (stream.Instance == 0)
+            return null;
         stream._ownsPointer = true;
         stream._buffer = buffer;
 
@@ -49,7 +53,7 @@ public class MtMemoryStream : MtStream, IDisposable
         fixed (byte* ptr = buffer)
             ctor.Invoke(stream.Instance, (nint)ptr, buffer.LongLength, MemoryStreamMode.Read | MemoryStreamMode.Write);
 
-        return stream.Instance == 0 ? null : stream;
+        return stream;
     }
 
     /// <summary>
@@ -75,7 +79,6 @@ public class MtMemoryStream : MtStream, IDisposable
     {
         if (_ownsPointer)
         {
-            _buffer = null;
             Destroy(true);
         }
     }

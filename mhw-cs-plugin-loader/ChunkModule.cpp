@@ -5,13 +5,13 @@
 ChunkModule::ChunkModule() : m_default_chunk(std::make_shared<Chunk>(config::SPL_DEFAULT_CHUNK_PATH)) { }
 
 void ChunkModule::initialize(CoreClr* coreclr) {
-    coreclr->add_internal_call("LoadChunk", &ChunkModule::load_chunk_raw);
-    coreclr->add_internal_call("GetDefaultChunk", &ChunkModule::get_default_chunk);
-    coreclr->add_internal_call("RequestChunk", &ChunkModule::request_chunk_raw);
-    coreclr->add_internal_call("ChunkGetFile", &ChunkModule::chunk_get_file);
-    coreclr->add_internal_call("ChunkGetFolder", &ChunkModule::chunk_get_folder);
-    coreclr->add_internal_call("FileGetContents", &ChunkModule::file_get_contents);
-    coreclr->add_internal_call("FileGetSize", &ChunkModule::file_get_size);
+    coreclr->add_internal_call("LoadChunk", ChunkModule::load_chunk_raw);
+    coreclr->add_internal_call("GetDefaultChunk", ChunkModule::get_default_chunk);
+    coreclr->add_internal_call("RequestChunk", ChunkModule::request_chunk_raw);
+    coreclr->add_internal_call("ChunkGetFile", ChunkModule::chunk_get_file);
+    coreclr->add_internal_call("ChunkGetFolder", ChunkModule::chunk_get_folder);
+    coreclr->add_internal_call("FileGetContents", ChunkModule::file_get_contents);
+    coreclr->add_internal_call("FileGetSize", ChunkModule::file_get_size);
 }
 
 void ChunkModule::shutdown() { }

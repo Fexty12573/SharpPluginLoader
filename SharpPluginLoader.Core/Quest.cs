@@ -51,7 +51,7 @@ namespace SharpPluginLoader.Core
         /// <summary>
         /// Gets the quests ending timer.
         /// </summary>
-        public static ref Timer QuestEndTimer => ref MemoryUtil.GetRef<Timer>(SingletonInstance.Instance + 0x13198);
+        public static ref Timer QuestEndTimer => ref SingletonInstance.GetRef<Timer>(0x13198);
 
         /// <summary>
         /// Gets the name of the quest with the specified ID.

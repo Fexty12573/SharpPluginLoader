@@ -1,5 +1,4 @@
-﻿
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Rendering;
 
@@ -24,6 +23,11 @@ public class Texture : Resource
     public uint Height => Get<uint>(0xBC);
 
     /// <summary>
+    /// The depth of the texture.
+    /// </summary>
+    public uint Depth => Get<uint>(0xC0);
+
+    /// <summary>
     /// Obtains a handle to the texture, which can be passed to ImGui. This method actually uploads the texture to the GPU and creates the resource object.
     /// </summary>
     /// <returns>A handle to the texture, or <see cref="TextureHandle.Invalid"/> if the texture couldn't be created.</returns>
@@ -32,8 +36,8 @@ public class Texture : Resource
     /// </remarks>
     public TextureHandle GetTextureHandle()
     {
-        return Renderer.IsDirectX12 
-            ? GetTextureHandle12() 
+        return Renderer.IsDirectX12
+            ? GetTextureHandle12()
             : GetTextureHandle11();
     }
 
@@ -43,10 +47,7 @@ public class Texture : Resource
         if (shaderRes is null)
             return TextureHandle.Invalid;
 
-        if (shaderRes.Srv != TextureHandle.Invalid)
-            return shaderRes.Srv;
-
-        return InternalCalls.RegisterTexture(shaderRes.Buffer.Resource11);
+        return InternalCalls.RegisterTexture(shaderRes.Buffer.Resource11, shaderRes.Srv);
     }
 
     private TextureHandle GetTextureHandle12()
@@ -55,7 +56,7 @@ public class Texture : Resource
         if (shaderRes is null)
             return TextureHandle.Invalid;
 
-        return InternalCalls.RegisterTexture(shaderRes.Buffer.Resource12);
+        return InternalCalls.RegisterTexture(shaderRes.Buffer.Resource12, TextureHandle.Invalid);
     }
 
     private ShaderResource<DrawTexture>? GetShaderResource() => GetObject<ShaderResource<DrawTexture>>(0xA8);

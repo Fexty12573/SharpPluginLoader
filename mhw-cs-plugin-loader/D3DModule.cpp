@@ -449,7 +449,7 @@ void D3DModule::unload_texture(TextureHandle handle) {
     self->m_texture_manager->unload_texture(handle);
 }
 
-TextureHandle D3DModule::register_texture(void* texture) {
+TextureHandle D3DModule::register_texture(void* texture, void* srv) {
     const auto& self = NativePluginFramework::get_module<D3DModule>();
     if (!self->m_texture_manager) {
         dlog::error("Cannot register texture during Buffer Resize event");
@@ -461,7 +461,7 @@ TextureHandle D3DModule::register_texture(void* texture) {
         return nullptr;
     }
 
-    return self->m_texture_manager->register_texture(texture);
+    return self->m_texture_manager->register_texture(texture, srv);
 }
 
 bool D3DModule::is_d3d12() {
@@ -548,7 +548,7 @@ void D3DModule::d3d12_present_hook_core(IDXGISwapChain* swap_chain, const std::s
     m_d3d12_command_list->ResourceBarrier(1, &barrier);
     m_d3d12_command_list->Close();
 
-    m_d3d12_command_queue->ExecuteCommandLists(1, (ID3D12CommandList* const*)m_d3d12_command_list.GetAddressOf());
+    m_d3d12_command_queue->ExecuteCommandLists(1, CommandListCast(m_d3d12_command_list.GetAddressOf()));
 
     if (igGetIO()->ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         igUpdatePlatformWindows();

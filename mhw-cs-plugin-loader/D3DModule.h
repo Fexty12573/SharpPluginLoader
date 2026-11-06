@@ -36,7 +36,7 @@ private:
     void d3d12_deinitialize_imgui();
     void d3d11_deinitialize_imgui();
 
-    static TextureHandle register_texture(void* texture);
+    static TextureHandle register_texture(void* texture, void* srv);
     static TextureHandle load_texture(const char* path, u32* out_width, u32* out_height);
     static void unload_texture(TextureHandle handle);
 
@@ -178,4 +178,3 @@ private:
     };
     static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 };
-

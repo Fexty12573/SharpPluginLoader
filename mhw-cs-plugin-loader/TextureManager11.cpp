@@ -57,39 +57,45 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
     return nullptr;
 }
 
-void TextureManager::get_texture_dimensions(const ComPtr<ID3D11Resource>& texture, u32* width, u32* height) {
-    D3D11_RESOURCE_DIMENSION dim;
-    texture->GetType(&dim);
+TextureManager::ComPtr<ID3D11Resource> TextureManager::copy_texture11(const ComPtr<ID3D11Resource>& src, const D3D11_TEXTURE2D_DESC& desc) const {
+    ComPtr<ID3D11Texture2D> texture;
+    HandleResult(m_device11->CreateTexture2D(
+        &desc,
+        nullptr,
+        texture.GetAddressOf()
+    ));
 
-    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
-        ComPtr<ID3D11Texture2D> tex2d;
-        HandleResult(texture.As(&tex2d));
+    m_context11->CopyResource(texture.Get(), src.Get());
 
-        D3D11_TEXTURE2D_DESC desc;
-        tex2d->GetDesc(&desc);
-
-        *width = desc.Width;
-        *height = desc.Height;
-    }
-    else {
-        dlog::error("Failed to get texture dimensions: unsupported resource type");
-    }
+    return texture;
 }
 
-DXGI_FORMAT TextureManager::get_texture_format(const ComPtr<ID3D11Resource>& texture) {
-    D3D11_RESOURCE_DIMENSION dim;
-    texture->GetType(&dim);
+D3D11_RESOURCE_DIMENSION TextureManager::get_resource_dimension(const ComPtr<ID3D11Resource>& texture) {
+    D3D11_RESOURCE_DIMENSION dimension;
+    texture->GetType(&dimension);
+    return dimension;
+}
 
-    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
-        ComPtr<ID3D11Texture2D> tex2d;
-        HandleResult(texture.As(&tex2d));
+D3D11_TEXTURE2D_DESC TextureManager::get_desc_2d(const ComPtr<ID3D11Resource>& texture) {
+    ComPtr<ID3D11Texture2D> texture2d;
+    HandleResult(texture.As(&texture2d));
 
-        D3D11_TEXTURE2D_DESC desc;
-        tex2d->GetDesc(&desc);
+    D3D11_TEXTURE2D_DESC desc;
+    texture2d->GetDesc(&desc);
 
-        return desc.Format;
+    return desc;
+}
+
+void TextureManager::get_texture_dimensions(const ComPtr<ID3D11Resource>& texture, u32* width, u32* height) {
+    switch (get_resource_dimension(texture)) {
+    case D3D11_RESOURCE_DIMENSION_TEXTURE2D: {
+        D3D11_TEXTURE2D_DESC desc = get_desc_2d(texture);
+        *width = desc.Width;
+        *height = desc.Height;
+        break;
     }
-
-    dlog::error("Failed to get texture format: unsupported resource type");
-    return DXGI_FORMAT_UNKNOWN;
+    default:
+        dlog::error("Failed to get texture dimensions: unsupported resource type");
+        break;
+    }
 }

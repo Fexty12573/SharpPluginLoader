@@ -39,7 +39,7 @@ namespace SharpPluginLoader.Core
 
         public static delegate* unmanaged<string, out uint, out uint, nint> LoadTexturePtr;
         public static delegate* unmanaged<nint, void> UnloadTexturePtr;
-        public static delegate* unmanaged<nint, nint> RegisterTexturePtr;
+        public static delegate* unmanaged<nint, nint, nint> RegisterTexturePtr;
 
         public static delegate* unmanaged<ShaderReplacement*, byte*, int, void> AllocateShaderReplacementPtr;
 
@@ -124,7 +124,7 @@ namespace SharpPluginLoader.Core
 
         public static void UnloadTexture(nint texture) => UnloadTexturePtr(texture);
 
-        public static nint RegisterTexture(nint texture) => RegisterTexturePtr(texture);
+        public static nint RegisterTexture(nint texture, nint srv) => RegisterTexturePtr(texture, srv);
 
         public static void AllocateShaderReplacement(ShaderReplacement* re, byte* source, int length) => AllocateShaderReplacementPtr(re, source, length);
 

@@ -6,7 +6,6 @@
 #include <directxtk/DDSTextureLoader.h>
 #include <directxtk/WICTextureLoader.h>
 
-
 TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(std::string_view path, u32* width, u32* height) const {
     namespace fs = std::filesystem;
 
@@ -20,9 +19,13 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
     if (ext == ".dds") {
         ComPtr<ID3D11Resource> texture;
         ComPtr<ID3D11ShaderResourceView> srv;
-        HandleResult(DirectX::CreateDDSTextureFromFile(
+
+        HandleResult(DirectX::CreateDDSTextureFromFileEx(
             m_device11,
             file.c_str(),
+            0,
+            D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+            DirectX::DDS_LOADER_IGNORE_SRGB,
             texture.GetAddressOf(),
             srv.GetAddressOf()
         ));
@@ -38,10 +41,13 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
         ComPtr<ID3D11Resource> texture;
         ComPtr<ID3D11ShaderResourceView> srv;
 
-        HandleResult(DirectX::CreateWICTextureFromFile(
+        HandleResult(DirectX::CreateWICTextureFromFileEx(
             m_device11,
             m_context11,
             file.c_str(),
+            0,
+            D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+            DirectX::WIC_LOADER_IGNORE_SRGB,
             texture.GetAddressOf(),
             srv.GetAddressOf()
         ));

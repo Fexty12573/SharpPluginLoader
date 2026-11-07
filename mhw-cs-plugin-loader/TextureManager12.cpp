@@ -23,10 +23,13 @@ TextureManager::ComPtr<ID3D12Resource> TextureManager::load_texture12(std::strin
         DirectX::ResourceUploadBatch resource_upload(m_device12);
         resource_upload.Begin();
 
-        HandleResult(DirectX::CreateDDSTextureFromFile(
+        HandleResult(DirectX::CreateDDSTextureFromFileEx(
             m_device12,
             resource_upload,
             file.c_str(),
+            0,
+            D3D12_RESOURCE_FLAG_NONE,
+            DirectX::DDS_LOADER_IGNORE_SRGB,
             texture.GetAddressOf()
         ));
 
@@ -44,10 +47,13 @@ TextureManager::ComPtr<ID3D12Resource> TextureManager::load_texture12(std::strin
         DirectX::ResourceUploadBatch resource_upload(m_device12);
         resource_upload.Begin();
 
-        HandleResult(DirectX::CreateWICTextureFromFile(
+        HandleResult(DirectX::CreateWICTextureFromFileEx(
             m_device12,
             resource_upload,
             file.c_str(),
+            0,
+            D3D12_RESOURCE_FLAG_NONE,
+            DirectX::WIC_LOADER_IGNORE_SRGB,
             texture.GetAddressOf()
         ));
 

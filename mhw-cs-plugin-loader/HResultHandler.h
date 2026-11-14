@@ -1,20 +1,18 @@
 #pragma once
 #include "Log.h"
 
-#include <intsafe.h>
-
 class HResultHandler {
 public:
     static inline void Handle(HRESULT hr, const char* file, int line) {
         if (FAILED(hr)) {
-            dlog::error("HRESULT failed: 0x{:X} at {}:{}", hr, file, line);
+            dlog::error("HRESULT failed: 0x{:X} at {}:{}", (unsigned long)hr, file, line);
             std::terminate();
         }
     }
 
     static inline void Handle(HRESULT hr, const char* file, int line, const char* msg) {
         if (FAILED(hr)) {
-            dlog::error("HRESULT failed: 0x{:X} at {}:{}", hr, file, line, msg);
+            dlog::error("HRESULT failed: 0x{:X} at {}:{}", (unsigned long)hr, file, line, msg);
             dlog::error("Message: {}", msg);
             std::terminate();
         }

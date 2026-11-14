@@ -1,5 +1,4 @@
-﻿
-namespace SharpPluginLoader.Core.Rendering;
+﻿namespace SharpPluginLoader.Core.Rendering;
 
 /// <summary>
 /// Represents a texture handle that can be passed to ImGui.

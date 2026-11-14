@@ -25,7 +25,7 @@
 
 void D3DModule::initialize(CoreClr* coreclr) {
     if (!preloader::LoaderConfig::get().get_imgui_rendering_enabled()) {
-        dlog::debug("Skipping D3D module initialization because imgui rendering is disabled");
+        dlog::debug("Skipping D3D module initialization because ImGui rendering is disabled");
         return;
     }
 
@@ -95,14 +95,15 @@ void D3DModule::common_initialize(const uintptr_t render_singleton) {
     const uintptr_t callIsD3D12 = PatternScanner::find_first(
         Pattern::from_string("05 7D 14 00 4C 8B 8D D8 08 00 00 84 C0 0F B6 85 F0 08 00 00")
     );
-    const auto offset = *(int*)callIsD3D12;
+    // Resolve absolute address of relative call to isD3D12().
+    const auto offset = *(i32*)callIsD3D12;
     const auto isD3D12 = (bool(*)())(callIsD3D12 + 4 + offset);
-    m_is_d3d12 = isD3D12();
     dlog::debug("Found cD3DRender::isD3D12 at {:p}", (void*)isD3D12);
 
+    m_is_d3d12 = isD3D12();
     dlog::debug("Initializing D3D module for {}", m_is_d3d12 ? "D3D12" : "D3D11");
 
-    std::string game_revision = std::string(NativePluginFramework::get_game_revision());
+    const auto game_revision = std::string(NativePluginFramework::get_game_revision());
     if (game_revision != std::string(AddressRepository::UNKNOWN_REVISION)) {
         const auto game_window_name = std::format("MONSTER HUNTER: WORLD({})", game_revision);
         dlog::debug("Looking for game window: {}", game_window_name);
@@ -269,68 +270,50 @@ static ImGui_ImplDXGI_ColorSpace infer_imgui_color_space(DXGI_FORMAT back_buffer
 void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
     DXGI_SWAP_CHAIN_DESC desc;
     if (!common_initialize_imgui(swap_chain, &desc, true)) {
-        return;
+        std::terminate();
     }
 
     m_d3d12_buffer_count = desc.BufferCount;
     m_d3d12_frame_contexts.resize(desc.BufferCount, FrameContext{});
 
-    constexpr D3D12_DESCRIPTOR_HEAP_DESC dp_imgui_desc = {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-        .NumDescriptors = D3D12_DESCRIPTOR_HEAP_SIZE,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-        .NodeMask = 0
-    };
-
-    if (FAILED(m_d3d12_device->CreateDescriptorHeap(&dp_imgui_desc, IID_PPV_ARGS(m_d3d12_srv_heap.GetAddressOf())))) {
-        dlog::error("Failed to create D3D12 descriptor heap for back buffers");
-        return;
-    }
-
     ComPtr<ID3D12CommandAllocator> command_allocator;
-    if (FAILED(m_d3d12_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(command_allocator.GetAddressOf())))) {
-        dlog::error("Failed to create D3D12 command allocator");
-        return;
-    }
+    HandleResult(m_d3d12_device->CreateCommandAllocator(
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        IID_PPV_ARGS(command_allocator.GetAddressOf())
+    ));
 
     for (auto i = 0u; i < desc.BufferCount; ++i) {
         m_d3d12_frame_contexts[i].CommandAllocator = command_allocator;
     }
 
-    if (FAILED(m_d3d12_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-        command_allocator.Get(), nullptr, IID_PPV_ARGS(m_d3d12_command_list.GetAddressOf())))) {
-        dlog::error("Failed to create D3D12 command list");
-        return;
-    }
+    HandleResult(m_d3d12_device->CreateCommandList(
+        0,
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        command_allocator.Get(),
+        nullptr,
+        IID_PPV_ARGS(m_d3d12_command_list.GetAddressOf())
+    ));
 
-    if (FAILED(m_d3d12_command_list->Close())) {
-        dlog::error("Failed to close D3D12 command list");
-        return;
-    }
-
-    const D3D12_DESCRIPTOR_HEAP_DESC back_buffer_desc = {
+    const D3D12_DESCRIPTOR_HEAP_DESC back_buffer_heap_desc = {
         .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
         .NumDescriptors = desc.BufferCount,
         .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         .NodeMask = 1
     };
 
-    if (FAILED(m_d3d12_device->CreateDescriptorHeap(&back_buffer_desc, IID_PPV_ARGS(m_d3d12_back_buffers.GetAddressOf())))) {
-        dlog::error("Failed to create D3D12 descriptor heap for back buffers");
-        return;
-    }
+    HandleResult(m_d3d12_device->CreateDescriptorHeap(
+        &back_buffer_heap_desc,
+        IID_PPV_ARGS(m_d3d12_back_buffer_heap.GetAddressOf())
+    ));
 
-    const auto rtv_descriptor_size = m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_back_buffers->GetCPUDescriptorHandleForHeapStart();
+    const UINT rtv_descriptor_size = m_d3d12_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = m_d3d12_back_buffer_heap->GetCPUDescriptorHandleForHeapStart();
 
     DXGI_FORMAT back_buffer_format = DXGI_FORMAT_UNKNOWN;
 
     for (auto i = 0u; i < desc.BufferCount; ++i) {
         ComPtr<ID3D12Resource> back_buffer;
-        if (FAILED(swap_chain->GetBuffer(i, IID_PPV_ARGS(back_buffer.GetAddressOf())))) {
-            dlog::error("Failed to get DXGI swap chain buffer");
-            return;
-        }
+        HandleResult(swap_chain->GetBuffer(i, IID_PPV_ARGS(back_buffer.GetAddressOf())));
 
         const auto buffer_desc = back_buffer->GetDesc();
         if (i == 0) {
@@ -352,20 +335,36 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
         rtv_handle.ptr += rtv_descriptor_size;
     }
 
-    const auto imgui_color_space = infer_imgui_color_space(back_buffer_format);
+    if (!m_d3d12_srv_heap) {
+        const D3D12_DESCRIPTOR_HEAP_DESC imgui_srv_heap_desc = {
+            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            .NumDescriptors = D3D12_DESCRIPTOR_HEAP_SIZE,
+            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+            .NodeMask = 0
+        };
 
-    if (!ImGui_ImplDX12_Init(m_d3d12_device, desc.BufferCount,
-        back_buffer_format, m_d3d12_srv_heap.Get(),
+        HandleResult(m_d3d12_device->CreateDescriptorHeap(
+            &imgui_srv_heap_desc,
+            IID_PPV_ARGS(m_d3d12_srv_heap.GetAddressOf())
+        ));
+    }
+
+    if (!ImGui_ImplDX12_Init(
+        m_d3d12_device,
+        desc.BufferCount,
+        back_buffer_format,
+        m_d3d12_srv_heap.Get(),
         m_d3d12_srv_heap->GetCPUDescriptorHandleForHeapStart(),
         m_d3d12_srv_heap->GetGPUDescriptorHandleForHeapStart(),
-        imgui_color_space)) {
+        infer_imgui_color_space(back_buffer_format)
+    )) {
         dlog::error("Failed to initialize ImGui D3D12");
-        return;
+        std::terminate();
     }
 
     if (!ImGui_ImplDX12_CreateDeviceObjects()) {
         dlog::error("Failed to create ImGui D3D12 device objects");
-        return;
+        std::terminate();
     }
 
     m_is_initialized = true;
@@ -374,11 +373,11 @@ void D3DModule::d3d12_initialize_imgui(IDXGISwapChain* swap_chain) {
 }
 
 void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
-    m_d3d11_device->GetImmediateContext(&m_d3d11_device_context);
+    m_d3d11_device->GetImmediateContext(m_d3d11_device_context.GetAddressOf());
 
     DXGI_SWAP_CHAIN_DESC desc;
     if (!common_initialize_imgui(swap_chain, &desc, false)) {
-        return;
+        std::terminate();
     }
 
     DXGI_FORMAT back_buffer_format = desc.BufferDesc.Format;
@@ -389,11 +388,13 @@ void D3DModule::d3d11_initialize_imgui(IDXGISwapChain* swap_chain) {
         back_buffer_format = back_buffer_desc.Format;
     }
 
-    const auto imgui_color_space = infer_imgui_color_space(desc.BufferDesc.Format);
-
-    if (!ImGui_ImplDX11_Init(m_d3d11_device, m_d3d11_device_context, imgui_color_space)) {
+    if (!ImGui_ImplDX11_Init(
+        m_d3d11_device,
+        m_d3d11_device_context.Get(),
+        infer_imgui_color_space(desc.BufferDesc.Format)
+    )) {
         dlog::error("Failed to initialize ImGui D3D11");
-        return;
+        std::terminate();
     }
 
     m_is_initialized = true;
@@ -405,13 +406,12 @@ void D3DModule::d3d12_deinitialize_imgui() {
     dlog::debug("Uninitializing D3D12 ImGui");
 
     ImGui_ImplDX12_Shutdown();
-    m_d3d12_frame_contexts.clear();
-    m_d3d12_back_buffers = nullptr;
-    m_d3d12_srv_heap = nullptr;
-    m_d3d12_command_list = nullptr;
     m_d3d12_fence = nullptr;
     m_d3d12_fence_value = 0;
     m_d3d12_buffer_count = 0;
+    m_d3d12_frame_contexts.clear();
+    m_d3d12_command_list = nullptr;
+    m_d3d12_back_buffer_heap = nullptr;
 
     ImGui_ImplWin32_Shutdown();
 }
@@ -428,12 +428,7 @@ void D3DModule::d3d11_deinitialize_imgui() {
 TextureHandle D3DModule::load_texture(const char* path, u32* out_width, u32* out_height) {
     const auto& self = NativePluginFramework::get_module<D3DModule>();
     if (!self->m_texture_manager) {
-        dlog::error("Cannot load texture during Buffer Resize event");
-        return nullptr;
-    }
-
-    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
-        dlog::error("Cannot load texture during Buffer Resize event (D3D12)");
+        dlog::error("Cannot load texture before first D3D present");
         return nullptr;
     }
 
@@ -452,12 +447,7 @@ void D3DModule::unload_texture(TextureHandle handle) {
 TextureHandle D3DModule::register_texture(void* texture, void* srv) {
     const auto& self = NativePluginFramework::get_module<D3DModule>();
     if (!self->m_texture_manager) {
-        dlog::error("Cannot register texture during Buffer Resize event");
-        return nullptr;
-    }
-
-    if (self->m_is_d3d12 && !self->m_d3d12_command_queue) {
-        dlog::error("Cannot register texture during Buffer Resize event (D3D12)");
+        dlog::error("Cannot unload texture before first D3D present");
         return nullptr;
     }
 
@@ -648,6 +638,8 @@ HRESULT D3DModule::d3d11_present_hook(IDXGISwapChain* swap_chain, UINT sync_inte
                     self->m_d3d11_device,
                     self->m_d3d11_device_context
                 );
+            } else {
+                self->m_texture_manager->update_context(self->m_d3d11_device_context);
             }
 
             if (config.get_primitive_rendering_enabled()) {
@@ -671,7 +663,7 @@ void D3DModule::d3d11_present_hook_core(IDXGISwapChain* swap_chain, const std::s
 
     if (config.get_primitive_rendering_enabled()) {
         m_core_render();
-        prm->render_primitives_for_d3d11(m_d3d11_device_context);
+        prm->render_primitives_for_d3d11(m_d3d11_device_context.Get());
     }
 
     ImGui_ImplDX11_NewFrame();
@@ -755,10 +747,6 @@ HRESULT D3DModule::d3d_resize_buffers_hook(IDXGISwapChain* swap_chain, UINT buff
         } else {
             self->d3d11_deinitialize_imgui();
         }
-    }
-
-    if (self->m_texture_manager) {
-        self->m_texture_manager.reset();
     }
 
     prm->shutdown();

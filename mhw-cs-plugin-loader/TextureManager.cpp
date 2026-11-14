@@ -10,7 +10,7 @@ TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_que
     }
 }
 
-TextureManager::TextureManager(ID3D11Device* device, ID3D11DeviceContext* context)
+TextureManager::TextureManager(ID3D11Device* device, const ComPtr<ID3D11DeviceContext>& context)
     : m_is_d3d12(false), m_device11(device), m_context11(context) {}
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
@@ -96,9 +96,7 @@ TextureHandle TextureManager::register_texture(void* texture, void *srv_from_gam
 
 TextureHandle TextureManager::load_texture(std::string_view path, u32* out_width, u32* out_height) {
     TextureHandle handle;
-    TextureEntry entry{
-        .Path = std::string(path)
-    };
+    TextureEntry entry{ .Path = std::string(path) };
 
     if (m_is_d3d12) {
         ComPtr<ID3D12Resource> resource = load_texture12(path, out_width, out_height);

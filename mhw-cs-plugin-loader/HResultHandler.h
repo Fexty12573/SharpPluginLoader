@@ -1,8 +1,6 @@
 #pragma once
 #include "Log.h"
 
-#include <intsafe.h>
-
 class HResultHandler {
 public:
     static inline void Handle(HRESULT hr, const char* file, int line) {

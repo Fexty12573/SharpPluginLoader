@@ -129,14 +129,15 @@ private:
     #pragma region D3D12
 
     ID3D12Device* m_d3d12_device = nullptr;
-    ComPtr<ID3D12DescriptorHeap> m_d3d12_back_buffers = nullptr;
-    ComPtr<ID3D12DescriptorHeap> m_d3d12_srv_heap = nullptr;
-    ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
     ID3D12CommandQueue* m_d3d12_command_queue = nullptr;
     ID3D12Fence* m_d3d12_fence = nullptr;
     UINT64 m_d3d12_fence_value = 0;
+
     UINT32 m_d3d12_buffer_count = 0;
     std::vector<FrameContext> m_d3d12_frame_contexts;
+    ComPtr<ID3D12GraphicsCommandList> m_d3d12_command_list = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_back_buffer_heap = nullptr;
+    ComPtr<ID3D12DescriptorHeap> m_d3d12_srv_heap = nullptr;
 
     static constexpr u32 D3D12_DESCRIPTOR_HEAP_SIZE = TextureManager::DESCRIPTOR_HEAP_SIZE;
 
@@ -145,7 +146,7 @@ private:
     #pragma region D3D11
 
     ID3D11Device* m_d3d11_device = nullptr;
-    ID3D11DeviceContext* m_d3d11_device_context = nullptr;
+    ComPtr<ID3D11DeviceContext> m_d3d11_device_context = nullptr;
 
     #pragma endregion
 

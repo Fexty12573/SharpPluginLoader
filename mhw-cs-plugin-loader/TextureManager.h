@@ -25,8 +25,8 @@ class TextureManager {
     };
 
 public:
-    explicit TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue, const ComPtr<ID3D12DescriptorHeap>& heap);
     explicit TextureManager(ID3D11Device* device, const ComPtr<ID3D11DeviceContext>& context);
+    explicit TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue, const ComPtr<ID3D12DescriptorHeap>& heap);
 
     TextureHandle register_texture(void* texture, void* srv_from_game);
     TextureHandle load_texture(std::string_view path, u32* out_width, u32* out_height);
@@ -55,11 +55,12 @@ private:
 private:
     bool m_is_d3d12;
     bool m_supports_type_cast = false;
-    ID3D12Device* m_device12 = nullptr;
     ID3D11Device* m_device11 = nullptr;
+    ID3D12Device* m_device12 = nullptr;
     ComPtr<ID3D11DeviceContext> m_context11 = nullptr;
     ID3D12CommandQueue* m_command_queue12 = nullptr;
     std::unique_ptr<DirectX::DescriptorHeap> m_descriptor_heap12;
+
     std::unordered_map<TextureHandle, TextureEntry> m_textures;
 
     u32 m_next_descriptor_index = 1; // 0 is reserved for the ImGui font texture

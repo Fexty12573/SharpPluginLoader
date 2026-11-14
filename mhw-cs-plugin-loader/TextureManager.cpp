@@ -1,6 +1,9 @@
 #include "TextureManager.h"
 #include "HResultHandler.h"
 
+TextureManager::TextureManager(ID3D11Device* device, const ComPtr<ID3D11DeviceContext>& context)
+    : m_is_d3d12(false), m_device11(device), m_context11(context) {}
+
 TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_queue, const ComPtr<ID3D12DescriptorHeap>& heap)
     : m_is_d3d12(true), m_device12(device), m_command_queue12(cmd_queue)
     , m_descriptor_heap12(std::make_unique<DirectX::DescriptorHeap>(heap.Get())) {
@@ -9,9 +12,6 @@ TextureManager::TextureManager(ID3D12Device* device, ID3D12CommandQueue* cmd_que
         m_supports_type_cast = options3.CastingFullyTypedFormatSupported;
     }
 }
-
-TextureManager::TextureManager(ID3D11Device* device, const ComPtr<ID3D11DeviceContext>& context)
-    : m_is_d3d12(false), m_device11(device), m_context11(context) {}
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/converting-data-color-space
 // The _SRGB format modifier causes an sRGB-to-linear conversion of the texture data at

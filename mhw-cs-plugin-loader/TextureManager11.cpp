@@ -43,7 +43,7 @@ TextureManager::ComPtr<ID3D11ShaderResourceView> TextureManager::load_texture11(
 
         HandleResult(DirectX::CreateWICTextureFromFileEx(
             m_device11,
-            m_context11,
+            m_context11.Get(),
             file.c_str(),
             0,
             D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,

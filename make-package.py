@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import os
 
+
 def main(sln_dir, config, tag, skip_build):
     if not os.path.isdir(sln_dir):
         print(f"Error: {sln_dir} is not a directory")
@@ -19,9 +20,9 @@ def main(sln_dir, config, tag, skip_build):
         msbuild = shutil.which("MSBuild.exe")
         if not msbuild and "ProgramFiles" in os.environ:
             # search for MSBuild in the default VS 2026 then VS 2022 install directories
-            msbuild = f"{os.environ["ProgramFiles"]}\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+            msbuild = f"{os.environ['ProgramFiles']}\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
             if not os.path.isfile(msbuild):
-                msbuild = f"{os.environ["ProgramFiles"]}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+                msbuild = f"{os.environ['ProgramFiles']}\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
         if not msbuild or not os.path.isfile(msbuild):
             print("Error: MSBuild.exe not found")
             return False
@@ -38,11 +39,19 @@ def main(sln_dir, config, tag, skip_build):
     os.makedirs(loader_dir, exist_ok=True)
     os.makedirs(tag_dir, exist_ok=True)
 
-    boostrapper_src = os.path.join(sln_dir, "SharpPluginLoader.Bootstrapper/bin", config, "net8.0", "SharpPluginLoader.Bootstrapper.dll")
+    boostrapper_src = os.path.join(
+        sln_dir,
+        "SharpPluginLoader.Bootstrapper/bin",
+        config,
+        "net11.0",
+        "SharpPluginLoader.Bootstrapper.dll",
+    )
     boostrapper_dst = os.path.join(loader_dir, "SharpPluginLoader.Bootstrapper.dll")
 
     core_name = "SharpPluginLoader.Core.dll"
-    core_src = os.path.join(sln_dir, "SharpPluginLoader.Core/bin", config, "net8.0", core_name)
+    core_src = os.path.join(
+        sln_dir, "SharpPluginLoader.Core/bin", config, "net11.0", core_name
+    )
     core_dst = os.path.join(loader_dir, core_name)
 
     chunk_name = "Default.bin" if config == "Release" else "Default.Debug.bin"
@@ -53,7 +62,9 @@ def main(sln_dir, config, tag, skip_build):
     native_winmm_dst = os.path.join(root_dir_win32, "winmm.dll")
     native_ucrtbase_dst = os.path.join(root_dir_linux, "ucrtbase.dll")
 
-    runtimeconfig_src = os.path.join(sln_dir, "mhw-cs-plugin-loader/SharpPluginLoader.runtimeconfig.json")
+    runtimeconfig_src = os.path.join(
+        sln_dir, "mhw-cs-plugin-loader/SharpPluginLoader.runtimeconfig.json"
+    )
     runtimeconfig_dst = os.path.join(loader_dir, "SharpPluginLoader.runtimeconfig.json")
 
     # copy the files for windows (winmm.dll)
@@ -69,8 +80,16 @@ def main(sln_dir, config, tag, skip_build):
     os.remove(os.path.join(root_dir_linux, "winmm.dll"))
 
     # create the zip file
-    zip_name_win32 = f"SharpPluginLoader-{tag}-{config}-win32" if config == "Debug" else f"SharpPluginLoader-{tag}-win32"
-    zip_name_linux = f"SharpPluginLoader-{tag}-{config}-linux" if config == "Debug" else f"SharpPluginLoader-{tag}-linux"
+    zip_name_win32 = (
+        f"SharpPluginLoader-{tag}-{config}-win32"
+        if config == "Debug"
+        else f"SharpPluginLoader-{tag}-win32"
+    )
+    zip_name_linux = (
+        f"SharpPluginLoader-{tag}-{config}-linux"
+        if config == "Debug"
+        else f"SharpPluginLoader-{tag}-linux"
+    )
     zip_path_win32 = os.path.join(tag_dir, zip_name_win32)
     zip_path_linux = os.path.join(tag_dir, zip_name_linux)
 
@@ -82,17 +101,37 @@ def main(sln_dir, config, tag, skip_build):
 
     return True
 
+
 def usage(parser: argparse.ArgumentParser):
     parser.print_help()
     exit(1)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create a release of the plugin loader", add_help=False)
+    parser = argparse.ArgumentParser(
+        description="Create a release of the plugin loader", add_help=False
+    )
     parser.add_argument("-h", "--help", action="help", help="Show this message")
-    parser.add_argument("-s", "--skip-build", help="Skip building the solution", action="store_true")
-    parser.add_argument("-c", "--config", help="The configuration to build", default="Release", choices=["Release", "Debug"], type=str.capitalize)
-    parser.add_argument("tag", help="The tag to use for the release in the format x.x.x[.x]", nargs="?", default="latest")
-    parser.add_argument("sln_dir", help="The directory of the solution", nargs="?", default=".")
+    parser.add_argument(
+        "-s", "--skip-build", help="Skip building the solution", action="store_true"
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="The configuration to build",
+        default="Release",
+        choices=["Release", "Debug"],
+        type=str.capitalize,
+    )
+    parser.add_argument(
+        "tag",
+        help="The tag to use for the release in the format x.x.x[.x]",
+        nargs="?",
+        default="latest",
+    )
+    parser.add_argument(
+        "sln_dir", help="The directory of the solution", nargs="?", default="."
+    )
     args = parser.parse_args()
 
     if not main(args.sln_dir, args.config, args.tag, args.skip_build):

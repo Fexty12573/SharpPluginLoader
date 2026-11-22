@@ -6,7 +6,7 @@ If you want to learn more about the API, check out the [API Reference](../API/in
 You can also check some more advanced examples in the [Examples](../Examples/index.md) page.
 
 ## Creating a new project
-To get started, open Visual Studio and create a new project. Select the **Class Library (.NET)** template. Make sure the target framework is set to **.NET 8.0**.
+To get started, open Visual Studio and create a new project. Select the **Class Library (.NET)** template. Make sure the target framework is set to **.NET 11.0**.
 Once created, right click your project in the Solution Explorer and select **Manage NuGet Packages...**. In the **Browse** tab, search for `SharpPluginLoader.Core`.
 Install the latest version of the package. 
 

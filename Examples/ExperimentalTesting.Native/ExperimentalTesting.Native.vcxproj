@@ -71,10 +71,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)Examples\ExperimentalTesting\bin\$(Configuration)\net8.0\</OutDir>
+    <OutDir>$(SolutionDir)Examples\ExperimentalTesting\bin\$(Configuration)\net11.0\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)Examples\ExperimentalTesting\bin\$(Configuration)\net8.0\</OutDir>
+    <OutDir>$(SolutionDir)Examples\ExperimentalTesting\bin\$(Configuration)\net11.0\</OutDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>

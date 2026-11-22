@@ -1,6 +1,6 @@
 # Installation
 ## Windows
-The mod is based on .NET 8. You will need to install the [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0/runtime) to use it.
+The mod is based on .NET 11. You will need to install the [.NET 11.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0/runtime) to use it.
 Grab the x64 Desktop Runtime and install it.
 
 Once you have the .NET runtime installed you can grab the latest release from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases).
@@ -13,7 +13,7 @@ If you're running the game _without_ Steam and it's immediately closing on start
 ## Linux (Proton/Wine)
 As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below are the steps to install and run SPL on Linux.
 
-1. Install .NET Desktop Runtime 8.0 and Direct 3D Shader Compiler using [protontricks](https://github.com/Matoking/protontricks):
+1. Install .NET Desktop Runtime 11.0 and Direct 3D Shader Compiler using [protontricks](https://github.com/Matoking/protontricks):
 ```bash
 protontricks 582010 dotnetdesktop8 d3dcompiler_47
 ```

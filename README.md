@@ -10,25 +10,25 @@
     <br></br>
 </div>
 
-A C# plugin loader for Monster Hunter World based on .NET 8.0.
+A C# plugin loader for Monster Hunter World based on .NET 11.0.
 
 For more detailed documentation and tutorials, visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/).
 
 ## How to use
 
-1. Install [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (Get the **.NET Desktop Runtime 8.0.x**)
+1. Install [.NET 11.0](https://dotnet.microsoft.com/en-us/download/dotnet/11.0) (Get the **.NET Desktop Runtime 11.0.x**)
 2. Download the latest release from the [releases page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into your Monster Hunter World directory.
 
 ## Plugin Development
 
 For more detailed instructions visit the [wiki](https://fexty12573.github.io/SharpPluginLoader/Development/).
 
-1. Install the Visual Studio 2022 17.8 Preview 2 or later.
-2. Create a new **.NET 8.0** class library project and add a reference to the `SharpPluginLoader.Core` NuGet package.
+1. Install Visual Studio 2026.
+2. Create a new **.NET 11.0** class library project and add a reference to the `SharpPluginLoader.Core` NuGet package.
 3. Create a class that implements the `SharpPluginLoader.Core.IPlugin` interface.
 4. Put the compiled assembly into `nativePC/plugins/CSharp`. Assemblies are also allowed to be in subdirectories.
 
-## Framework Development (with Visual Studio 2022)
+## Framework Development (with Visual Studio 2026)
 
 1. Clone the repository with submodules:
    1. `git clone --recursive git@github.com:Fexty12573/SharpPluginLoader.git`
@@ -38,7 +38,7 @@ For more detailed instructions visit the [wiki](https://fexty12573.github.io/Sha
 3. Generate cimgui VS project:
    1. Open `Developer PowerShell for Visual Studio`
    2. `cd SharpPluginLoader\dependencies\cimgui\`
-   3. `cmake -B . -G 'Visual Studio 17 2022'`
+   3. `cmake -B . -G 'Visual Studio 18 2026'`
 4. Open `mhw-cs-plugin-loader.slnx`
 5. Build solution `Build -> Build Solution`
 
@@ -94,3 +94,4 @@ If you would like to contribute, feel free to fork the repository and make a PR.
 - ImDevinC: Lots of testing and feedback to get Linux support working
 - jn64: Writing the complete Linux installation instructions
 - Ando: Writing the preloader and generally improving the native side
+- Pizzabelly: [Many improvements](https://github.com/Fexty12573/SharpPluginLoader/pulls?q=is%3Apr+author%3APizzabelly) to the rendering side of the loader

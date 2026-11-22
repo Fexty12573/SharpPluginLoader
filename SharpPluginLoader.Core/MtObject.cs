@@ -1,4 +1,7 @@
-﻿namespace SharpPluginLoader.Core
+﻿using SharpPluginLoader.Core.Memory;
+using SharpPluginLoader.Core.Memory.Windows;
+
+namespace SharpPluginLoader.Core
 {
     /// <summary>
     /// This class represents the base of most game objects, and serves as a wrapper around the native object.
@@ -7,6 +10,49 @@
     {
         public MtObject(nint instance) : base(instance) { }
         public MtObject() { }
+
+        /// <summary>
+        /// Checks if the given address points to an instance (or subclass) of MtObject. Does not make any allocations.
+        /// </summary>
+        /// <remarks>
+        /// Note: This function cannot be relied upon 100% of the time. It does not
+        /// validate the passed in pointer besides a null-check. If you pass in an
+        /// invalid (but non-zero) address, this will likely result in an access violation.
+        /// </remarks>
+        /// <param name="addr">The address to check</param>
+        /// <param name="checkDtiGetter">Whether to also check the DTI getter function. More accurate but slighly slower.</param>
+        /// <returns>True if addr points to an instance of MtObject.</returns>
+        public static bool IsInstance(nint addr, bool checkDtiGetter = true)
+        {
+            if (addr == 0)
+                return false;
+
+            var (baseAddr, size) = WinApi.GetExecutableExtents();
+            if (size == 0)
+                return false;
+
+            // MtObject vtables are always at least 0x28 bytes in size (>=5 entries)
+            var potentialVtable = MemoryUtil.Read<nint>(addr);
+            if (potentialVtable < baseAddr || potentialVtable + 0x28 > baseAddr + size)
+                return false;
+
+            if (!checkDtiGetter)
+                return true;
+
+            var potentialGetDti = MemoryUtil.Read<nint>(potentialVtable + 0x20);
+            if (potentialGetDti < baseAddr || potentialGetDti + 9 > baseAddr + size)
+                return false;
+
+            // GetDti functions always have the form
+            // lea rax, [<dti>]
+            // ret
+            // So we can pattern match on that.
+            return MemoryUtil.AsSpan<byte>(potentialGetDti, 8) switch
+            {
+                [0x48, 0x8D, 0x05, _, _, _, _, 0xC3] => true,
+                _ => false,
+            };
+        }
 
         /// <summary>
         /// Casts this object to the specified MtObject subclass.

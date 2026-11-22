@@ -52,6 +52,22 @@ namespace SharpPluginLoader.Core.Memory.Windows
             return metadataReader.IsAssembly;
         }
 
+        /// <summary>
+        /// Gets the base address and size of the games executable.
+        /// </summary>
+        /// <returns>(base, size)</returns>
+        public static (nint, uint) GetExecutableExtents()
+        {
+            var module = GetModuleHandle("MonsterHunterWorld.exe");
+            if (module == 0)
+                return (0, 0);
+
+            var moduleInfo = new ModuleInfo();
+            return GetModuleInformation(GetCurrentProcess(), module, out moduleInfo, (uint)Marshal.SizeOf(moduleInfo))
+                ? (moduleInfo.BaseOfDll, moduleInfo.SizeOfImage)
+                : (0, 0);
+        }
+
         private static FileStream? TryOpenFileStream(string path, TimeSpan timeout)
         {
             var stopwatch = Stopwatch.StartNew();

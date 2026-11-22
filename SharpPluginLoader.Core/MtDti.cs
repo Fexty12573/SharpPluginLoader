@@ -1,6 +1,6 @@
-﻿using System.Runtime.InteropServices;
-using SharpPluginLoader.Core.Dti;
+﻿using SharpPluginLoader.Core.Dti;
 using SharpPluginLoader.Core.Memory;
+using System.Runtime.InteropServices;
 
 namespace SharpPluginLoader.Core
 {
@@ -11,6 +11,30 @@ namespace SharpPluginLoader.Core
     {
         private unsafe nint NewInstance() => ((delegate* unmanaged<nint, nint>)GetVirtualFunction(1))(Instance);
         private unsafe nint CtorInstance(nint obj) => ((delegate* unmanaged<nint, nint, nint>)GetVirtualFunction(2))(Instance, obj);
+
+        /// <summary>
+        /// Reads the DTI pointer from the given address without constructing an MtObject instance.
+        /// </summary>
+        /// <param name="addr">An address pointing to an instance (or subclass) of MtObject.</param>
+        /// <returns>The DTI of that object, or <see langword="null"/> if it's invalid.</returns>
+        public static MtDti? OfMtObject(nint addr)
+        {
+            if (addr == 0)
+                return null;
+
+            var vtable = MemoryUtil.Read<nint>(addr);
+            if (vtable == 0)
+                return null;
+
+            var getDti = MemoryUtil.Read<nint>(vtable + 0x20);
+            if (getDti == 0)
+                return null;
+
+            var offset = MemoryUtil.Read<int>(getDti + 3);
+            var dti = getDti + 7 + offset;
+
+            return new MtDti(dti);
+        }
 
         /// <summary>
         /// Constructs a new instance of <see cref="MtDti"/> with the specified native pointer.

@@ -20,10 +20,10 @@ if "%2" == "Debug" (
 )
 
 :: Copy AddressRecords.json
-mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net8.0\Data" 2> NUL
-mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net8.0\Data.Debug" 2> NUL
+mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net11.0\Data" 2> NUL
+mkdir "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net11.0\Data.Debug" 2> NUL
 
 :: Invoke ChunkBuilder
-call "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net8.0\ChunkBuilder.exe"^
+call "%SOLUTION_DIR%\ChunkBuilder\bin\%CONFIGURATION%\net11.0\ChunkBuilder.exe"^
  "%SOLUTION_DIR%\Assets\AssetList.%CONFIGURATION%.txt"^
  ShaderDir="%SOLUTION_DIR%\mhw-cs-plugin-loader\Shaders\";AssetDir="%SOLUTION_DIR%\Assets\"

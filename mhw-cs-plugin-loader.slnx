@@ -62,6 +62,10 @@
   </Folder>
   <Folder Name="/Native/">
     <Project Path="dependencies/cimgui/cimgui.vcxproj" Id="56f04c3c-a690-34fc-a27a-995c51114a40" />
+    <Project Path="mhw-cs-plugin-loader/Launcher/Launcher.vcxproj" Id="1fa71114-1187-4059-9523-196a234c1b94">
+      <BuildType Solution="MinSizeRel|*" Project="Release" />
+      <BuildType Solution="RelWithDebInfo|*" Project="Debug" />
+    </Project>
     <Project Path="mhw-cs-plugin-loader/mhw-cs-plugin-loader.vcxproj" Id="9267fd61-f5bf-4190-b327-8385f8576479">
       <BuildType Solution="MinSizeRel|*" Project="Release" />
       <BuildType Solution="RelWithDebInfo|*" Project="Release" />

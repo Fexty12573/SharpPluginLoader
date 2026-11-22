@@ -1,6 +1,6 @@
 # Installation
 ## Windows
-The mod is based on .NET 11. You will need to install the [.NET 11.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0/runtime) to use it.
+The mod is based on .NET 11. You will need to install the [.NET 11.0 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/11.0/runtime) to use it.
 Grab the x64 Desktop Runtime and install it.
 
 Once you have the .NET runtime installed you can grab the latest release from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases).
@@ -15,7 +15,7 @@ As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below 
 
 1. Install .NET Desktop Runtime 11.0 and Direct 3D Shader Compiler using [protontricks](https://github.com/Matoking/protontricks):
 ```bash
-protontricks 582010 dotnetdesktop8 d3dcompiler_47
+protontricks 582010 dotnetdesktop11 d3dcompiler_47
 ```
 2. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `ucrtbase.dll` file in the same directory as `MonsterHunterWorld.exe`.
 3. Set the Steam launch options for MHW as follows:

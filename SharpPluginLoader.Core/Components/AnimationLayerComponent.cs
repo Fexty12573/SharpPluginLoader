@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.Marshalling;
-using SharpPluginLoader.Core.Entities;
+﻿using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Memory;
 using SharpPluginLoader.Core.Resources;
 
@@ -146,6 +145,7 @@ namespace SharpPluginLoader.Core.Components
 
 
         internal unsafe NativeArray<nint> MotionLists => new((nint)GetPtrInline<nint>(0xE120), 16);
+        internal unsafe NativeArray<nint> MotionLists2 => new((nint)GetPtrInline<nint>(0xE1A0), 16);
 
         internal static void Initialize()
         {

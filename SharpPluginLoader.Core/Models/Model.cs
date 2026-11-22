@@ -1,12 +1,7 @@
-﻿using SharpPluginLoader.Core.MtTypes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SharpPluginLoader.Core.Components;
+using SharpPluginLoader.Core.MtTypes;
 using SharpPluginLoader.Core.Resources;
-using SharpPluginLoader.Core.Components;
+using System.Numerics;
 
 namespace SharpPluginLoader.Core.Models
 {
@@ -156,6 +151,25 @@ namespace SharpPluginLoader.Core.Models
                     yield break;
 
                 foreach (var lmt in animLayer.MotionLists)
+                {
+                    if (lmt != 0)
+                        yield return new MotionList(lmt);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The model's second set of motion lists.
+        /// </summary>
+        public IEnumerable<MotionList> MotionLists2
+        {
+            get
+            {
+                var animLayer = AnimationLayer;
+                if (animLayer == null)
+                    yield break;
+
+                foreach (var lmt in animLayer.MotionLists2)
                 {
                     if (lmt != 0)
                         yield return new MotionList(lmt);

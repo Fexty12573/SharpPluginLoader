@@ -54,12 +54,12 @@
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
     <VcpkgUseMD>true</VcpkgUseMD>
-    <VcpkgAdditionalInstallOptions>--overlay-triplets=..\</VcpkgAdditionalInstallOptions>
+    <VcpkgAdditionalInstallOptions>--overlay-triplets=$(SolutionDir)</VcpkgAdditionalInstallOptions>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>true</VcpkgEnabled>
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
-    <VcpkgAdditionalInstallOptions>--overlay-triplets=..\</VcpkgAdditionalInstallOptions>
+    <VcpkgAdditionalInstallOptions>--overlay-triplets=$(SolutionDir)</VcpkgAdditionalInstallOptions>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

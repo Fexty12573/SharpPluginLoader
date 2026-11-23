@@ -13,12 +13,17 @@ If you're running the game _without_ Steam and it's immediately closing on start
 ## Linux (Proton/Wine)
 As of version 0.0.7.2, SPL officially supports Linux through Proton/Wine. Below are the steps to install and run SPL on Linux.
 
-1. Install .NET Desktop Runtime 11.0 and Direct 3D Shader Compiler using [protontricks](https://github.com/Matoking/protontricks):
+1. Download the x64 installer for [.NET Desktop Runtime 11](https://dotnet.microsoft.com/en-us/download/dotnet/11.0#:~:text=The-,.NET%20Desktop%20Runtime)
+2. Run the installer via [protontricks](https://github.com/Matoking/protontricks):
 ```bash
-protontricks 582010 dotnetdesktop11 d3dcompiler_47
+protontricks-launch --appid 582010 path/to/windowsdesktop-runtime-11.x.x-win-x64.exe
 ```
-2. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `ucrtbase.dll` file in the same directory as `MonsterHunterWorld.exe`.
-3. Set the Steam launch options for MHW as follows:
+3. Install  Direct 3D Shader Compiler using protontricks:
+```bash
+protontricks 582010 d3dcompiler_47
+```
+4. Download the latest linux release of SPL (`SharpPluginLoader-<version>-linux.zip`) from the [Releases Page](https://github.com/Fexty12573/SharpPluginLoader/releases) and extract it into the game's root directory. After doing so you should have a `ucrtbase.dll` file in the same directory as `MonsterHunterWorld.exe`.
+5. Set the Steam launch options for MHW as follows:
 ```bash
 # Use this for SPL only
 WINEDLLOVERRIDES="ucrtbase=n,b" %command%

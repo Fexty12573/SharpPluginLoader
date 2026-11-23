@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SharpPluginLoader.Core.IO
+﻿namespace SharpPluginLoader.Core.IO
 {
     /// <summary>
     /// The buttons on a keyboard.
@@ -171,5 +165,14 @@ namespace SharpPluginLoader.Core.IO
         MyComputer = 235, // 0x000000EB
         Mail = 236, // 0x000000EC
         MediaSelect = 237, // 0x000000ED
+        // Meta "keys" not in KbVkTable.
+        LeftMouse = 238,
+        RightMouse = 239,
+        MiddleMouse = 240,
+        Mouse4 = 241,
+        Mouse5 = 242,
+        Shift = 243, // Represents "Left or Right" for modifiers.
+        Control = 244,
+        Alt = 245
     }
 }

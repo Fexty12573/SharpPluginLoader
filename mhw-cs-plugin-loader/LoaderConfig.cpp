@@ -20,6 +20,7 @@ namespace preloader {
                 {"PrimitiveRenderingEnabled", c.PrimitiveRenderingEnabled},
                 {"MenuKey", c.MenuKey},
                 {"KeyboardNavigation", c.Gui.KeyboardNavigation},
+                {"GamepadNavigation", c.Gui.GamepadNavigation},
                 {"FontScale", c.Gui.FontScale},
                 {"WindowTransparency", c.Gui.WindowTransparency},
             }}
@@ -40,6 +41,7 @@ namespace preloader {
             json_try_get(spl, "PrimitiveRenderingEnabled", c.PrimitiveRenderingEnabled);
             json_try_get(spl, "MenuKey", c.MenuKey);
             json_try_get(spl, "KeyboardNavigation", c.Gui.KeyboardNavigation);
+            json_try_get(spl, "GamepadNavigation", c.Gui.GamepadNavigation);
             json_try_get(spl, "FontScale", c.Gui.FontScale);
             json_try_get(spl, "WindowTransparency", c.Gui.WindowTransparency);
         }

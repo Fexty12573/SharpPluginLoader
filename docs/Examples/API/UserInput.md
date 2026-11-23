@@ -26,3 +26,85 @@ KeyBindings.AddKeybind("MyHotkey", Key.L, [ Key.LeftControl, Key.LeftShift ]);
 if (KeyBindings.IsPressed("MyHotkey"))
     Log.Info("My hotkey was pressed!");
 ```
+
+## Input Blocking
+If you want to handle input but also keep it from reaching the game, you can use `Input.Block()` functions.
+
+To ensure consistency, input blocking has to be done from `OnPadUpdate()`, `OnMouseUpdate()`, and `OnKeyboardUpdate()` respectively.
+
+```csharp
+public void OnPadUpdate()
+{
+    if (!Input.PadCaptured)
+    {
+        if (wantJoystick)
+        {
+            int PadRx = Input.GetPadRx(), PadRy = Input.GetPadRy();
+            const int stickDeadzone = 4750;
+            if (Math.Abs(PadRx) < stickDeadzone) PadRx = 0;
+            if (Math.Abs(PadRy) < stickDeadzone) PadRy = 0;
+            // Process right stick.
+
+            Input.BlockPadRx();
+            Input.BlockPadRy();
+        }
+
+        if (wantPad)
+        {
+            if (Input.IsPressed(Button.Cross))
+            {
+                // Process Cross/A.
+            }
+
+            if (Input.GetPadLz() > 200)
+            {
+                // Process left trigger mostly down.
+            }
+
+            if (Input.IsDown(Button.R3) && Input.IsPressed(Button.Up))
+            {
+                // Process R3/RStick + D-Pad Up.
+            }
+
+            Input.BlockPad();
+        }
+    }
+}
+
+public void OnMouseUpdate()
+{
+    if (wantMouse && !Input.MouseCaptured)
+    {
+        if (Input.IsPressed(Mouse.Left))
+        {
+            // Process left click.
+        }
+
+        if (Input.IsPressed(Mouse.Right))
+        {
+            // Process right click.
+        }
+
+        Input.BlockMouseClicks();
+    }
+}
+
+public void OnKeyboardUpdate()
+{
+    if (wantKeyboard && !Input.KeyboardCaptured)
+    {
+        if (Input.IsPressed(Key.Up))
+        {
+            // Process up.
+        }
+
+        if (Input.IsPressed(Key.Down))
+        {
+            // Process down.
+        }
+
+        Input.Block(Key.Up);
+        Input.Block(Key.Down);
+    }
+}
+```

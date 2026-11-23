@@ -29,7 +29,7 @@
 #include <dwmapi.h>
 
 // Configuration flags to add in your imconfig.h file:
-//#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support. This was meaningful before <1.81 but we now load XInput dynamically so the option is now less relevant.
+#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support. This was meaningful before <1.81 but we now load XInput dynamically so the option is now less relevant.
 
 // Using XInput for gamepad (will load DLL dynamically)
 #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
@@ -221,11 +221,12 @@ void    ImGui_ImplWin32_Shutdown()
 #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
     if (bd->XInputDLL)
         ::FreeLibrary(bd->XInputDLL);
+    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
 #endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 
     io.BackendPlatformName = nullptr;
     io.BackendPlatformUserData = nullptr;
-    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
     IM_DELETE(bd);
 }
 

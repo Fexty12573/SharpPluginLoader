@@ -6,6 +6,7 @@ using SharpPluginLoader.Core.Entities;
 using SharpPluginLoader.Core.Networking;
 using SharpPluginLoader.Core.Resources;
 using SharpPluginLoader.Core.Rendering;
+using SharpPluginLoader.Core.IO;
 
 namespace SharpPluginLoader.Core
 {
@@ -123,6 +124,15 @@ namespace SharpPluginLoader.Core
         internal bool OnSendPacket;
         internal bool OnReceivePacket;
         internal bool OnLobbySearch;
+        #endregion
+
+        #region Input
+        /// <inheritdoc cref="IPlugin.OnPadUpdate"/>
+        internal bool OnPadUpdate;
+        /// <inheritdoc cref="IPlugin.OnMouseUpdate"/>
+        internal bool OnMouseUpdate;
+        /// <inheritdoc cref="IPlugin.OnKeyboardUpdate"/>
+        internal bool OnKeyboardUpdate;
         #endregion
 
         #region Rendering
@@ -481,6 +491,31 @@ namespace SharpPluginLoader.Core
         /// </remarks>
         [PluginEvent]
         public void OnLobbySearch(ref int maxResults) => throw new NotImplementedException();
+        #endregion
+
+        #region Input
+        /// <summary>
+        /// Gets called at the earliest point new input can be read and the optimal place it can be blocked.
+        /// </summary>
+        /// <remarks>
+        /// Check <see cref="Input.PadCaptured"/> to see if the gamepad is captured by the ImGui menu.
+        /// </remarks>
+        [PluginEvent]
+        public void OnPadUpdate() => throw new NotImplementedException();
+
+        /// <inheritdoc cref="OnPadUpdate"/>
+        /// <remarks>
+        /// Check <see cref="Input.MouseCaptured"/> to see if the mouse is captured by the ImGui menu.
+        /// </remarks>
+        [PluginEvent]
+        public void OnMouseUpdate() => throw new NotImplementedException();
+
+        /// <inheritdoc cref="OnPadUpdate"/>
+        /// <remarks>
+        /// Check <see cref="Input.KeyboardCaptured"/> to see if the keyboard is captured by the ImGui menu.
+        /// </remarks>
+        [PluginEvent]
+        public void OnKeyboardUpdate() => throw new NotImplementedException();
         #endregion
 
         #region Rendering
